@@ -1,0 +1,27 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/cubemx/Core/Inc",
+                "${workspaceFolder}/cubemx/Drivers/STM32G0xx_HAL_Driver/Inc",
+                "${workspaceFolder}/cubemx/Drivers/STM32G0xx_HAL_Driver/Inc/Legacy",
+                "${workspaceFolder}/cubemx/Middlewares/Third_Party/FreeRTOS/Source/include",
+                "${workspaceFolder}/cubemx/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2",
+                "${workspaceFolder}/cubemx/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM0",
+                "${workspaceFolder}/cubemx/Drivers/CMSIS/Device/ST/STM32G0xx/Include",
+                "${workspaceFolder}/cubemx/Drivers/CMSIS/Include"
+            ],
+            "defines": [
+                "STM32G0Bxx",
+                "CMSIS_device_header=<stm32g0xx.h>",
+                "USE_HAL_DRIVER",
+                "UAVCAN_CPP_VERSION=UAVCAN_CPP11"
+            ],
+            "compilerPath": "/usr/bin/arm-none-eabi-gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++17"
+        }
+    ],
+    "version": 4
+}
