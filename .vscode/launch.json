@@ -12,9 +12,9 @@
             "executable": "${workspaceFolder}/build/${workspaceFolderBasename}.elf",
             "serverpath": "JLinkGDBServer",
             "servertype": "jlink",
-            "device": "stm32f103re",
+            "device": "stm32g0b1ke",
             "interface": "swd",
-            "runToMain": true
+            "runToEntryPoint": "main"
         },
         {
             "type": "cortex-debug",
@@ -24,9 +24,10 @@
             "executable": "${workspaceFolder}/build/${workspaceFolderBasename}.elf",
             "serverpath": "JLinkGDBServer",
             "servertype": "jlink",
-            "device": "stm32f103re",
+            "device": "stm32g0b1ke",
             "interface": "swd",
-            "rtos": "FreeRTOS"
+            "rtos": "FreeRTOS",
+            "runToEntryPoint": "main"
         },
         {
             "type": "cortex-debug",
@@ -35,7 +36,7 @@
             "cwd": "${workspaceFolder}",
             "executable": "${workspaceFolder}/build/${workspaceFolderBasename}.elf",
             "servertype": "stutil",
-            "device": "stm32f103re",
+            "device": "stm32g0b1ke",
             "runToMain": true
         }
     ]
