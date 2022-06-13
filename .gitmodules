@@ -1,0 +1,6 @@
+[submodule "src/src/STM32Step"]
+	path = src/STM32Step
+	url = https://github.com/zomborid/STM32Step.git
+[submodule "src/src/STM32TimerArray"]
+	path = src/STM32TimerArray
+	url = https://github.com/zomborid/STM32TimerArray.git
