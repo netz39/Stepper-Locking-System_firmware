@@ -3,32 +3,32 @@
 
 #include "gpio.h"
 #include "main.h"
-#include "tim.h"
 
-#include "STM32Step.hpp"
+#include "TeensyStep/src/TeensyStep.h"
 
-GpioPin stepGpio{StepperStep_GPIO_Port, StepperStep_Pin};
-GpioPin dirGpio{StepperDirection_GPIO_Port, StepperDirection_Pin};
-
-TimerArrayControl timerArrayControl(&htim2);
-
-GPIOStepper testStepper(stepGpio, dirGpio);
-PositionControl posControl(timerArrayControl);
+StepControl stepControl;
+Stepper testStepper(StepperStepPin, StepperDirectionPin);
 
 extern "C" void StartDefaultTask(void *)
 {
-    posControl.begin();
+    testStepper.setAcceleration(10000);
+    testStepper.setMaxSpeed(5000);
 
-    testStepper.setAcceleration(1000);
-    testStepper.setMaxSpeed(1000);
-    testStepper.setTargetRel(8000);
+    constexpr auto StepsPerFullRevolution = 200;
+    constexpr auto MicroStepsPerStep = 8;
+    constexpr auto TearDown = 1;
+    constexpr auto NumberRevolutions = 1;
+
+    constexpr auto StepsNeeded =
+        NumberRevolutions * TearDown * MicroStepsPerStep * StepsPerFullRevolution;
 
     HAL_GPIO_WritePin(StepperEnable_GPIO_Port, StepperEnable_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin, GPIO_PIN_SET);
 
-    posControl.move(testStepper);
-    testStepper.setTargetRel(-8000);
-    posControl.move(testStepper);
+    testStepper.setTargetRel(StepsNeeded);
+    stepControl.move(testStepper);
+    // testStepper.setTargetRel(-StepsNeeded);
+    // stepControl.move(testStepper);
 
     HAL_GPIO_WritePin(StepperEnable_GPIO_Port, StepperEnable_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin, GPIO_PIN_RESET);

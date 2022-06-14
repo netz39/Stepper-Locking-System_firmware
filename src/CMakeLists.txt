@@ -23,22 +23,27 @@ set(core_BUILDCONFIGURATION "embedded")
 # Adds the core library
 add_subdirectory(core)
 
-add_compile_definitions(F_CPU=64000000)
+add_compile_definitions(STM32G0xx)
 
 set(INCLUDE_FILES
         src
 
-        src/STM32Step/src
-        src/STM32TimerArray/src
+        src/TeensyStep/src/timer/
+        src/TeensyStep/src/hal_port/
+        src/TeensyStep/src/timer/generic/
+        src/TeensyStep/src/timer/stm32/
         )
 
 set(Sources
         src/Application.cxx
 
-        src/STM32Step/src/stepper/GPIOStepper.cpp
-
-        src/STM32TimerArray/src/Timer.cpp
-        src/STM32TimerArray/src/TimerArrayControl.cpp
+        src/TeensyStep/src/ErrorHandler.cpp
+        src/TeensyStep/src/Stepper.cpp
+        src/TeensyStep/src/hal_port/Port.cpp
+        src/TeensyStep/src/hal_port/HardwareTimer.cpp
+        src/TeensyStep/src/hal_port/timer.c
+        src/TeensyStep/src/timer/stm32/TimerField.cpp
+        src/TeensyStep/src/timer/generic/TickTimer.cpp
         )
 
 # Instructs CMake to build your firmware
