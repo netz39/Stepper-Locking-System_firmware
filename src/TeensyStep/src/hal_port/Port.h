@@ -12,27 +12,16 @@
 #define interrupts() __enable_irq()
 #define noInterrupts() __disable_irq()
 
-#ifdef STM32F103xB
-#define PA3 13
-#define PB0 18
-#define PB7 43
+#define PA3 8
+#define PA5 32
+#define PA6 64
 #define StepperEnablePin PA3
-#define StepperDirectionPin PB0
-#define StepperStepPin PB7
-#endif
-
-#ifdef STM32F103xE
-#define PC15 4
-#define PC10 51
-#define PA15 50
-#define StepperEnablePin PC15
-#define StepperDirectionPin PC10
-#define StepperStepPin PA15
-#endif
+#define StepperDirectionPin PA6
+#define StepperStepPin PA5
 
 /**
- * Write high or low to a pin. The pin number has to be defined for the specific chip. Additionally
- * it has to be part of the pinToGPIOPinNumber() and pinToGPIOBase() functions.
+ * Write high or low to a pin. The pin number has to be defined for the specific chip.
+ * Additionally it has to be part of the pinToGPIOPinNumber() and pinToGPIOBase() functions.
  * @param pin Pin for which the polarity has to be set.
  * @param polarity polarity to set, either 0 or 1.
  */

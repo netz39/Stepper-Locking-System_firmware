@@ -27,7 +27,7 @@
 #include "HardwareTimer.h"
 #include "CFunctions.h"
 #include "Port.h"
-#include "stm32f1xx_ll_tim.h"
+#include "stm32g0xx_ll_tim.h"
 
 #if defined(HAL_TIM_MODULE_ENABLED) && !defined(HAL_TIM_MODULE_ONLY)
 
@@ -40,11 +40,41 @@
 timerObj_t *HardwareTimer_Handle[TIMER_NUM] = {NULL};
 
 /**
+ * @brief  HardwareTimer constructor: make uninitialized timer
+ *         Before calling any methods, call setup to select and setup
+ *         the timer to be used.
+ * @retval None
+ */
+HardwareTimer::HardwareTimer()
+{
+    _timerObj.handle.Instance = nullptr;
+}
+
+/**
  * @brief  HardwareTimer constructor: set default configuration values
+ *         The timer will be usable directly, there is no need to call
+ *         setup(). Using this constructor is not recommended for
+ *         global variables that are automatically initialized at
+ *         startup, since this will happen to early to report any
+ *         errors. Better use the argumentless constructor and call the
+ *         setup() method during initialization later.
  * @param  Timer instance ex: TIM1, ...
  * @retval None
  */
 HardwareTimer::HardwareTimer(TIM_TypeDef *instance)
+{
+    _timerObj.handle.Instance = nullptr;
+    setup(instance);
+}
+
+/**
+ * @brief  HardwareTimer setup: configuration values. Must be called
+ * exactly once before any other methods, except when an instance is
+ * passed to the constructor.
+ * @param  Timer instance ex: TIM1, ...
+ * @retval None
+ */
+void HardwareTimer::setup(TIM_TypeDef *instance)
 {
     uint32_t index = get_timer_index(instance);
     if (index == UNKNOWN_TIMER)
@@ -115,13 +145,20 @@ void HardwareTimer::pause()
     __HAL_TIM_DISABLE_IT(&(_timerObj.handle), TIM_IT_CC3);
     __HAL_TIM_DISABLE_IT(&(_timerObj.handle), TIM_IT_CC4);
 
-    // Disable timer unconditionally
-    HAL_TIM_Base_Stop(&_timerObj.handle);
+    // Stop timer. Required to restore HAL State: HAL_TIM_STATE_READY
+    HAL_TIM_Base_Stop(&(_timerObj.handle));
+
+    /* Disable timer unconditionally. Required to guarantee timer is stopped,
+     * even if some channels are still running */
+    LL_TIM_DisableCounter(_timerObj.handle.Instance);
 
 #if defined(TIM_CHANNEL_STATE_SET_ALL)
-    /* Starting from G4, new Channel state implementation prevents to restart a channel,
-       if the channel has not been explicitly be stopped with HAL interface */
+    /* Starting from G4, new Channel state implementation prevents to restart a
+       channel, if the channel has not been explicitly be stopped with HAL
+       interface */
     TIM_CHANNEL_STATE_SET_ALL(&(_timerObj.handle), HAL_TIM_CHANNEL_STATE_READY);
+#endif
+#if defined(TIM_CHANNEL_N_STATE_SET_ALL)
     TIM_CHANNEL_N_STATE_SET_ALL(&(_timerObj.handle), HAL_TIM_CHANNEL_STATE_READY);
 #endif
 }
@@ -176,7 +213,7 @@ void HardwareTimer::pause()
  */
 void HardwareTimer::resume(void)
 {
-    // Clear flag and ennable IT
+    // Clear flag and enable IT
     if (callbacks[0])
     {
         __HAL_TIM_CLEAR_FLAG(&(_timerObj.handle), TIM_FLAG_UPDATE);
@@ -388,7 +425,6 @@ void HardwareTimer::resumeChannel(uint32_t channel)
         }
     }
     break;
-    case TIMER_OUTPUT_COMPARE:
     case TIMER_OUTPUT_COMPARE_ACTIVE:
     case TIMER_OUTPUT_COMPARE_INACTIVE:
     case TIMER_OUTPUT_COMPARE_TOGGLE:
@@ -428,6 +464,13 @@ void HardwareTimer::resumeChannel(uint32_t channel)
         HAL_TIM_IC_Start(&(_timerObj.handle), timChannel);
     }
     break;
+    case TIMER_OUTPUT_COMPARE:
+    case TIMER_DISABLED:
+        if (!LL_TIM_IsEnabledCounter(_timerObj.handle.Instance))
+        {
+            HAL_TIM_Base_Start(&(_timerObj.handle));
+        }
+        break;
     case TIMER_NOT_USED:
     default:
         break;
@@ -458,32 +501,35 @@ void HardwareTimer::resumeChannel(uint32_t channel)
 
 /**
  * @brief  Retrieve overflow (rollover) value from hardware register
- * @param  format of returned value. If ommited default format is Tick
+ * @param  format of returned value. If omitted default format is Tick
  * @retval overflow depending on format value:
  *           TICK_FORMAT:     return number of tick for overflow
  *           MICROSEC_FORMAT: return number of microsecondes for overflow
  *           HERTZ_FORMAT:    return frequency in hertz for overflow
  */
-// uint32_t HardwareTimer::getOverflow(TimerFormat_t format)
-//{
-//   // Hardware register correspond to period count-1. Example ARR register value 9 means period of
-//   10 timer cycle uint32_t ARR_RegisterValue = LL_TIM_GetAutoReload(_timerObj.handle.Instance);
-//   uint32_t Prescalerfactor = LL_TIM_GetPrescaler(_timerObj.handle.Instance) + 1;
-//   uint32_t return_value;
-//   switch (format) {
-//     case MICROSEC_FORMAT:
-//       return_value = (uint32_t)(((ARR_RegisterValue + 1) * Prescalerfactor * 1000000.0) /
-//       getTimerClkFreq()); break;
-//     case HERTZ_FORMAT:
-//       return_value = (uint32_t)(getTimerClkFreq() / ((ARR_RegisterValue + 1) * Prescalerfactor));
-//       break;
-//     case TICK_FORMAT:
-//     default :
-//       return_value = ARR_RegisterValue + 1;
-//       break;
-//   }
-//   return return_value;
-// }
+uint32_t HardwareTimer::getOverflow(TimerFormat_t format)
+{
+    // Hardware register correspond to period count-1. Example ARR register value
+    // 9 means period of 10 timer cycle
+    uint32_t ARR_RegisterValue = LL_TIM_GetAutoReload(_timerObj.handle.Instance);
+    uint32_t Prescalerfactor = LL_TIM_GetPrescaler(_timerObj.handle.Instance) + 1;
+    uint32_t return_value;
+    switch (format)
+    {
+    case MICROSEC_FORMAT:
+        return_value =
+            (uint32_t)(((ARR_RegisterValue + 1) * Prescalerfactor * 1000000.0) / getTimerClkFreq());
+        break;
+    case HERTZ_FORMAT:
+        return_value = (uint32_t)(getTimerClkFreq() / ((ARR_RegisterValue + 1) * Prescalerfactor));
+        break;
+    case TICK_FORMAT:
+    default:
+        return_value = ARR_RegisterValue + 1;
+        break;
+    }
+    return return_value;
+}
 
 /**
  * @brief  Set overflow (rollover)
@@ -493,10 +539,10 @@ void HardwareTimer::resumeChannel(uint32_t channel)
  *         (usually the next timer overflow). See setPreloadEnable()
  *         for controlling this behaviour.
  * @param  overflow: depend on format parameter
- * @param  format of overflow parameter. If ommited default format is Tick
+ * @param  format of overflow parameter. If omitted default format is Tick
  *           TICK_FORMAT:     overflow is the number of tick for overflow
- *           MICROSEC_FORMAT: overflow is the number of microsecondes for overflow
- *           HERTZ_FORMAT:    overflow is the frequency in hertz for overflow
+ *           MICROSEC_FORMAT: overflow is the number of microsecondes for
+ * overflow HERTZ_FORMAT:    overflow is the frequency in hertz for overflow
  * @retval None
  */
 void HardwareTimer::setOverflow(uint32_t overflow, TimerFormat_t format)
@@ -538,11 +584,13 @@ void HardwareTimer::setOverflow(uint32_t overflow, TimerFormat_t format)
         ARR_RegisterValue = 0;
     }
     __HAL_TIM_SET_AUTORELOAD(&_timerObj.handle, ARR_RegisterValue);
+
+    updateRegistersIfNotRunning(_timerObj.handle.Instance);
 }
 
 /**
- * @brief  Retreive timer counter value
- * @param  format of returned value. If ommited default format is Tick
+ * @brief  Retrieve timer counter value
+ * @param  format of returned value. If omitted default format is Tick
  * @retval overflow depending on format value:
  *           TICK_FORMAT:     return number of tick for counter
  *           MICROSEC_FORMAT: return number of microsecondes for counter
@@ -571,7 +619,7 @@ void HardwareTimer::setOverflow(uint32_t overflow, TimerFormat_t format)
 /**
  * @brief  Set timer counter value
  * @param  counter: depend on format parameter
- * @param  format of overflow parameter. If ommited default format is Tick
+ * @param  format of overflow parameter. If omitted default format is Tick
  *           TICK_FORMAT:     counter is the number of tick
  *           MICROSEC_FORMAT: counter is the number of microsecondes
  *           HERTZ_FORMAT:    counter is the frequency in hertz
@@ -579,22 +627,22 @@ void HardwareTimer::setOverflow(uint32_t overflow, TimerFormat_t format)
  */
 // void HardwareTimer::setCount(uint32_t counter, TimerFormat_t format)
 //{
-//   uint32_t CNT_RegisterValue;
-//   uint32_t Prescalerfactor = LL_TIM_GetPrescaler(_timerObj.handle.Instance) + 1;
-//   switch (format) {
-//     case MICROSEC_FORMAT:
-//       CNT_RegisterValue = ((counter * (getTimerClkFreq() / 1000000)) / Prescalerfactor);
-//       break;
-//     case HERTZ_FORMAT:
-//       CNT_RegisterValue = (uint32_t)(getTimerClkFreq() / (counter * Prescalerfactor));
-//       break;
-//     case TICK_FORMAT:
-//     default :
-//       CNT_RegisterValue = counter;
-//       break;
-//   }
-//   __HAL_TIM_SET_COUNTER(&(_timerObj.handle), CNT_RegisterValue);
-// }
+//  uint32_t CNT_RegisterValue;
+//  uint32_t Prescalerfactor = LL_TIM_GetPrescaler(_timerObj.handle.Instance) + 1;
+//  switch (format) {
+//    case MICROSEC_FORMAT:
+//      CNT_RegisterValue = ((counter * (getTimerClkFreq() / 1000000)) / Prescalerfactor);
+//      break;
+//    case HERTZ_FORMAT:
+//      CNT_RegisterValue = (uint32_t)(getTimerClkFreq() / (counter * Prescalerfactor));
+//      break;
+//    case TICK_FORMAT:
+//    default :
+//      CNT_RegisterValue = counter;
+//      break;
+//  }
+//  __HAL_TIM_SET_COUNTER(&(_timerObj.handle), CNT_RegisterValue);
+//}
 
 /**
  * @brief  Set channel mode
@@ -783,7 +831,7 @@ void HardwareTimer::setPreloadEnable(bool value)
  * @brief  Set channel Capture/Compare register
  * @param  channel: Arduino channel [1..4]
  * @param  compare: compare value depending on format
- * @param  format of compare parameter. If ommited default format is Tick
+ * @param  format of compare parameter. If omitted default format is Tick
  *           TICK_FORMAT:     compare is the number of tick
  *           MICROSEC_FORMAT: compare is the number of microsecondes
  *           HERTZ_FORMAT:    compare is the frequency in hertz
@@ -849,11 +897,11 @@ void HardwareTimer::setPreloadEnable(bool value)
 /**
  * @brief  Retrieve Capture/Compare value
  * @param  channel: Arduino channel [1..4]
- * @param  format of return value. If ommited default format is Tick
+ * @param  format of return value. If omitted default format is Tick
  *           TICK_FORMAT:     return value is the number of tick for Capture/Compare value
  *           MICROSEC_FORMAT: return value is the number of microsecondes for Capture/Compare value
  *           HERTZ_FORMAT:    return value is the frequency in hertz for Capture/Compare value
- * @retval None
+ * @retval Capture/Compare value
  */
 // uint32_t HardwareTimer::getCaptureCompare(uint32_t channel,  TimerCompareFormat_t format)
 //{
@@ -905,12 +953,10 @@ void HardwareTimer::setPreloadEnable(bool value)
 /**
  * @param  channel: Arduino channel [1..4]
  * @param  pin: Arduino pin number, ex D1, 1 or PA1
- * @param  frequency: PWM frequency expessed in hertz
+ * @param  frequency: PWM frequency expressed in hertz
  * @param  dutycycle: PWM dutycycle expressed in percentage
- * @param  format of return value. If ommited default format is Tick
- *           TICK_FORMAT:     return value is the number of tick for Capture/Compare value
- *           MICROSEC_FORMAT: return value is the number of microsecondes for Capture/Compare value
- *           HERTZ_FORMAT:    return value is the frequency in hertz for Capture/Compare value
+ * @param  PeriodCallback: timer period callback (timer rollover upon update event)
+ * @param  CompareCallback: timer compare callback
  * @retval None
  */
 // void HardwareTimer::setPWM(uint32_t channel, uint32_t pin, uint32_t frequency, uint32_t
@@ -924,12 +970,10 @@ void HardwareTimer::setPreloadEnable(bool value)
  * @brief  All in one function to configure PWM
  * @param  channel: Arduino channel [1..4]
  * @param  pin: pin name, ex PB_0
- * @param  frequency: PWM frequency expessed in hertz
+ * @param  frequency: PWM frequency expressed in hertz
  * @param  dutycycle: PWM dutycycle expressed in percentage
- * @param  format of return value. If ommited default format is Tick
- *           TICK_FORMAT:     return value is the number of tick for Capture/Compare value
- *           MICROSEC_FORMAT: return value is the number of microsecondes for Capture/Compare value
- *           HERTZ_FORMAT:    return value is the frequency in hertz for Capture/Compare value
+ * @param  PeriodCallback: timer period callback (timer rollover upon update event)
+ * @param  CompareCallback: timer compare callback
  * @retval None
  */
 // void HardwareTimer::setPWM(uint32_t channel, PinName pin, uint32_t frequency, uint32_t dutycycle,
@@ -1087,12 +1131,14 @@ void HardwareTimer::attachInterrupt(uint32_t channel, callback_function_t callba
 // }
 
 /**
- * @brief  Generate an update event to force all registers (Autoreload, prescaler, compare) to be
- * taken into account
- * @note   Refresh() can only be called after a 1st call to resume() to be sure timer is
- * initialised. It is usefull while timer is running after some registers update
- * @retval None
- */
+  * @brief  Generate an update event to force all registers (Autoreload, prescaler, compare) to be
+  taken into account
+  * @note   @note Refresh() can only be called after timer has been initialized,
+            either by calling setup() function or thanks to constructor with TIM
+  instance parameter.
+  *         It is useful while timer is running after some registers update
+  * @retval None
+  */
 void HardwareTimer::refresh()
 {
     HAL_TIM_GenerateEvent(&(_timerObj.handle), TIM_EVENTSOURCE_UPDATE);
@@ -1101,8 +1147,8 @@ void HardwareTimer::refresh()
 /**
  * @brief  Return the timer object handle object for more advanced setup
  * @note   Using this function and editing the Timer handle is at own risk! No support will
- *         be provided whatsoever if the HardwareTimer does not work as expected when editing
- *         the handle using the HAL functionality or other custom coding.
+ * be provided whatsoever if the HardwareTimer does not work as expected when editing
+ * the handle using the HAL functionality or other custom coding.
  * @retval TIM_HandleTypeDef address
  */
 TIM_HandleTypeDef *HardwareTimer::getHandle()
@@ -1132,7 +1178,7 @@ void HardwareTimer::updateCallback(TIM_HandleTypeDef *htim)
 }
 
 /**
- * @brief  Generic Caputre and Compare callback which will call user callback
+ * @brief  Generic Capture and Compare callback which will call user callback
  * @param  htim: HAL timer handle
  * @retval None
  */
@@ -1180,6 +1226,68 @@ void HardwareTimer::captureCompareCallback(TIM_HandleTypeDef *htim)
 }
 
 /**
+ * @brief  Check whether HardwareTimer is running (paused or resumed).
+ * @retval return true if the HardwareTimer is running
+ */
+bool HardwareTimer::isRunning()
+{
+    return LL_TIM_IsEnabledCounter(_timerObj.handle.Instance);
+}
+
+/**
+ * @brief  Check whether channel is running (paused or resumed).
+ * @param  channel: Arduino channel [1..4]
+ * @retval return true if HardwareTimer is running and the channel is enabled
+ */
+bool HardwareTimer::isRunningChannel(uint32_t channel)
+{
+    int LLChannel = getLLChannel(channel);
+    int interrupt = getIT(channel);
+    bool ret;
+
+    if (LLChannel == -1)
+    {
+        teensyStepErrorHandler();
+    }
+
+    if (interrupt == -1)
+    {
+        teensyStepErrorHandler();
+    }
+
+    // channel is running if: timer is running, and either output channel is
+    // enabled or interrupt is set
+    ret = LL_TIM_CC_IsEnabledChannel(_timerObj.handle.Instance, LLChannel) ||
+          (__HAL_TIM_GET_IT_SOURCE(&(_timerObj.handle), (uint32_t)interrupt) == SET);
+    return (isRunning() && ret);
+}
+
+/**
+ * @brief  Take into account registers update immediately if timer is not
+ * running, (independently from Preload setting)
+ * @param  TIMx Timer instance
+ * @retval None
+ */
+void HardwareTimer::updateRegistersIfNotRunning(TIM_TypeDef *TIMx)
+{
+    if (!isRunning())
+    {
+        if (LL_TIM_IsEnabledIT_UPDATE(TIMx))
+        {
+            // prevent Interrupt generation from refresh()
+            LL_TIM_DisableIT_UPDATE(TIMx);
+            refresh();
+            LL_TIM_ClearFlag_UPDATE(TIMx);
+            LL_TIM_EnableIT_UPDATE(TIMx);
+        }
+        else
+        {
+            refresh();
+        }
+    }
+}
+
+/**
  * @brief  HardwareTimer destructor
  * @retval None
  */
@@ -1194,7 +1302,7 @@ HardwareTimer::~HardwareTimer()
 /**
  * @brief  return timer index from timer handle
  * @param  htim : one of the defined timer
- * @retval None
+ * @retval timer index
  */
 timer_index_t get_timer_index(TIM_TypeDef *instance)
 {
@@ -1337,7 +1445,7 @@ timer_index_t get_timer_index(TIM_TypeDef *instance)
 
 /**
  * @brief  This function return the timer clock frequency.
- * @param  tim: timer instance
+ * @param  None
  * @retval frequency in Hz
  */
 uint32_t HardwareTimer::getTimerClkFreq()
@@ -1393,6 +1501,7 @@ uint32_t HardwareTimer::getTimerClkFreq()
         /* case RCC_APB2_DIV1: */
         case RCC_APB2_DIV2:
         case RCC_APB2_DIV4:
+            /* Note: in such cases, HCLK = (APBCLK * DIVx) */
             uwTimclock = HAL_RCC_GetHCLKFreq();
             break;
         case RCC_APB1_DIV8:
@@ -1475,7 +1584,7 @@ uint32_t HardwareTimer::getTimerClkFreq()
 
 /**
  * @brief  This function will reset the timer
- * @param  obj : Hardware timer instance ex: Timer6, ...
+ * @param  None
  * @retval None
  */
 // void HardwareTimer::timerHandleDeinit()
@@ -1565,12 +1674,11 @@ extern "C"
 #endif // TIM1_BASE
 
 #if defined(TIM2_BASE)
-/**
- * @brief  TIM2 IRQHandler
- * @param  None
- * @retval None
- */
-#ifndef STM32F103xB
+    /**
+     * @brief  TIM2 IRQHandler
+     * @param  None
+     * @retval None
+     */
     void TIM2_IRQHandler(void)
     {
         if (HardwareTimer_Handle[TIMER2_INDEX])
@@ -1578,7 +1686,6 @@ extern "C"
             HAL_TIM_IRQHandler(&HardwareTimer_Handle[TIMER2_INDEX]->handle);
         }
     }
-#endif
 #endif // TIM2_BASE
 
 #if defined(TIM3_BASE)
@@ -1593,6 +1700,12 @@ extern "C"
         {
             HAL_TIM_IRQHandler(&HardwareTimer_Handle[TIMER3_INDEX]->handle);
         }
+#if defined(STM32G0xx) && defined(TIM4_BASE)
+        if (HardwareTimer_Handle[TIMER4_INDEX])
+        {
+            HAL_TIM_IRQHandler(&HardwareTimer_Handle[TIMER4_INDEX]->handle);
+        }
+#endif
     }
 #endif // TIM3_BASE
 
@@ -1632,8 +1745,7 @@ extern "C"
  * @param  None
  * @retval None
  */
-#ifndef STM32F103xE // remove when use of STM32F103xE, since this timer is used as time base source
-                    // there
+#ifndef STM32G0B1xx // remove when use this timer as time base source there
     void TIM6_IRQHandler(void)
     {
         if (HardwareTimer_Handle[TIMER6_INDEX])
@@ -1645,12 +1757,11 @@ extern "C"
 #endif // TIM6_BASE
 
 #if defined(TIM7_BASE)
-/**
- * @brief  TIM7 IRQHandler
- * @param  None
- * @retval None
- */
-#ifndef STM32F103xE // remove when use of STM32F103xE, since this timer is used at UAVCAN
+    /**
+     * @brief  TIM7 IRQHandler
+     * @param  None
+     * @retval None
+     */
     void TIM7_IRQHandler(void)
     {
         if (HardwareTimer_Handle[TIMER7_INDEX])
@@ -1658,7 +1769,6 @@ extern "C"
             HAL_TIM_IRQHandler(&HardwareTimer_Handle[TIMER7_INDEX]->handle);
         }
     }
-#endif
 #endif // TIM7_BASE
 
 #if defined(TIM8_BASE)
@@ -1676,12 +1786,12 @@ extern "C"
 
 #if defined(STM32F1xx) || defined(STM32F2xx) || defined(STM32F4xx) || defined(STM32F7xx) ||        \
     defined(STM32H7xx)
-#if defined(TIMER13_BASE)
+#if defined(TIM13_BASE)
         if (HardwareTimer_Handle[TIMER13_INDEX])
         {
             HAL_TIM_IRQHandler(&HardwareTimer_Handle[TIMER13_INDEX]->handle);
         }
-#endif // TIMER13_BASE
+#endif // TIM13_BASE
 #endif
     }
 

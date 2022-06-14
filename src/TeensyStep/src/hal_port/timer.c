@@ -686,7 +686,7 @@ extern "C"
         uint8_t clkSrc = 0;
 
         if (tim != (TIM_TypeDef *)NC)
-#ifdef STM32F0xx
+#if defined(STM32F0xx) || defined(STM32G0xx)
             /* TIMx source CLK is PCKL1 */
             clkSrc = 1;
 #else

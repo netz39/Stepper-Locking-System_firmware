@@ -1,77 +1,39 @@
 #include "Port.h"
+#include "main.h"
 
 GPIO_TypeDef *pinToGPIOBase(int8_t pin)
 {
-#ifdef STM32F103xB
     switch (pin)
     {
     case PA3:
+    case PA5:
+    case PA6:
         return GPIOA;
-    case PB0:
-    case PB7:
-        return GPIOB;
     default:
         teensyStepErrorHandler();
         break;
     }
-#endif
-#ifdef STM32F103xE
-    switch (pin)
-    {
-    case PA15:
-        return GPIOA;
-    case PC10: // intentionally fall through
-    case PC15:
-        return GPIOC;
-    default:
-        teensyStepErrorHandler();
-        break;
-    }
-    return GPIOA; // will never be hit -> reduce compile warnings
-#endif
 }
 
 uint16_t pinToGPIOPinNumber(int8_t pin)
 {
-#ifdef STM32F103xB
     uint16_t pinNumber = 0;
     switch (pin)
     {
     case PA3:
         pinNumber = GPIO_PIN_3;
         break;
-    case PB0:
-        pinNumber = GPIO_PIN_0;
+    case PA5:
+        pinNumber = GPIO_PIN_5;
         break;
-    case PB7:
-        pinNumber = GPIO_PIN_7;
-        break;
-    default:
-        teensyStepErrorHandler();
-        break;
-    }
-    return pinNumber;
-#endif
-
-#ifdef STM32F103xE
-    uint16_t pinNumber = 0;
-    switch (pin)
-    {
-    case PA15:
-        pinNumber = GPIO_PIN_15;
-        break;
-    case PC10:
-        pinNumber = GPIO_PIN_10;
-        break;
-    case PC15:
-        pinNumber = GPIO_PIN_15;
+    case PA6:
+        pinNumber = GPIO_PIN_6;
         break;
     default:
         teensyStepErrorHandler();
         break;
     }
     return pinNumber;
-#endif
 }
 
 void digitalWrite(int8_t pin, uint8_t polarity)
@@ -98,22 +60,19 @@ void delay(uint32_t ms)
 {
     HAL_Delay(ms);
 }
+
 uint32_t dwt_getCycles()
 {
-    return (DWT->CYCCNT);
+    // return (DWT->CYCCNT);
+    return SysTick->VAL;
 }
 
 void teensyStepErrorHandler()
 {
     while (true)
     {
-#ifdef STM32F103xB
-        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_8); // let red led flash
-#endif
-#ifdef STM32F103xE
-        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_2); // let red led flash
-#endif
-//        taskDISABLE_INTERRUPTS();
+        HAL_GPIO_TogglePin(LED_Red_GPIO_Port, LED_Red_Pin); // let red led flash
+
 #ifdef DEBUG
         __asm("bkpt");
 #endif

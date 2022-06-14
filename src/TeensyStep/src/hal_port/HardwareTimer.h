@@ -28,6 +28,7 @@
 #define HARDWARETIMER_H_
 
 /* Includes ------------------------------------------------------------------*/
+#include "stm32_def.h"
 #include "timer.h"
 
 #if defined(HAL_TIM_MODULE_ENABLED) && !defined(HAL_TIM_MODULE_ONLY)
@@ -38,9 +39,9 @@
 
 typedef enum
 {
-    TIMER_DISABLED,
+    TIMER_DISABLED, // == TIM_OCMODE_TIMING           no output, useful for only-interrupt
     // Output Compare
-    TIMER_OUTPUT_COMPARE, // == TIM_OCMODE_TIMING           no output, useful for only-interrupt
+    TIMER_OUTPUT_COMPARE, // == Obsolete, use TIMER_DISABLED instead. Kept for compatibility reason
     TIMER_OUTPUT_COMPARE_ACTIVE,   // == TIM_OCMODE_ACTIVE           pin is set high when counter ==
                                    // channel compare
     TIMER_OUTPUT_COMPARE_INACTIVE, // == TIM_OCMODE_INACTIVE         pin is set low when counter ==
@@ -108,8 +109,12 @@ using callback_function_t = std::function<void(void)>;
 class HardwareTimer
 {
 public:
+    HardwareTimer();
     HardwareTimer(TIM_TypeDef *instance);
     ~HardwareTimer(); // destructor
+
+    void
+    setup(TIM_TypeDef *instance); // Setup, only needed if no instance was passed to the constructor
 
     void pause(void); // Pause counter and all output channels
     //    void pauseChannel(uint32_t channel); // Timer is still running but channel (output and
@@ -117,14 +122,15 @@ public:
     void resume(void);                    // Resume counter and all output channels
     void resumeChannel(uint32_t channel); // Resume only one channel
 
-    //    void setPrescaleFactor(uint32_t prescaler); // set prescaler register (which is factor
-    //    value - 1) uint32_t getPrescaleFactor();
+    void
+    setPrescaleFactor(uint32_t prescaler); // set prescaler register (which is factor value - 1)
+    uint32_t getPrescaleFactor();
 
     void setOverflow(
         uint32_t val,
         TimerFormat_t format = TICK_FORMAT); // set AutoReload register depending on format provided
-    //    uint32_t getOverflow(TimerFormat_t format = TICK_FORMAT); // return overflow depending on
-    //    format provided
+    uint32_t
+    getOverflow(TimerFormat_t format = TICK_FORMAT); // return overflow depending on format provided
 
     //    void setPWM(uint32_t channel, PinName pin, uint32_t frequency, uint32_t dutycycle,
     //    callback_function_t PeriodCallback = nullptr, callback_function_t CompareCallback =
@@ -169,7 +175,7 @@ public:
     //    true if an interrupt has already been set on the channel compare match void
     //    timerHandleDeinit();  // Timer deinitialization
 
-    // Refresh() is usefull while timer is running after some registers update
+    // Refresh() is useful while timer is running after some registers update
     void refresh(void); // Generate update event to force all registers (Autoreload, prescaler,
                         // compare) to be taken into account
 
@@ -177,9 +183,15 @@ public:
 
     static void captureCompareCallback(
         TIM_HandleTypeDef
-            *htim); // Generic Caputre and Compare callback which will call user callback
+            *htim); // Generic Capture and Compare callback which will call user callback
     static void updateCallback(TIM_HandleTypeDef *htim); // Generic Update (rollover) callback which
                                                          // will call user callback
+
+    void updateRegistersIfNotRunning(TIM_TypeDef *TIMx); // Take into account registers update
+                                                         // immediately if timer is not running,
+
+    bool isRunning();                        // return true if HardwareTimer is running
+    bool isRunningChannel(uint32_t channel); // return true if channel is running
 
     // The following function(s) are available for more advanced timer options
     TIM_HandleTypeDef *getHandle(); // return the handle address for HAL related configuration
