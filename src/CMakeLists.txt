@@ -32,10 +32,11 @@ set(INCLUDE_FILES
         src/TeensyStep/src/hal_port/
         src/TeensyStep/src/timer/generic/
         src/TeensyStep/src/timer/stm32/
-        )
+)
 
 set(Sources
         src/Application.cxx
+        src/TMC2209.cxx
 
         src/TeensyStep/src/ErrorHandler.cpp
         src/TeensyStep/src/Stepper.cpp
@@ -44,7 +45,7 @@ set(Sources
         src/TeensyStep/src/hal_port/timer.c
         src/TeensyStep/src/timer/stm32/TimerField.cpp
         src/TeensyStep/src/timer/generic/TickTimer.cpp
-        )
+)
 
 # Instructs CMake to build your firmware
 add_executable(${PROJECT_NAME} ${Sources})
@@ -55,11 +56,12 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${INCLUDE_FILES})
 # libraries' code is added to your firmware but also sets up include directories. So you don't have to add them manually.
 # Read libraries' README files for information about specifics.
 target_link_libraries(${PROJECT_NAME} PRIVATE
+
         # Core's libraries
         hal
         core
         freertos
-        )
+)
 
 # Sets up generation of .list and .bin files after your firmware has generated.
 # Makes firmware image generate as an .elf file.
