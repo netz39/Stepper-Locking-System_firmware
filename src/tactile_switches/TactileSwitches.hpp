@@ -36,11 +36,11 @@ private:
 
     util::Button doorSwitch{
         {DoorState_GPIO_Port, DoorState_Pin},
-        std::bind(&TactileSwitches::closeButtonCallback, this, std::placeholders::_1),
+        std::bind(&TactileSwitches::doorSwitchCallback, this, std::placeholders::_1),
         true};
 
     util::Button lockSwitch{
         {LockState_GPIO_Port, LockState_Pin},
-        std::bind(&TactileSwitches::closeButtonCallback, this, std::placeholders::_1),
+        std::bind(&TactileSwitches::lockSwitchCallback, this, std::placeholders::_1),
         true};
 };
