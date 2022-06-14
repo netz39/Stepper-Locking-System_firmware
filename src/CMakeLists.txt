@@ -20,8 +20,8 @@ GENERATE_CUBEMX_TARGETS(${HalDir} true)
 # Affects if arm specific code is compiled in which would SEGFAULT on non arm targets
 set(core_BUILDCONFIGURATION "embedded")
 
-# Adds the core library
 add_subdirectory(core)
+add_subdirectory(src/util)
 
 add_compile_definitions(STM32G0xx)
 
@@ -36,7 +36,9 @@ set(INCLUDE_FILES
 
 set(Sources
         src/Application.cxx
-        src/TMC2209.cxx
+
+        src/LED/LightController.cxx
+        src/motor_control/TMC2209.cxx
 
         src/TeensyStep/src/ErrorHandler.cpp
         src/TeensyStep/src/Stepper.cpp
@@ -61,6 +63,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         hal
         core
         freertos
+        util
 )
 
 # Sets up generation of .list and .bin files after your firmware has generated.
