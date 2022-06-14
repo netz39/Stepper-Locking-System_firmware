@@ -4,45 +4,47 @@
 #include "gpio.h"
 #include "main.h"
 
+#include "Application.hpp"
 #include "TeensyStep/src/TeensyStep.h"
+#include "motor_control/TMC2209.hpp"
+#include "wrappers/Task.hpp"
 
-StepControl stepControl;
-Stepper testStepper(StepperStepPin, StepperDirectionPin);
+#include <memory>
 
-extern "C" void StartDefaultTask(void *)
+Application::Application()
 {
-    testStepper.setAcceleration(10000);
-    testStepper.setMaxSpeed(5000);
+    lightController.statusLed.setColor(util::pwm_led::DualLedColor::DarkGreen);
+}
 
-    constexpr auto StepsPerFullRevolution = 200;
-    constexpr auto MicroStepsPerStep = 8;
-    constexpr auto TearDown = 1;
-    constexpr auto NumberRevolutions = 1;
-
-    constexpr auto StepsNeeded =
-        NumberRevolutions * TearDown * MicroStepsPerStep * StepsPerFullRevolution;
-
-    HAL_GPIO_WritePin(StepperEnable_GPIO_Port, StepperEnable_Pin, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin, GPIO_PIN_SET);
-
-    testStepper.setTargetRel(StepsNeeded);
-    stepControl.move(testStepper);
-    // testStepper.setTargetRel(-StepsNeeded);
-    // stepControl.move(testStepper);
-
-    HAL_GPIO_WritePin(StepperEnable_GPIO_Port, StepperEnable_Pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin, GPIO_PIN_RESET);
-
-    while (1)
+//--------------------------------------------------------------------------------------------------
+void Application::run()
+{
+    util::wrappers::Task::applicationIsReadyStartAllTasks();
+    while (true)
     {
-        // HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin, GPIO_PIN_SET);
-        HAL_GPIO_WritePin(LED_Red_GPIO_Port, LED_Red_Pin, GPIO_PIN_RESET);
-
-        vTaskDelay(1000);
-
-        // HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin, GPIO_PIN_RESET);
-        HAL_GPIO_WritePin(LED_Red_GPIO_Port, LED_Red_Pin, GPIO_PIN_SET);
-
-        vTaskDelay(1000);
+        vTaskDelay(portMAX_DELAY);
     }
+}
+
+//--------------------------------------------------------------------------------------------------
+Application &Application::getApplicationInstance()
+{
+    static auto app = std::make_unique<Application>();
+    return *app;
+}
+
+//--------------------------------------------------------------------------------------------------
+
+// StepControl stepControl;
+// Stepper testStepper(StepperStepPin, StepperDirectionPin);
+
+// TMC2209 tmc2209{0, &huart2};
+
+extern "C" void StartDefaultTask(void *) // NOLINT
+{
+
+    auto &app = Application::getApplicationInstance();
+    app.run();
+
+    __asm("bkpt"); // this line should be never reached
 }
