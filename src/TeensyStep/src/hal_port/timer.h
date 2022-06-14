@@ -20,38 +20,39 @@
 //#include "PinNames.h"
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 #if defined(HAL_TIM_MODULE_ENABLED) && !defined(HAL_TIM_MODULE_ONLY)
 
 /* Exported constants --------------------------------------------------------*/
 #ifndef TIM_IRQ_PRIO
 #if (__CORTEX_M == 0x00U)
-#define TIM_IRQ_PRIO       3
+#define TIM_IRQ_PRIO 3
 #else
-#define TIM_IRQ_PRIO       14
+#define TIM_IRQ_PRIO 14
 #endif /* __CORTEX_M */
 #endif /* TIM_IRQ_PRIO */
 #ifndef TIM_IRQ_SUBPRIO
-#define TIM_IRQ_SUBPRIO    0
+#define TIM_IRQ_SUBPRIO 0
 #endif
 
 #if defined(TIM1_BASE) && !defined(TIM1_IRQn)
 #if defined(STM32F0xx) || defined(STM32G0xx)
 #define TIM1_IRQn TIM1_BRK_UP_TRG_COM_IRQn
 #define TIM1_IRQHandler TIM1_BRK_UP_TRG_COM_IRQHandler
-#elif defined(STM32F1xx) ||defined(STM32G4xx)
+#elif defined(STM32F1xx) || defined(STM32G4xx)
 #define TIM1_IRQn TIM1_UP_TIM16_IRQn
-#if !defined (TIM10_BASE)
+#if !defined(TIM10_BASE)
 #define TIM1_IRQHandler TIM1_UP_TIM16_IRQHandler
-#elif defined (TIM10_BASE)
+#elif defined(TIM10_BASE)
 #define TIM1_IRQHandler TIM1_UP_TIM10_IRQHandler
 #endif
 #elif defined(STM32F3xx) || defined(STM32L4xx) || defined(STM32WBxx)
 #define TIM1_IRQn TIM1_UP_TIM16_IRQn
 #define TIM1_IRQHandler TIM1_UP_TIM16_IRQHandler
 #elif defined(STM32F2xx) || defined(STM32F4xx) || defined(STM32F7xx)
-#if !defined (TIM10_BASE)
+#if !defined(TIM10_BASE)
 #define TIM1_IRQn TIM1_UP_IRQn
 #define TIM1_IRQHandler TIM1_UP_IRQHandler
 #else
@@ -85,49 +86,49 @@ extern "C" {
 #endif
 
 #if defined(TIM8_BASE) && !defined(TIM8_IRQn)
-#if defined(STM32F1xx) || defined(STM32F2xx) ||defined(STM32F4xx) || defined(STM32F7xx)\
- || defined(STM32H7xx)
+#if defined(STM32F1xx) || defined(STM32F2xx) || defined(STM32F4xx) || defined(STM32F7xx) ||        \
+    defined(STM32H7xx)
 #define TIM8_IRQn TIM8_UP_TIM13_IRQn
 #define TIM8_IRQHandler TIM8_UP_TIM13_IRQHandler
-#elif  defined(STM32F3xx) || defined(STM32G4xx) || defined(STM32L4xx) || defined(STM32MP1xx)
+#elif defined(STM32F3xx) || defined(STM32G4xx) || defined(STM32L4xx) || defined(STM32MP1xx)
 #define TIM8_IRQn TIM8_UP_IRQn
 #define TIM8_IRQHandler TIM8_UP_IRQHandler
 #endif
 #endif
 #if defined(TIM9_BASE) && !defined(TIM9_IRQn)
-#if defined(STM32F1xx) || defined(STM32F2xx) ||defined(STM32F4xx) || defined(STM32F7xx)
+#if defined(STM32F1xx) || defined(STM32F2xx) || defined(STM32F4xx) || defined(STM32F7xx)
 #define TIM9_IRQn TIM1_BRK_TIM9_IRQn
 #define TIM9_IRQHandler TIM1_BRK_TIM9_IRQHandler
 #endif
 #endif
 #if defined(TIM10_BASE) && !defined(TIM10_IRQn)
-#if defined(STM32F1xx) || defined(STM32F2xx) ||defined(STM32F4xx) || defined(STM32F7xx)
+#if defined(STM32F1xx) || defined(STM32F2xx) || defined(STM32F4xx) || defined(STM32F7xx)
 #define TIM10_IRQn TIM1_UP_TIM10_IRQn
-//TIM10_IRQHandler is mapped on TIM1_IRQHandler  when TIM10_IRQn is not defined
+// TIM10_IRQHandler is mapped on TIM1_IRQHandler  when TIM10_IRQn is not defined
 #endif
 #endif
 #if defined(TIM11_BASE) && !defined(TIM11_IRQn)
-#if defined(STM32F1xx) || defined(STM32F2xx) ||defined(STM32F4xx) || defined(STM32F7xx)
+#if defined(STM32F1xx) || defined(STM32F2xx) || defined(STM32F4xx) || defined(STM32F7xx)
 #define TIM11_IRQn TIM1_TRG_COM_TIM11_IRQn
 #define TIM11_IRQHandler TIM1_TRG_COM_TIM11_IRQHandler
 #endif
 #endif
 #if defined(TIM12_BASE) && !defined(TIM12_IRQn)
-#if defined(STM32F1xx) || defined(STM32F2xx) ||defined(STM32F4xx) || defined(STM32F7xx)\
- || defined(STM32H7xx)
+#if defined(STM32F1xx) || defined(STM32F2xx) || defined(STM32F4xx) || defined(STM32F7xx) ||        \
+    defined(STM32H7xx)
 #define TIM12_IRQn TIM8_BRK_TIM12_IRQn
 #define TIM12_IRQHandler TIM8_BRK_TIM12_IRQHandler
 #endif
 #endif
 #if defined(TIM13_BASE) && !defined(TIM13_IRQn)
-#if defined(STM32F1xx) || defined(STM32F2xx) ||defined(STM32F4xx) || defined(STM32F7xx)\
- || defined(STM32H7xx)
+#if defined(STM32F1xx) || defined(STM32F2xx) || defined(STM32F4xx) || defined(STM32F7xx) ||        \
+    defined(STM32H7xx)
 #define TIM13_IRQn TIM8_UP_TIM13_IRQn
 #endif
 #endif
 #if defined(TIM14_BASE) && !defined(TIM14_IRQn)
-#if defined(STM32F1xx) || defined(STM32F2xx) ||defined(STM32F4xx) || defined(STM32F7xx)\
- || defined(STM32H7xx)
+#if defined(STM32F1xx) || defined(STM32F2xx) || defined(STM32F4xx) || defined(STM32F7xx) ||        \
+    defined(STM32H7xx)
 #define TIM14_IRQn TIM8_TRG_COM_TIM14_IRQn
 #define TIM14_IRQHandler TIM8_TRG_COM_TIM14_IRQHandler
 #endif
@@ -139,14 +140,14 @@ extern "C" {
 #endif
 #endif
 #if defined(TIM16_BASE) && !defined(TIM16_IRQn)
-#if defined(STM32F1xx) || defined(STM32F3xx)  || defined(STM32G4xx) || defined(STM32L4xx) || \
+#if defined(STM32F1xx) || defined(STM32F3xx) || defined(STM32G4xx) || defined(STM32L4xx) ||        \
     defined(STM32WBxx)
 #define TIM16_IRQn TIM1_UP_TIM16_IRQn
-//TIM16_IRQHandler is mapped on TIM1_IRQHandler when TIM16_IRQn is not defined
+// TIM16_IRQHandler is mapped on TIM1_IRQHandler when TIM16_IRQn is not defined
 #endif
 #endif
 #if defined(TIM17_BASE) && !defined(TIM17_IRQn)
-#if defined(STM32F1xx) || defined(STM32F3xx) || defined(STM32G4xx) || defined(STM32L4xx) || \
+#if defined(STM32F1xx) || defined(STM32F3xx) || defined(STM32G4xx) || defined(STM32L4xx) ||        \
     defined(STM32WBxx)
 #define TIM17_IRQn TIM1_TRG_COM_TIM17_IRQn
 #define TIM17_IRQHandler TIM1_TRG_COM_TIM17_IRQHandler
@@ -165,99 +166,100 @@ extern "C" {
 #endif
 #endif
 
-typedef enum {
+    typedef enum
+    {
 #if defined(TIM1_BASE)
-  TIMER1_INDEX,
+        TIMER1_INDEX,
 #endif
 #if defined(TIM2_BASE)
-  TIMER2_INDEX,
+        TIMER2_INDEX,
 #endif
 #if defined(TIM3_BASE)
-  TIMER3_INDEX,
+        TIMER3_INDEX,
 #endif
 #if defined(TIM4_BASE)
-  TIMER4_INDEX,
+        TIMER4_INDEX,
 #endif
 #if defined(TIM5_BASE)
-  TIMER5_INDEX,
+        TIMER5_INDEX,
 #endif
 #if defined(TIM6_BASE)
-  TIMER6_INDEX,
+        TIMER6_INDEX,
 #endif
 #if defined(TIM7_BASE)
-  TIMER7_INDEX,
+        TIMER7_INDEX,
 #endif
 #if defined(TIM8_BASE)
-  TIMER8_INDEX,
+        TIMER8_INDEX,
 #endif
 #if defined(TIM9_BASE)
-  TIMER9_INDEX,
+        TIMER9_INDEX,
 #endif
 #if defined(TIM10_BASE)
-  TIMER10_INDEX,
+        TIMER10_INDEX,
 #endif
 #if defined(TIM11_BASE)
-  TIMER11_INDEX,
+        TIMER11_INDEX,
 #endif
 #if defined(TIM12_BASE)
-  TIMER12_INDEX,
+        TIMER12_INDEX,
 #endif
 #if defined(TIM13_BASE)
-  TIMER13_INDEX,
+        TIMER13_INDEX,
 #endif
 #if defined(TIM14_BASE)
-  TIMER14_INDEX,
+        TIMER14_INDEX,
 #endif
 #if defined(TIM15_BASE)
-  TIMER15_INDEX,
+        TIMER15_INDEX,
 #endif
 #if defined(TIM16_BASE)
-  TIMER16_INDEX,
+        TIMER16_INDEX,
 #endif
 #if defined(TIM17_BASE)
-  TIMER17_INDEX,
+        TIMER17_INDEX,
 #endif
 #if defined(TIM18_BASE)
-  TIMER18_INDEX,
+        TIMER18_INDEX,
 #endif
 #if defined(TIM19_BASE)
-  TIMER19_INDEX,
+        TIMER19_INDEX,
 #endif
 #if defined(TIM20_BASE)
-  TIMER20_INDEX,
+        TIMER20_INDEX,
 #endif
 #if defined(TIM21_BASE)
-  TIMER21_INDEX,
+        TIMER21_INDEX,
 #endif
 #if defined(TIM22_BASE)
-  TIMER22_INDEX,
+        TIMER22_INDEX,
 #endif
-  TIMER_NUM,
-  UNKNOWN_TIMER = 0XFFFF
-} timer_index_t;
+        TIMER_NUM,
+        UNKNOWN_TIMER = 0XFFFF
+    } timer_index_t;
 
+    // This structure is used to be able to get HardwareTimer instance (C++ class)
+    // from handler (C structure) specially for interrupt management
+    typedef struct
+    {
+        // Those 2 first fields must remain in this order at the beginning of the structure
+        void *__this;
+        TIM_HandleTypeDef handle;
+        uint32_t preemptPriority;
+        uint32_t subPriority;
+    } timerObj_t;
 
-// This structure is used to be able to get HardwareTimer instance (C++ class)
-// from handler (C structure) specially for interrupt management
-typedef struct  {
-  // Those 2 first fields must remain in this order at the beginning of the structure
-  void    *__this;
-  TIM_HandleTypeDef handle;
-  uint32_t preemptPriority;
-  uint32_t subPriority;
-} timerObj_t;
+    /* Exported functions ------------------------------------------------------- */
+    timerObj_t *get_timer_obj(TIM_HandleTypeDef *htim);
 
-/* Exported functions ------------------------------------------------------- */
-timerObj_t *get_timer_obj(TIM_HandleTypeDef *htim);
+    void enableTimerClock(TIM_HandleTypeDef *htim);
+    void disableTimerClock(TIM_HandleTypeDef *htim);
 
-void enableTimerClock(TIM_HandleTypeDef *htim);
-void disableTimerClock(TIM_HandleTypeDef *htim);
+    uint32_t getTimerIrq(TIM_TypeDef *tim);
+    uint8_t getTimerClkSrc(TIM_TypeDef *tim);
 
-uint32_t getTimerIrq(TIM_TypeDef *tim);
-uint8_t getTimerClkSrc(TIM_TypeDef *tim);
-
-IRQn_Type getTimerUpIrq(TIM_TypeDef *tim);
-IRQn_Type getTimerCCIrq(TIM_TypeDef *tim);
+    IRQn_Type getTimerUpIrq(TIM_TypeDef *tim);
+    IRQn_Type getTimerCCIrq(TIM_TypeDef *tim);
 
 #endif /* HAL_TIM_MODULE_ENABLED && !HAL_TIM_MODULE_ONLY */
 

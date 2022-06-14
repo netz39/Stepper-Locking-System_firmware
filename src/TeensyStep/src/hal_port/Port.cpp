@@ -1,31 +1,31 @@
 #include "Port.h"
 
-GPIO_TypeDef* pinToGPIOBase(int8_t pin)
+GPIO_TypeDef *pinToGPIOBase(int8_t pin)
 {
 #ifdef STM32F103xB
     switch (pin)
     {
-        case PA3:
-            return GPIOA;
-        case PB0:
-        case PB7:
-            return GPIOB;
-        default:
-            teensyStepErrorHandler();
-            break;
+    case PA3:
+        return GPIOA;
+    case PB0:
+    case PB7:
+        return GPIOB;
+    default:
+        teensyStepErrorHandler();
+        break;
     }
 #endif
 #ifdef STM32F103xE
     switch (pin)
     {
-        case PA15:
-            return GPIOA;
-        case PC10: // intentionally fall through
-        case PC15:
-            return GPIOC;
-        default:
-            teensyStepErrorHandler();
-            break;
+    case PA15:
+        return GPIOA;
+    case PC10: // intentionally fall through
+    case PC15:
+        return GPIOC;
+    default:
+        teensyStepErrorHandler();
+        break;
     }
     return GPIOA; // will never be hit -> reduce compile warnings
 #endif
@@ -37,18 +37,18 @@ uint16_t pinToGPIOPinNumber(int8_t pin)
     uint16_t pinNumber = 0;
     switch (pin)
     {
-        case PA3:
-            pinNumber = GPIO_PIN_3;
-            break;
-        case PB0:
-            pinNumber = GPIO_PIN_0;
-            break;
-        case PB7:
-            pinNumber = GPIO_PIN_7;
-            break;
-        default:
-            teensyStepErrorHandler();
-            break;
+    case PA3:
+        pinNumber = GPIO_PIN_3;
+        break;
+    case PB0:
+        pinNumber = GPIO_PIN_0;
+        break;
+    case PB7:
+        pinNumber = GPIO_PIN_7;
+        break;
+    default:
+        teensyStepErrorHandler();
+        break;
     }
     return pinNumber;
 #endif
@@ -57,18 +57,18 @@ uint16_t pinToGPIOPinNumber(int8_t pin)
     uint16_t pinNumber = 0;
     switch (pin)
     {
-        case PA15:
-            pinNumber = GPIO_PIN_15;
-            break;
-        case PC10:
-            pinNumber = GPIO_PIN_10;
-            break;
-        case PC15:
-            pinNumber = GPIO_PIN_15;
-            break;
-        default:
-            teensyStepErrorHandler();
-            break;
+    case PA15:
+        pinNumber = GPIO_PIN_15;
+        break;
+    case PC10:
+        pinNumber = GPIO_PIN_10;
+        break;
+    case PC15:
+        pinNumber = GPIO_PIN_15;
+        break;
+    default:
+        teensyStepErrorHandler();
+        break;
     }
     return pinNumber;
 #endif
@@ -120,7 +120,7 @@ void teensyStepErrorHandler()
         HAL_Delay(500);
     }
 }
-void _Error_Handler(const char*, int)
+void _Error_Handler(const char *, int)
 {
     teensyStepErrorHandler();
 }
