@@ -39,7 +39,9 @@ set(Sources
         src/Application.cxx
 
         src/LED/LightController.cxx
+        src/motor_control/MotorController.cxx
         src/motor_control/TMC2209.cxx
+        src/state_machine/StateMachine.cxx
         src/tactile_switches/TactileSwitches.cxx
 
         src/TeensyStep/src/ErrorHandler.cpp
