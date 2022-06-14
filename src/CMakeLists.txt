@@ -39,6 +39,7 @@ set(Sources
 
         src/LED/LightController.cxx
         src/motor_control/TMC2209.cxx
+        src/tactile_switches/TactileSwitches.cxx
 
         src/TeensyStep/src/ErrorHandler.cpp
         src/TeensyStep/src/Stepper.cpp

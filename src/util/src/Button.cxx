@@ -2,9 +2,15 @@
 
 namespace util
 {
+bool Button::getState() const
+{
+    return (internalState == InternalState::Pressed) || (internalState == InternalState::LongPress);
+}
+
 void Button::update(const units::si::Time timePassed)
 {
-    State state = buttonGpio.read() ? State::NotPressed : State::Pressed;
+    // logical XORing pin state with inverted state
+    State state = (buttonGpio.read() != isInverted) ? State::NotPressed : State::Pressed;
 
     switch (internalState)
     {
