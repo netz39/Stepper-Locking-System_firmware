@@ -33,11 +33,11 @@ extern "C"
     }
 
     /**
-     * @brief  TIMER Initialization - clock init and nvic init
+     * @brief  TIMER Initialization - clock init and nvic init - called from CubeHal
      * @param  htim_base: TIM handle
      * @retval None
      */
-    void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim_base)
+    void mspInitCallback(TIM_HandleTypeDef *htim_base)
     {
         timerObj_t *obj = get_timer_obj(htim_base);
         enableTimerClock(htim_base);
@@ -57,11 +57,11 @@ extern "C"
     }
 
     /**
-     * @brief  TIMER Deinitialization - clock and nvic
+     * @brief  TIMER Deinitialization - clock and nvic - called from CubeHal
      * @param  htim_base: TIM handle
      * @retval None
      */
-    void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef *htim_base)
+    void mspDeInitCallback(TIM_HandleTypeDef *htim_base)
     {
         disableTimerClock(htim_base);
         HAL_NVIC_DisableIRQ(getTimerUpIrq(htim_base->Instance));
@@ -69,11 +69,11 @@ extern "C"
     }
 
     /**
-     * @brief  Initializes the TIM Output Compare MSP.
+     * @brief  Initializes the TIM Output Compare MSP - called from CubeHal
      * @param  htim: TIM handle
      * @retval None
      */
-    void HAL_TIM_OC_MspInit(TIM_HandleTypeDef *htim)
+    void mspInitOCCallback(TIM_HandleTypeDef *htim)
     {
         timerObj_t *obj = get_timer_obj(htim);
         enableTimerClock(htim);
@@ -92,11 +92,11 @@ extern "C"
     }
 
     /**
-     * @brief  DeInitialize TIM Output Compare MSP.
+     * @brief  DeInitialize TIM Output Compare MSP - called from CubeHal
      * @param  htim: TIM handle
      * @retval None
      */
-    void HAL_TIM_OC_MspDeInit(TIM_HandleTypeDef *htim)
+    void mspDeInitOCCallback(TIM_HandleTypeDef *htim)
     {
         disableTimerClock(htim);
         HAL_NVIC_DisableIRQ(getTimerUpIrq(htim->Instance));
@@ -104,21 +104,21 @@ extern "C"
     }
 
     /**
-     * @brief  Initializes the TIM Input Capture MSP.
+     * @brief  Initializes the TIM Input Capture MSP - called from CubeHal
      * @param  htim: TIM handle
      * @retval None
      */
-    void HAL_TIM_IC_MspInit(TIM_HandleTypeDef *htim)
+    void mspInitICCallback(TIM_HandleTypeDef *htim)
     {
         enableTimerClock(htim);
     }
 
     /**
-     * @brief  DeInitialize TIM Input Capture MSP.
+     * @brief  DeInitialize TIM Input Capture MSP - called from CubeHal
      * @param  htim: TIM handle
      * @retval None
      */
-    void HAL_TIM_IC_MspDeInit(TIM_HandleTypeDef *htim)
+    void mspDeInitICCallback(TIM_HandleTypeDef *htim)
     {
         disableTimerClock(htim);
     }

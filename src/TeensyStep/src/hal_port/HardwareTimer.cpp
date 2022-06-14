@@ -128,6 +128,15 @@ void HardwareTimer::setup(TIM_TypeDef *instance)
     _timerObj.handle.Init.RepetitionCounter = 0;
 #endif
     _timerObj.handle.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+
+    // register callbacks to avoid multiple definitions when using same functions
+    HAL_TIM_RegisterCallback(&(_timerObj.handle), HAL_TIM_BASE_MSPINIT_CB_ID, mspInitCallback);
+    HAL_TIM_RegisterCallback(&(_timerObj.handle), HAL_TIM_BASE_MSPDEINIT_CB_ID, mspDeInitCallback);
+    HAL_TIM_RegisterCallback(&(_timerObj.handle), HAL_TIM_OC_MSPINIT_CB_ID, mspInitOCCallback);
+    HAL_TIM_RegisterCallback(&(_timerObj.handle), HAL_TIM_OC_MSPDEINIT_CB_ID, mspDeInitOCCallback);
+    HAL_TIM_RegisterCallback(&(_timerObj.handle), HAL_TIM_IC_MSPINIT_CB_ID, mspInitICCallback);
+    HAL_TIM_RegisterCallback(&(_timerObj.handle), HAL_TIM_IC_MSPDEINIT_CB_ID, mspDeInitICCallback);
+
     HAL_TIM_Base_Init(&(_timerObj.handle));
 }
 
