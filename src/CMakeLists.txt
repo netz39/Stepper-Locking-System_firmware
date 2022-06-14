@@ -22,6 +22,7 @@ set(core_BUILDCONFIGURATION "embedded")
 
 add_subdirectory(core)
 add_subdirectory(src/util)
+add_subdirectory(src/LED/gcem)
 
 add_compile_definitions(STM32G0xx)
 
@@ -65,6 +66,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         core
         freertos
         util
+        gcem
 )
 
 # Sets up generation of .list and .bin files after your firmware has generated.

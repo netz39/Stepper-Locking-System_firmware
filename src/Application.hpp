@@ -10,6 +10,7 @@ public:
     void run();
 
     static Application &getApplicationInstance();
+    static void ledSpiCallback(SPI_HandleTypeDef *hspi);
 
 private:
     LightController lightController;

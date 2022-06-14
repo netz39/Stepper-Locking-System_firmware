@@ -13,6 +13,8 @@
 
 Application::Application()
 {
+    HAL_SPI_RegisterCallback(LightController::SpiDevice, HAL_SPI_TX_COMPLETE_CB_ID,
+                             &ledSpiCallback);
     lightController.statusLed.setColor(util::pwm_led::DualLedColor::DarkGreen);
 }
 
@@ -34,12 +36,12 @@ Application &Application::getApplicationInstance()
 }
 
 //--------------------------------------------------------------------------------------------------
+void Application::ledSpiCallback(SPI_HandleTypeDef *hspi)
+{
+    getApplicationInstance().lightController.notifySpiIsFinished();
+}
 
-// StepControl stepControl;
-// Stepper testStepper(StepperStepPin, StepperDirectionPin);
-
-// TMC2209 tmc2209{0, &huart2};
-
+//--------------------------------------------------------------------------------------------------
 extern "C" void StartDefaultTask(void *) // NOLINT
 {
 
