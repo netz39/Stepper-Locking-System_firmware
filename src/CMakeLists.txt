@@ -38,6 +38,7 @@ set(INCLUDE_FILES
 set(Sources
         src/Application.cxx
 
+        src/analog_to_digital/AnalogDigital.cxx
         src/LED/LightController.cxx
         src/motor_control/MotorController.cxx
         src/motor_control/TMC2209.cxx

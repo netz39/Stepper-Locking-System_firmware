@@ -70,7 +70,7 @@ extern "C" {
 /**
   * @brief This is the list of modules where register callback can be used
   */
-#define USE_HAL_ADC_REGISTER_CALLBACKS    0u
+#define USE_HAL_ADC_REGISTER_CALLBACKS    1u
 #define USE_HAL_CEC_REGISTER_CALLBACKS    0u
 #define USE_HAL_COMP_REGISTER_CALLBACKS   0u
 #define USE_HAL_CRYP_REGISTER_CALLBACKS   0u

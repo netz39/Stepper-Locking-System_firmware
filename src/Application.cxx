@@ -13,8 +13,11 @@
 
 Application::Application()
 {
+    HAL_ADC_RegisterCallback(AnalogDigital::AdcPeripherie, HAL_ADC_CONVERSION_COMPLETE_CB_ID,
+                             &adcConversionCompleteCallback);
     HAL_SPI_RegisterCallback(LightController::SpiDevice, HAL_SPI_TX_COMPLETE_CB_ID,
                              &ledSpiCallback);
+                             
     lightController.statusLed.setColor(util::pwm_led::DualLedColor::Yellow);
 }
 
@@ -33,6 +36,12 @@ Application &Application::getApplicationInstance()
 {
     static auto app = std::make_unique<Application>();
     return *app;
+}
+
+//--------------------------------------------------------------------------------------------------
+void Application::adcConversionCompleteCallback(ADC_HandleTypeDef *)
+{
+    getApplicationInstance().analogDigital.conversionCompleteCallback();
 }
 
 //--------------------------------------------------------------------------------------------------

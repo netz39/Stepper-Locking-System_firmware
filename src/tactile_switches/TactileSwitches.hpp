@@ -14,7 +14,7 @@ public:
     static constexpr auto DebouncingPeriod = 50.0_ms; // to filter bouncings and odd spikes
     static constexpr auto LongPressTime = 0.5_s;
 
-    TactileSwitches() : TaskWithMemberFunctionBase("switchesPollingTask", 128, osPriorityLow5){};
+    TactileSwitches() : TaskWithMemberFunctionBase("switchesPollingTask", 128, osPriorityBelowNormal3){};
 
 protected:
     void taskMain() override;
