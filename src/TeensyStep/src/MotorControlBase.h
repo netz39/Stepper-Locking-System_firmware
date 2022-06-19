@@ -4,6 +4,8 @@
 #include "Stepper.h"
 #include "timer/TF_Handler.h"
 
+#include <functional>
+
 namespace TeensyStep
 {
 
@@ -58,7 +60,9 @@ protected:
     Stepper *motorList[MaxMotors + 1];
     Stepper *leadMotor;
 
-    void (*callback)() = nullptr;
+    using Callback = std::function<void()>;
+    Callback callback = nullptr;
+
     ErrFunc errFunc = nullptr;
     inline void Error(ErrCode e)
     {

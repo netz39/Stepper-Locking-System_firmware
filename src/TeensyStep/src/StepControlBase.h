@@ -70,10 +70,12 @@ public:
 
     // Misc ---------------------------------------------------------
 
+    using typename MotorControlBase<TimerField>::Callback;
+
     // set callback function to be called when target is reached
-    void setCallback(void (*_callback)())
+    void setCallback(Callback newCallback)
     {
-        this->callback = _callback;
+        this->callback = newCallback;
     }
 
 protected:
