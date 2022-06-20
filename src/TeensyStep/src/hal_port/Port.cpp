@@ -5,7 +5,6 @@ GPIO_TypeDef *pinToGPIOBase(int8_t pin)
 {
     switch (pin)
     {
-    case PA3:
     case PA5:
     case PA6:
         return GPIOA;
@@ -20,9 +19,6 @@ uint16_t pinToGPIOPinNumber(int8_t pin)
     uint16_t pinNumber = 0;
     switch (pin)
     {
-    case PA3:
-        pinNumber = GPIO_PIN_3;
-        break;
     case PA5:
         pinNumber = GPIO_PIN_5;
         break;

@@ -1,65 +1,148 @@
 #include "MotorController.hpp"
 
-/*
-    StepControl stepControl;
-    Stepper testStepper(StepperStepPin, StepperDirectionPin);
-    TMC2209 tmc2209{0, &huart2};
-
-    TMC2209::IHoldRun iHoldRun{};
-    static constexpr auto TotalCurrentSteps = 31; // 4 Bit values
-    auto newRegisterValue = (uint32_t)std::round(50 / 100 * TotalCurrentSteps);
-
-    iHoldRun.iholdrun.ihold = newRegisterValue;
-    iHoldRun.iholdrun.irun = newRegisterValue;
-    if (!tmc2209.setIHoldRun(iHoldRun))
+void MotorController::taskMain()
+{
+    if (stepControl.isRunning())
     {
-        HAL_GPIO_WritePin(LED_Red_GPIO_Port, LED_Red_Pin, GPIO_PIN_SET);
-        HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin, GPIO_PIN_RESET);
+        // stepControl.getCurrentSpeed()
 
-        __asm("bkpt");
+        // check current movement
+        // compare with values from hall encoder
+    }
+
+    // check motor temperature
+    if (motorTemperature >= CriticalMotorTemp)
+    {
+        if (!isOverheated)
+            overheatedCounter++;
+
+        isOverheated = true;
+        hasWarningTemp = false;
+    }
+    else if (motorTemperature >= WarningMotorTemp)
+    {
+        if (!hasWarningTemp && !isOverheated)
+            warningTempCounter++;
+
+        isOverheated = false;
+        hasWarningTemp = true;
     }
     else
     {
-        HAL_GPIO_WritePin(LED_Red_GPIO_Port, LED_Red_Pin, GPIO_PIN_RESET);
-        HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin, GPIO_PIN_SET);
+        isOverheated = false;
+        hasWarningTemp = false;
     }
 
-    testStepper.setAcceleration(5000);
-    testStepper.setMaxSpeed(7500);
+    // deal with cases like loosing steps, obstacle while moving
+    // do calibration when needed
+}
 
-    constexpr auto StepsPerFullRevolution = 200;
-    constexpr auto MicroStepsPerStep = 8;
-    constexpr auto TearDown = 5;
-    constexpr auto NumberRevolutions = 2;
+//--------------------------------------------------------------------------------------------------
+void MotorController::onSettingsUpdate()
+{
+    maximumMotorCurrentInPercentage =
+        settingsContainer.getValue<firmwareSettings::MotorMaxCurrent, uint8_t>();
 
-    constexpr auto StepsNeeded =
-        NumberRevolutions * TearDown * MicroStepsPerStep * StepsPerFullRevolution;
+    maximumMotorSpeed = settingsContainer.getValue<firmwareSettings::MotorMaxSpeed>();
+    maximumMotorAcc = settingsContainer.getValue<firmwareSettings::MotorMaxAcc>();
 
-    HAL_GPIO_WritePin(StepperEnable_GPIO_Port, StepperEnable_Pin, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin, GPIO_PIN_SET);
+    overheatedCounter = settingsContainer.getValue<firmwareSettings::MotorOverheatCounter>();
+    warningTempCounter = settingsContainer.getValue<firmwareSettings::MotorWarningTempCounter>();
+}
 
-    while (true)
+//--------------------------------------------------------------------------------------------------
+void MotorController::finishedCallback()
+{
+    disableMotorTorque();
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::moveRelative(int32_t microSteps)
+{
+    if (!isOverheated)
     {
-        testStepper.setTargetRel(StepsNeeded);
-        stepControl.move(testStepper);
-        testStepper.setTargetRel(-StepsNeeded);
-        stepControl.move(testStepper);
-    }
+        enableMotorTorque();
 
-    HAL_GPIO_WritePin(StepperEnable_GPIO_Port, StepperEnable_Pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin, GPIO_PIN_RESET);
-
-    while (1)
-    {
-        // HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin, GPIO_PIN_SET);
-        HAL_GPIO_WritePin(LED_Red_GPIO_Port, LED_Red_Pin, GPIO_PIN_SET);
-
-        vTaskDelay(1000);
-
-        // HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin, GPIO_PIN_RESET);
-        HAL_GPIO_WritePin(LED_Red_GPIO_Port, LED_Red_Pin, GPIO_PIN_RESET);
-
-        vTaskDelay(1000);
+        stepperMotor.setTargetRel(microSteps);
+        stepControl.moveAsync(stepperMotor);
     }
 }
-*/
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::openDoor()
+{
+    moveRelative(isDirectionInverted ? 1 : -1 * NumberOfMicrostepsForOperation);
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::closeDoor()
+{
+    moveRelative(isDirectionInverted ? -1 : 1 * NumberOfMicrostepsForOperation);
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::homeLockSwitch()
+{
+    enableCalibrationMode();
+    moveRelative(isDirectionInverted ? -1 : 1 * NumberOfMicrostepsForOperation);
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::stopMovement()
+{
+    stepControl.stop();
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::stopMovementImmediately()
+{
+    stepControl.emergencyStop();
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::enableCalibrationMode()
+{
+    isInCalibrationMode = true;
+    stopMovement();
+    stepperMotor.setMaxSpeed(CalibrationSpeed);
+    stepperMotor.setAcceleration(CalibrationAcc);
+    setMotorMaxCurrentPercentage(100);
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::disableCalibrationMode()
+{
+    isInCalibrationMode = false;
+    stopMovement();
+    // TODO: restore settings
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::setMotorMaxCurrentPercentage(uint8_t percentage)
+{
+    if (percentage > 100)
+        percentage = 100;
+
+    TMC2209::IHoldRun iHoldRun{};
+    constexpr auto TotalCurrentSteps = 31; // 4 Bit values
+    const uint32_t NewRegisterValue = std::round(percentage / 100.0f * TotalCurrentSteps);
+
+    iHoldRun.iholdrun.ihold = NewRegisterValue;
+    iHoldRun.iholdrun.irun = NewRegisterValue;
+    if (!tmc2209.setIHoldRun(iHoldRun))
+    {
+        // TODO: report error
+    }
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::enableMotorTorque()
+{
+    stepperEnable.write(false);
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::disableMotorTorque()
+{
+    stepperEnable.write(true);
+}
