@@ -25,7 +25,8 @@ void AnalogDigital::taskMain()
             SampleCount);
 
         const auto DropVoltage = physicalQuantityFromAdcResult(adcResults[MotorTemperatureRank], 1);
-        updateFastLowpass(motorTemperature, calculateNtcTemperature(DropVoltage), SampleCount);
+        // updateFastLowpass(motorTemperature, calculateNtcTemperature(DropVoltage), SampleCount);
+        motorTemperature = 25.0_degC;
 
         // TODO:
         // MCU temperature

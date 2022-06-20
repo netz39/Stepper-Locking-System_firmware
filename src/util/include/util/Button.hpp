@@ -43,7 +43,7 @@ private:
     [[nodiscard]] units::si::Time getPassedTime() const;
 
     static constexpr units::si::Time TimerReloadValue = 0.0_s;
-    static constexpr units::si::Time DebounceTime = 50.0_ms;
+    static constexpr units::si::Time DebounceTime = 20.0_ms;
 
     util::Gpio buttonGpio;
     const Callback ButtonCallback;

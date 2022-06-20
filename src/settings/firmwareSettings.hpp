@@ -20,9 +20,9 @@ constexpr std::string_view MotorWarningTempCounter =
 
 inline constexpr std::array EntryArray = {
     // min, default, max, name
-    SettingsEntry{0, 80, 100, MotorMaxCurrent, VariableType::integerType},            //
-    SettingsEntry{0, 1000, 300000, MotorMaxSpeed, VariableType::integerType},         //
-    SettingsEntry{0, 2500, 750000, MotorMaxAcc, VariableType::integerType},           //
+    SettingsEntry{0, 100, 100, MotorMaxCurrent, VariableType::integerType},           //
+    SettingsEntry{0, 35000, 50000, MotorMaxSpeed, VariableType::integerType},         //
+    SettingsEntry{0, 7000, 10000, MotorMaxAcc, VariableType::integerType},            //
     SettingsEntry{0, 0, 16777216, MotorOverheatCounter, VariableType::integerType},   //
     SettingsEntry{0, 0, 16777216, MotorWarningTempCounter, VariableType::integerType} //
 };

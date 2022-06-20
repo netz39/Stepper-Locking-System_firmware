@@ -24,7 +24,9 @@ public:
     i2c::RtosAccessor eepromBusAccessor{EepromBus};
     Eeprom24LC64 eeprom{eepromBusAccessor, 0b000};
 
-private:
+    LightController lightController;
+
+    // private:
     firmwareSettings::Container settingsContainer;
     firmwareSettings::IO settingsIo{eeprom, settingsContainer};
     Settings settings{settingsIo};
@@ -34,8 +36,8 @@ private:
     uint32_t warningTempCounter = 0;
 
     AnalogDigital analogDigital{motorTemperature};
-    LightController lightController;
+
     TactileSwitches tactileSwitches;
-    StateMachine stateMachine;
+    // StateMachine stateMachine;
     MotorController motorController{settingsContainer, motorTemperature};
 };

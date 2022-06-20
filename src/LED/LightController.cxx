@@ -60,7 +60,7 @@ void LightController::taskMain()
     while (true)
     {
         statusLed.updateState(lastWakeTime);
-        sendBuffer();
+        //  sendBuffer();
 
         uint32_t notficationValue;
         static constexpr auto TaskFrequency = 50.0_Hz;

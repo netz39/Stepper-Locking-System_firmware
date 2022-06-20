@@ -10,7 +10,7 @@ class Settings : public TaskWithMemberFunctionBase
 public:
     Settings(firmwareSettings::IO &settingsIO)
         : TaskWithMemberFunctionBase("settingsTask", 512,
-                                     osPriorityBelowNormal2), //
+                                     osPriorityAboveNormal5), //
           settingsIO(settingsIO){};
 
 protected:

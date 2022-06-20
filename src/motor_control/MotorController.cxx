@@ -2,35 +2,67 @@
 
 void MotorController::taskMain()
 {
-    if (stepControl.isRunning())
-    {
-        // stepControl.getCurrentSpeed()
+    onSettingsUpdate();
+    homeLockSwitch();
 
-        // check current movement
-        // compare with values from hall encoder
-    }
+    // closeDoor();
 
-    // check motor temperature
-    if (motorTemperature >= CriticalMotorTemp)
-    {
-        if (!isOverheated)
-            overheatedCounter++;
+    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    stopMovement();
 
-        isOverheated = true;
-        hasWarningTemp = false;
-    }
-    else if (motorTemperature >= WarningMotorTemp)
-    {
-        if (!hasWarningTemp && !isOverheated)
-            warningTempCounter++;
+    vTaskDelay(1000);
 
-        isOverheated = false;
-        hasWarningTemp = true;
-    }
-    else
+    disableCalibrationMode();
+    openDoor();
+
+    while (stepControl.isRunning())
+        vTaskDelay(10);
+
+    vTaskDelay(5000);
+
+    closeDoor();
+
+    while (stepControl.isRunning())
+        vTaskDelay(10);
+
+    vTaskDelay(5000);
+
+    openDoor();
+
+    vTaskSuspend(nullptr);
+
+    while (true)
     {
-        isOverheated = false;
-        hasWarningTemp = false;
+        if (stepControl.isRunning())
+        {
+            // stepControl.getCurrentSpeed()
+
+            // check current movement
+            // compare with values from hall encoder
+        }
+
+        // check motor temperature
+        if (motorTemperature >= CriticalMotorTemp)
+        {
+            if (!isOverheated)
+                overheatedCounter++;
+
+            isOverheated = true;
+            hasWarningTemp = false;
+        }
+        else if (motorTemperature >= WarningMotorTemp)
+        {
+            if (!hasWarningTemp && !isOverheated)
+                warningTempCounter++;
+
+            isOverheated = false;
+            hasWarningTemp = true;
+        }
+        else
+        {
+            isOverheated = false;
+            hasWarningTemp = false;
+        }
     }
 
     // deal with cases like loosing steps, obstacle while moving
@@ -40,14 +72,18 @@ void MotorController::taskMain()
 //--------------------------------------------------------------------------------------------------
 void MotorController::onSettingsUpdate()
 {
-    maximumMotorCurrentInPercentage =
-        settingsContainer.getValue<firmwareSettings::MotorMaxCurrent, uint8_t>();
 
-    maximumMotorSpeed = settingsContainer.getValue<firmwareSettings::MotorMaxSpeed>();
-    maximumMotorAcc = settingsContainer.getValue<firmwareSettings::MotorMaxAcc>();
+    maximumMotorCurrentInPercentage = settingsContainer.getDefaultValue(
+        settingsContainer.getIndex<firmwareSettings::MotorMaxCurrent>());
+    maximumMotorSpeed = settingsContainer.getDefaultValue(
+        settingsContainer.getIndex<firmwareSettings::MotorMaxSpeed>());
+    maximumMotorAcc = settingsContainer.getDefaultValue(
+        settingsContainer.getIndex<firmwareSettings::MotorMaxAcc>());
 
-    overheatedCounter = settingsContainer.getValue<firmwareSettings::MotorOverheatCounter>();
-    warningTempCounter = settingsContainer.getValue<firmwareSettings::MotorWarningTempCounter>();
+    overheatedCounter = settingsContainer.getDefaultValue(
+        settingsContainer.getIndex<firmwareSettings::MotorOverheatCounter>());
+    warningTempCounter = settingsContainer.getDefaultValue(
+        settingsContainer.getIndex<firmwareSettings::MotorWarningTempCounter>());
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -84,7 +120,7 @@ void MotorController::closeDoor()
 void MotorController::homeLockSwitch()
 {
     enableCalibrationMode();
-    moveRelative(isDirectionInverted ? -1 : 1 * NumberOfMicrostepsForOperation);
+    moveRelative(isDirectionInverted ? -1 : 1 * NumberOfMicrostepsForOperation * 1.25f);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -97,6 +133,7 @@ void MotorController::stopMovement()
 void MotorController::stopMovementImmediately()
 {
     stepControl.emergencyStop();
+    disableMotorTorque();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -114,7 +151,10 @@ void MotorController::disableCalibrationMode()
 {
     isInCalibrationMode = false;
     stopMovement();
-    // TODO: restore settings
+
+    setMotorMaxCurrentPercentage(maximumMotorCurrentInPercentage);
+    stepperMotor.setMaxSpeed(maximumMotorSpeed);
+    stepperMotor.setAcceleration(maximumMotorAcc);
 }
 
 //--------------------------------------------------------------------------------------------------

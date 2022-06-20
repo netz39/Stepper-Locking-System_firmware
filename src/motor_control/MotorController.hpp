@@ -52,12 +52,12 @@ private:
     static constexpr auto NumberOfFullSteps = 200;
     static constexpr auto MicrostepsPerRevolution = MicrostepsPerFullStep * NumberOfFullSteps;
     static constexpr auto GearReduction = 5;
-    static constexpr auto NeededRevolutions = 1.5;
+    static constexpr auto NeededRevolutions = 1.75;
     static constexpr int32_t NumberOfMicrostepsForOperation =
         NeededRevolutions * MicrostepsPerRevolution * GearReduction;
 
-    static constexpr auto CalibrationSpeed = 100;
-    static constexpr auto CalibrationAcc = 1000;
+    static constexpr auto CalibrationSpeed = 2000;
+    static constexpr auto CalibrationAcc = 3000;
 
     static constexpr auto WarningMotorTemp = 70.0_degC;
     static constexpr auto CriticalMotorTemp = 85.0_degC;
@@ -84,7 +84,7 @@ private:
 
     /// Moves the motor asynchronously.
     /// @param microSteps moves the motor the given microSteps.
-    /// Negative values move in a clockwise direction.
+    /// Postive values closes the door.
     void moveRelative(int32_t microSteps);
 
     /// Stops a currently active movement with deaccerlation ramp.

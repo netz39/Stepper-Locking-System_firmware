@@ -14,7 +14,8 @@ public:
     static constexpr auto DebouncingPeriod = 50.0_ms; // to filter bouncings and odd spikes
     static constexpr auto LongPressTime = 0.5_s;
 
-    TactileSwitches() : TaskWithMemberFunctionBase("switchesPollingTask", 128, osPriorityBelowNormal3){};
+    TactileSwitches()
+        : TaskWithMemberFunctionBase("switchesPollingTask", 128, osPriorityBelowNormal3){};
 
 protected:
     void taskMain() override;
@@ -37,10 +38,12 @@ private:
     util::Button doorSwitch{
         {DoorState_GPIO_Port, DoorState_Pin},
         std::bind(&TactileSwitches::doorSwitchCallback, this, std::placeholders::_1),
+        50.0_ms,
         true};
 
     util::Button lockSwitch{
         {LockState_GPIO_Port, LockState_Pin},
         std::bind(&TactileSwitches::lockSwitchCallback, this, std::placeholders::_1),
+        50.0_ms,
         true};
 };
