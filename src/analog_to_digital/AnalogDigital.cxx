@@ -51,7 +51,8 @@ void AnalogDigital::waitUntilConversionFinished()
 //----------------------------------------------------------------------------------------------
 void AnalogDigital::calibrateAdc()
 {
-    HAL_ADCEx_Calibration_Start(AdcPeripherie);
+    if (HAL_ADCEx_Calibration_Start(AdcPeripherie) != HAL_OK)
+        __asm("bkpt");
 }
 
 //----------------------------------------------------------------------------------------------

@@ -25,10 +25,10 @@ public:
     static constexpr auto TotalChannelCount = 4;
     static constexpr auto SampleCount = 16;
 
-    static constexpr auto VrefRank = 0;
-    static constexpr auto MotorTemperatureRank = 1;
-    static constexpr auto InputCurrentRank = 2;
-    static constexpr auto McuTemperatureRank = 3;
+    static constexpr auto VrefRank = 3;
+    static constexpr auto MotorTemperatureRank = 0;
+    static constexpr auto InputCurrentRank = 1;
+    static constexpr auto McuTemperatureRank = 2;
 
     static constexpr auto CurrentMeasurementFactor = 1.0_A / 2.0_V;
 
