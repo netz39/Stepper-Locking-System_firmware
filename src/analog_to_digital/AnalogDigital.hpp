@@ -17,7 +17,9 @@ using util::wrappers::TaskWithMemberFunctionBase;
 class AnalogDigital : public TaskWithMemberFunctionBase
 {
 public:
-    AnalogDigital() : TaskWithMemberFunctionBase("adcTask", 1024, osPriorityLow6){};
+    AnalogDigital(Temperature &motorTemperature)
+        : TaskWithMemberFunctionBase("adcTask", 1024, osPriorityLow6),
+          motorTemperature(motorTemperature){};
 
     static constexpr auto AdcPeripherie = &hadc1;
     static constexpr auto TotalChannelCount = 4;
@@ -33,7 +35,7 @@ public:
     Voltage referenceVoltage{};
     Current inputCurrent{}; // on 12V rail
 
-    Temperature motorTemperature{};
+    Temperature &motorTemperature;
     Temperature mcuTemperature{};
 
     void conversionCompleteCallback();

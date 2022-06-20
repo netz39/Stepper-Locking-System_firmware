@@ -4,6 +4,7 @@ Checks: abseil-*,
 
         bugprone-*,
         -bugprone-bool-pointer-implicit-conversion,
+        -bugprone-easily-swappable-parameters,
         -bugprone-exception-escape,
         -bugprone-infinite-loop,
         -bugprone-signed-char-misuse,

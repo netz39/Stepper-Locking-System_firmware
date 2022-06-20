@@ -23,12 +23,15 @@ set(core_BUILDCONFIGURATION "embedded")
 add_subdirectory(core)
 add_subdirectory(src/util)
 add_subdirectory(src/LED/gcem)
+add_subdirectory(src/i2c-drivers)
+add_subdirectory(src/settings/parameter_manager)
 
 add_compile_definitions(STM32G0xx)
 
 set(INCLUDE_FILES
         src
 
+        src/TeensyStep/src/
         src/TeensyStep/src/timer/
         src/TeensyStep/src/hal_port/
         src/TeensyStep/src/timer/generic/
@@ -42,6 +45,7 @@ set(Sources
         src/LED/LightController.cxx
         src/motor_control/MotorController.cxx
         src/motor_control/TMC2209.cxx
+        src/settings/Settings.cxx
         src/state_machine/StateMachine.cxx
         src/tactile_switches/TactileSwitches.cxx
 
@@ -70,6 +74,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         freertos
         util
         gcem
+        i2c-drivers
+        parameter_manager
 )
 
 # Sets up generation of .list and .bin files after your firmware has generated.
