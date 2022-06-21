@@ -37,10 +37,19 @@ public:
     void closeDoor();
 
     /// calibration by homing the lock switch
-    void homeLockSwitch();
+    void doCalibration();
+
+    [[nodiscard]] bool isCalibrating() const;
+
+    void calibrationIsDone();
 
     // called by TeensyStep when it is finished with a movement
     void finishedCallback();
+
+    [[nodiscard]] bool isRunning() const
+    {
+        return stepControl.isRunning();
+    }
 
 protected:
     void taskMain() override;
@@ -111,4 +120,6 @@ private:
     void enableMotorTorque();
 
     void disableMotorTorque();
+
+    void checkMotorTemperature();
 };

@@ -38,6 +38,6 @@ public:
     AnalogDigital analogDigital{motorTemperature};
 
     TactileSwitches tactileSwitches;
-    // StateMachine stateMachine;
     MotorController motorController{settingsContainer, motorTemperature};
+    StateMachine stateMachine{tactileSwitches, motorController};
 };

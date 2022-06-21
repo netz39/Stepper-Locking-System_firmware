@@ -2,71 +2,26 @@
 
 void MotorController::taskMain()
 {
-    onSettingsUpdate();
-    homeLockSwitch();
-
-    // closeDoor();
-
-    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-    stopMovement();
-
-    vTaskDelay(1000);
-
-    disableCalibrationMode();
-    openDoor();
-
-    while (stepControl.isRunning())
-        vTaskDelay(10);
-
-    vTaskDelay(5000);
-
-    closeDoor();
-
-    while (stepControl.isRunning())
-        vTaskDelay(10);
-
-    vTaskDelay(5000);
-
-    openDoor();
-
-    vTaskSuspend(nullptr);
+    auto lastWakeTime = xTaskGetTickCount();
 
     while (true)
     {
-        if (stepControl.isRunning())
-        {
-            // stepControl.getCurrentSpeed()
+        // ToDo:
+        // check current movement - stepControl.getCurrentSpeed()
+        // compare with values from hall encoder
 
-            // check current movement
-            // compare with values from hall encoder
+        if (isCalibrating() && !stepControl.isRunning())
+        {
+            // calibration was not successful, retry it
+            doCalibration();
         }
 
-        // check motor temperature
-        if (motorTemperature >= CriticalMotorTemp)
-        {
-            if (!isOverheated)
-                overheatedCounter++;
+        checkMotorTemperature();
 
-            isOverheated = true;
-            hasWarningTemp = false;
-        }
-        else if (motorTemperature >= WarningMotorTemp)
-        {
-            if (!hasWarningTemp && !isOverheated)
-                warningTempCounter++;
-
-            isOverheated = false;
-            hasWarningTemp = true;
-        }
-        else
-        {
-            isOverheated = false;
-            hasWarningTemp = false;
-        }
+        vTaskDelayUntil(&lastWakeTime, toOsTicks(100.0_Hz));
     }
 
     // deal with cases like loosing steps, obstacle while moving
-    // do calibration when needed
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -84,6 +39,9 @@ void MotorController::onSettingsUpdate()
         settingsContainer.getIndex<firmwareSettings::MotorOverheatCounter>());
     warningTempCounter = settingsContainer.getDefaultValue(
         settingsContainer.getIndex<firmwareSettings::MotorWarningTempCounter>());
+
+    if (!isInCalibrationMode)
+        disableCalibrationMode(); // set parameters in normal mode
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -117,10 +75,24 @@ void MotorController::closeDoor()
 }
 
 //--------------------------------------------------------------------------------------------------
-void MotorController::homeLockSwitch()
+
+void MotorController::doCalibration()
 {
     enableCalibrationMode();
     moveRelative(isDirectionInverted ? -1 : 1 * NumberOfMicrostepsForOperation * 1.25f);
+}
+
+//--------------------------------------------------------------------------------------------------
+bool MotorController::isCalibrating() const
+{
+    return isInCalibrationMode;
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::calibrationIsDone()
+{
+    stopMovement();
+    disableCalibrationMode();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -150,7 +122,6 @@ void MotorController::enableCalibrationMode()
 void MotorController::disableCalibrationMode()
 {
     isInCalibrationMode = false;
-    stopMovement();
 
     setMotorMaxCurrentPercentage(maximumMotorCurrentInPercentage);
     stepperMotor.setMaxSpeed(maximumMotorSpeed);
@@ -185,4 +156,30 @@ void MotorController::enableMotorTorque()
 void MotorController::disableMotorTorque()
 {
     stepperEnable.write(true);
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::checkMotorTemperature()
+{
+    if (motorTemperature >= CriticalMotorTemp)
+    {
+        if (!isOverheated)
+            overheatedCounter++;
+
+        isOverheated = true;
+        hasWarningTemp = false;
+    }
+    else if (motorTemperature >= WarningMotorTemp)
+    {
+        if (!hasWarningTemp && !isOverheated)
+            warningTempCounter++;
+
+        isOverheated = false;
+        hasWarningTemp = true;
+    }
+    else
+    {
+        isOverheated = false;
+        hasWarningTemp = false;
+    }
 }
