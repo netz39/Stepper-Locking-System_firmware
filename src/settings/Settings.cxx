@@ -4,13 +4,13 @@
 
 void Settings::taskMain()
 {
-    settingsIO.loadSettings();
+    // settingsIO.loadSettings();
     // sync::signal(sync::ConfigurationLoaded);
     SettingsUser::notifySettingsUpdate();
 
     while (true)
     {
         ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-        settingsIO.saveSettings();
+        // settingsIO.saveSettings();
     }
 }
