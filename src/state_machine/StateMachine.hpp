@@ -48,12 +48,12 @@ public:
     static constexpr uint32_t DoorStateTriggerBit = 1 << 4;
     static constexpr uint32_t LockStateTriggerBit = 1 << 5;
 
+    State currentState = State::Unknown;
+
 protected:
     void taskMain() override;
 
 private:
-    State currentState = State::Unknown;
-
     TactileSwitches &tactileSwitches;
     MotorController &motorController;
 

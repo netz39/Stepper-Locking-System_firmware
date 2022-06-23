@@ -6,6 +6,7 @@
 
 #include "BgrColor.hpp"
 #include "GammaCorrection.hpp"
+#include "state_machine/StateMachine.hpp"
 #include "util/PwmLed.hpp"
 #include "wrappers/Task.hpp"
 
@@ -18,7 +19,9 @@ using util::wrappers::TaskWithMemberFunctionBase;
 class LightController : public TaskWithMemberFunctionBase
 {
 public:
-    LightController() : TaskWithMemberFunctionBase("statusLedTask", 512, osPriorityLow4)
+    LightController(StateMachine &stateMaschine)
+        : TaskWithMemberFunctionBase("statusLedTask", 512, osPriorityLow4), //
+          stateMaschine(stateMaschine)
     {
         endFrames.fill(0xFF);
     }
@@ -60,4 +63,7 @@ private:
     void sendStartFrame();
     void convertToGammaCorrectedColors();
     void sendBuffer();
+    void updateLightState();
+
+    StateMachine &stateMaschine;
 };

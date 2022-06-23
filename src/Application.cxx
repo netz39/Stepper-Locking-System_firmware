@@ -17,8 +17,6 @@ Application::Application()
                              &adcConversionCompleteCallback);
     HAL_SPI_RegisterCallback(LightController::SpiDevice, HAL_SPI_TX_COMPLETE_CB_ID,
                              &ledSpiCallback);
-                             
-    lightController.statusLed.setColor(util::pwm_led::DualLedColor::Yellow);
 }
 
 //--------------------------------------------------------------------------------------------------

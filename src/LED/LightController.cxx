@@ -7,6 +7,30 @@
 #include <algorithm>
 #include <climits>
 
+using util::pwm_led::DualLedColor;
+
+void LightController::taskMain()
+{
+    RedChannel.startPwmTimer();
+    GreenChannel.startPwmTimer();
+
+    auto lastWakeTime = xTaskGetTickCount();
+
+    while (true)
+    {
+        updateLightState();
+
+        statusLed.updateState(lastWakeTime);
+        //  sendBuffer();
+
+        // uint32_t notficationValue;
+        static constexpr auto TaskFrequency = 50.0_Hz;
+        // notifyWait(0, ULONG_MAX, &notficationValue, toOsTicks(TaskFrequency));
+        vTaskDelayUntil(&lastWakeTime, toOsTicks(TaskFrequency));
+    }
+}
+
+//--------------------------------------------------------------------------------------------------
 inline void LightController::sendStartFrame()
 {
     uint32_t startFrame = 0;
@@ -50,20 +74,36 @@ void LightController::notifySpiIsFinished()
 }
 
 //--------------------------------------------------------------------------------------------------
-void LightController::taskMain()
+void LightController::updateLightState()
 {
-    RedChannel.startPwmTimer();
-    GreenChannel.startPwmTimer();
-
-    auto lastWakeTime = xTaskGetTickCount();
-
-    while (true)
+    switch (stateMaschine.currentState)
     {
-        statusLed.updateState(lastWakeTime);
-        //  sendBuffer();
+    case StateMachine::State::Opened:
+        statusLed.setColor(DualLedColor::DarkGreen);
+        break;
 
-        uint32_t notficationValue;
-        static constexpr auto TaskFrequency = 50.0_Hz;
-        notifyWait(0, ULONG_MAX, &notficationValue, toOsTicks(TaskFrequency));
+    case StateMachine::State::Opening:
+        statusLed.setColorBlinking(DualLedColor::Green, 2.0_Hz);
+        break;
+
+    case StateMachine::State::Closed:
+        statusLed.setColor(DualLedColor::DarkRed);
+        break;
+
+    case StateMachine::State::Closing:
+        statusLed.setColorBlinking(DualLedColor::Red, 2.0_Hz);
+        break;
+
+    case StateMachine::State::Calibrating:
+        statusLed.setColorBlinking(DualLedColor::Yellow, 2.0_Hz);
+        break;
+
+    case StateMachine::State::WantToClose:
+        statusLed.setColorBlinking(DualLedColor::DarkRed, 0.5_Hz);
+        break;
+
+    default:
+        statusLed.setColorBlinking(DualLedColor::Orange, 0.5_Hz);
+        break;
     }
 }
