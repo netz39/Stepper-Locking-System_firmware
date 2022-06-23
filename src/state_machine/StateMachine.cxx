@@ -1,11 +1,12 @@
 #include "StateMachine.hpp"
+#include <climits>
 
 using util::Button;
 
 void StateMachine::taskMain()
 {
     // wait some time to get steady switches states
-    vTaskDelay(toOsTicks(250.0_ms));
+    vTaskDelay(toOsTicks(500.0_ms));
 
     while (true)
     {
@@ -118,11 +119,16 @@ void StateMachine::waitForOpenCommand()
 {
     while (true)
     {
+        listenForOpenButton = true;
+
         uint32_t notifiedValue;
-        notifyWait(pdTRUE, pdTRUE, &notifiedValue, portMAX_DELAY);
+        notifyWait(ULONG_MAX, ULONG_MAX, &notifiedValue, portMAX_DELAY);
 
         if ((notifiedValue & OpenCommandBit) != 0)
+        {
+            listenForOpenButton = false;
             break;
+        }
     }
 }
 
@@ -131,11 +137,16 @@ void StateMachine::waitForCloseCommand()
 {
     while (true)
     {
+        listenForCloseButton = true;
+
         uint32_t notifiedValue;
-        notifyWait(pdTRUE, pdTRUE, &notifiedValue, portMAX_DELAY);
+        notifyWait(ULONG_MAX, ULONG_MAX, &notifiedValue, portMAX_DELAY);
 
         if ((notifiedValue & CloseCommandBit) != 0)
+        {
+            listenForCloseButton = false;
             break;
+        }
     }
 }
 
@@ -147,11 +158,16 @@ void StateMachine::waitForDoorStateTriggered()
 
     while (true)
     {
+        listenForDoorSwitch = true;
+
         uint32_t notifiedValue;
-        notifyWait(pdTRUE, pdTRUE, &notifiedValue, portMAX_DELAY);
+        notifyWait(ULONG_MAX, ULONG_MAX, &notifiedValue, portMAX_DELAY);
 
         if ((notifiedValue & DoorStateTriggerBit) != 0)
+        {
+            listenForDoorSwitch = false;
             break;
+        }
     }
 }
 
@@ -163,11 +179,16 @@ void StateMachine::waitForLockStateTriggered()
 
     while (true)
     {
+        listenForLockSwitch = true;
+
         uint32_t notifiedValue;
-        notifyWait(pdTRUE, pdTRUE, &notifiedValue, portMAX_DELAY);
+        notifyWait(ULONG_MAX, ULONG_MAX, &notifiedValue, portMAX_DELAY);
 
         if ((notifiedValue & LockStateTriggerBit) != 0)
+        {
+            listenForLockSwitch = false;
             break;
+        }
     }
 }
 
@@ -175,26 +196,30 @@ void StateMachine::waitForLockStateTriggered()
 void StateMachine::openButtonCallback(util::Button::Action action)
 {
     if (action == Button::Action::ShortPress || action == Button::Action::LongPress)
-        notify(OpenCommandBit, eSetBits);
+        if (listenForOpenButton)
+            notify(OpenCommandBit, eSetBits);
 }
 
 //--------------------------------------------------------------------------------------------------
 void StateMachine::closeButtonCallback(util::Button::Action action)
 {
     if (action == Button::Action::ShortPress || action == Button::Action::LongPress)
-        notify(CloseCommandBit, eSetBits);
+        if (listenForCloseButton)
+            notify(CloseCommandBit, eSetBits);
 }
 
 //--------------------------------------------------------------------------------------------------
 void StateMachine::doorSwitchCallback(util::Button::Action action)
 {
     if (action == Button::Action::ShortPress || action == Button::Action::LongPress)
-        notify(DoorStateTriggerBit, eSetBits);
+        if (listenForDoorSwitch)
+            notify(DoorStateTriggerBit, eSetBits);
 }
 
 //--------------------------------------------------------------------------------------------------
 void StateMachine::lockSwitchCallback(util::Button::Action action)
 {
     if (action == Button::Action::StopLongPress)
-        notify(LockStateTriggerBit, eSetBits);
+        if (listenForLockSwitch)
+            notify(LockStateTriggerBit, eSetBits);
 }

@@ -62,6 +62,11 @@ private:
     void waitForDoorStateTriggered();
     void waitForLockStateTriggered();
 
+    bool listenForOpenButton = false;
+    bool listenForCloseButton = false;
+    bool listenForDoorSwitch = false;
+    bool listenForLockSwitch = false;
+
     void openButtonCallback(util::Button::Action action);
     void closeButtonCallback(util::Button::Action action);
     void doorSwitchCallback(util::Button::Action action);
