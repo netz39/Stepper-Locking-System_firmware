@@ -40,6 +40,7 @@ set(INCLUDE_FILES
 
 set(Sources
         src/Application.cxx
+        src/sync.cxx
 
         src/analog_to_digital/AnalogDigital.cxx
         src/LED/LightController.cxx

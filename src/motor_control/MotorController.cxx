@@ -1,7 +1,9 @@
 #include "MotorController.hpp"
+#include "sync.hpp"
 
 void MotorController::taskMain()
 {
+    sync::waitForAll(sync::ConfigurationLoaded);
     auto lastWakeTime = xTaskGetTickCount();
 
     while (true)

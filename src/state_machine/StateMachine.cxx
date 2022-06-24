@@ -1,4 +1,6 @@
 #include "StateMachine.hpp"
+#include "sync.hpp"
+
 #include <climits>
 
 using util::Button;
@@ -7,6 +9,8 @@ void StateMachine::taskMain()
 {
     // wait some time to get steady switches states
     vTaskDelay(toOsTicks(500.0_ms));
+
+    sync::waitForAll(sync::ConfigurationLoaded);
 
     while (true)
     {

@@ -1,12 +1,12 @@
 #include "Settings.hpp"
 #include "firmwareSettings.hpp"
-// #include "sync.hpp"
+#include "sync.hpp"
 
 void Settings::taskMain()
 {
     settingsIO.loadSettings();
-    // sync::signal(sync::ConfigurationLoaded);
     SettingsUser::notifySettingsUpdate();
+    sync::signal(sync::ConfigurationLoaded);
 
     while (true)
     {
