@@ -12,6 +12,7 @@ namespace firmwareSettings
 constexpr std::string_view MotorMaxCurrent = "motor maximum current in percentage";
 constexpr std::string_view MotorMaxSpeed = "motor maximum speed in steps per second";
 constexpr std::string_view MotorMaxAcc = "motor maximum accerlation in steps per second^2";
+constexpr std::string_view CalibrationSpeed = "calibration speed in steps per second";
 
 // TODO: separate it
 constexpr std::string_view MotorOverheatCounter = "counter of motor has reached overtemperature";
@@ -20,9 +21,11 @@ constexpr std::string_view MotorWarningTempCounter =
 
 inline constexpr std::array EntryArray = {
     // min, default, max, name
-    SettingsEntry{0, 100, 100, MotorMaxCurrent, VariableType::integerType},           //
-    SettingsEntry{0, 35000, 50000, MotorMaxSpeed, VariableType::integerType},         //
-    SettingsEntry{0, 7000, 10000, MotorMaxAcc, VariableType::integerType},            //
+    SettingsEntry{0, 100, 100, MotorMaxCurrent, VariableType::integerType},     //
+    SettingsEntry{0, 35000, 50000, MotorMaxSpeed, VariableType::integerType},   //
+    SettingsEntry{0, 7000, 10000, MotorMaxAcc, VariableType::integerType},      //
+    SettingsEntry{0, 2000, 50000, CalibrationSpeed, VariableType::integerType}, //
+
     SettingsEntry{0, 0, 16777216, MotorOverheatCounter, VariableType::integerType},   //
     SettingsEntry{0, 0, 16777216, MotorWarningTempCounter, VariableType::integerType} //
 };

@@ -17,6 +17,11 @@ Application::Application()
                              &adcConversionCompleteCallback);
     HAL_SPI_RegisterCallback(LightController::SpiDevice, HAL_SPI_TX_COMPLETE_CB_ID,
                              &ledSpiCallback);
+
+    // EEPROM callbacks
+    HAL_I2C_RegisterCallback(EepromBus, HAL_I2C_MASTER_TX_COMPLETE_CB_ID, &i2cMasterTxCallback);
+    HAL_I2C_RegisterCallback(EepromBus, HAL_I2C_MASTER_RX_COMPLETE_CB_ID, &i2cMasterRxCallback);
+    HAL_I2C_RegisterCallback(EepromBus, HAL_I2C_ERROR_CB_ID, &i2cErrorCallback);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -43,9 +48,33 @@ void Application::adcConversionCompleteCallback(ADC_HandleTypeDef *)
 }
 
 //--------------------------------------------------------------------------------------------------
-void Application::ledSpiCallback(SPI_HandleTypeDef *hspi)
+void Application::ledSpiCallback(SPI_HandleTypeDef *)
 {
     getApplicationInstance().lightController.notifySpiIsFinished();
+}
+
+//--------------------------------------------------------------------------------------------------
+void Application::i2cMasterTxCallback(I2C_HandleTypeDef *)
+{
+    auto higherPrioTaskWoken = pdFALSE;
+    getApplicationInstance().eepromBusAccessor.signalTransferCompleteFromIsr(&higherPrioTaskWoken);
+    portYIELD_FROM_ISR(higherPrioTaskWoken);
+}
+
+//--------------------------------------------------------------------------------------------------
+void Application::i2cMasterRxCallback(I2C_HandleTypeDef *)
+{
+    auto higherPrioTaskWoken = pdFALSE;
+    getApplicationInstance().eepromBusAccessor.signalTransferCompleteFromIsr(&higherPrioTaskWoken);
+    portYIELD_FROM_ISR(higherPrioTaskWoken);
+}
+
+//--------------------------------------------------------------------------------------------------
+void Application::i2cErrorCallback(I2C_HandleTypeDef *)
+{
+    auto higherPrioTaskWoken = pdFALSE;
+    getApplicationInstance().eepromBusAccessor.signalErrorFromIsr(&higherPrioTaskWoken);
+    portYIELD_FROM_ISR(higherPrioTaskWoken);
 }
 
 //--------------------------------------------------------------------------------------------------

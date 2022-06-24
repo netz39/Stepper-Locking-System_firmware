@@ -17,8 +17,6 @@ public:
     void run();
 
     static Application &getApplicationInstance();
-    static void adcConversionCompleteCallback(ADC_HandleTypeDef *);
-    static void ledSpiCallback(SPI_HandleTypeDef *hspi);
 
     static constexpr auto EepromBus = &hi2c1;
     i2c::RtosAccessor eepromBusAccessor{EepromBus};
@@ -40,4 +38,10 @@ public:
     StateMachine stateMachine{tactileSwitches, motorController};
 
     LightController lightController{stateMachine};
+
+    static void adcConversionCompleteCallback(ADC_HandleTypeDef *);
+    static void ledSpiCallback(SPI_HandleTypeDef *);
+    static void i2cMasterTxCallback(I2C_HandleTypeDef *);
+    static void i2cMasterRxCallback(I2C_HandleTypeDef *);
+    static void i2cErrorCallback(I2C_HandleTypeDef *);
 };
