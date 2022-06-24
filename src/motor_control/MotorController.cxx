@@ -10,7 +10,7 @@ void MotorController::taskMain()
         // check current movement - stepControl.getCurrentSpeed()
         // compare with values from hall encoder
 
-        if (isCalibrating() && !stepControl.isRunning())
+        if (isInCalibrationMode && !stepControl.isRunning())
         {
             // calibration was not successful, retry it
             doCalibration();
@@ -47,7 +47,25 @@ void MotorController::onSettingsUpdate()
 //--------------------------------------------------------------------------------------------------
 void MotorController::finishedCallback()
 {
-    disableMotorTorque();
+    if (!ignoreFinishedEvent)
+    {
+        disableMotorTorque();
+
+        if (!callback)
+            callback();
+    }
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::moveAbsolute(int32_t position)
+{
+    if (!isOverheated)
+    {
+        enableMotorTorque();
+
+        stepperMotor.setTargetAbs(position);
+        stepControl.moveAsync(stepperMotor);
+    }
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -65,34 +83,39 @@ void MotorController::moveRelative(int32_t microSteps)
 //--------------------------------------------------------------------------------------------------
 void MotorController::openDoor()
 {
-    moveRelative(isDirectionInverted ? 1 : -1 * NumberOfMicrostepsForOperation);
+    moveAbsolute(isDirectionInverted ? 1 : -1 * NumberOfMicrostepsForOperation);
 }
 
 //--------------------------------------------------------------------------------------------------
 void MotorController::closeDoor()
 {
-    moveRelative(isDirectionInverted ? -1 : 1 * NumberOfMicrostepsForOperation);
+    moveAbsolute(0);
 }
 
 //--------------------------------------------------------------------------------------------------
 
-void MotorController::doCalibration()
+void MotorController::doCalibration(bool forceInverted)
 {
+    bool invert = isDirectionInverted != forceInverted;
+
     enableCalibrationMode();
-    moveRelative(isDirectionInverted ? -1 : 1 * NumberOfMicrostepsForOperation * 1.25f);
+    moveRelative(invert ? -1 : 1 * NumberOfMicrostepsForOperation * 1.25f);
 }
 
 //--------------------------------------------------------------------------------------------------
-bool MotorController::isCalibrating() const
+void MotorController::abortCalibration()
 {
-    return isInCalibrationMode;
+    stopMovement();
+    disableCalibrationMode();
 }
 
 //--------------------------------------------------------------------------------------------------
 void MotorController::calibrationIsDone()
 {
-    stopMovement();
-    disableCalibrationMode();
+    abortCalibration();
+    stepperMotor.setPosition(0);
+
+    // ToDo: get hall encoder value and save it
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -112,9 +135,8 @@ void MotorController::stopMovementImmediately()
 void MotorController::enableCalibrationMode()
 {
     isInCalibrationMode = true;
-    stopMovement();
+
     stepperMotor.setMaxSpeed(CalibrationSpeed);
-    stepperMotor.setAcceleration(CalibrationAcc);
     setMotorMaxCurrentPercentage(100);
 }
 
@@ -125,7 +147,6 @@ void MotorController::disableCalibrationMode()
 
     setMotorMaxCurrentPercentage(maximumMotorCurrentInPercentage);
     stepperMotor.setMaxSpeed(maximumMotorSpeed);
-    stepperMotor.setAcceleration(maximumMotorAcc);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -182,4 +203,22 @@ void MotorController::checkMotorTemperature()
         isOverheated = false;
         hasWarningTemp = false;
     }
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::revertOpening()
+{
+    ignoreFinishedEvent = true;
+    stopMovement();
+    closeDoor();
+    ignoreFinishedEvent = false;
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::revertClosing()
+{
+    ignoreFinishedEvent = true;
+    stopMovement();
+    openDoor();
+    ignoreFinishedEvent = false;
 }

@@ -37,18 +37,30 @@ public:
     void closeDoor();
 
     /// calibration by homing the lock switch
-    void doCalibration();
+    /// @param forceInvert invert the moving direction
+    void doCalibration(bool forceInvert = false);
 
-    [[nodiscard]] bool isCalibrating() const;
+    /// Stops calibration movement and restore motor params
+    void abortCalibration();
 
+    /// Stops calibration movement, restore motor params and save position
     void calibrationIsDone();
 
     // called by TeensyStep when it is finished with a movement
     void finishedCallback();
 
-    [[nodiscard]] bool isRunning() const
+    /// Interrupt opening action and return to position before opening -> fully closed
+    void revertOpening();
+
+    /// Interrupt closing action and return to position before closing -> fully opened
+    void revertClosing();
+
+    using Callback = std::function<void()>;
+
+    /// set up callback which will be called when the target is reached
+    void setFinishedCallback(Callback newCallback)
     {
-        return stepControl.isRunning();
+        callback = newCallback;
     }
 
 protected:
@@ -66,7 +78,6 @@ private:
         NeededRevolutions * MicrostepsPerRevolution * GearReduction;
 
     static constexpr auto CalibrationSpeed = 2000;
-    static constexpr auto CalibrationAcc = 3000;
 
     static constexpr auto WarningMotorTemp = 70.0_degC;
     static constexpr auto CriticalMotorTemp = 85.0_degC;
@@ -81,11 +92,14 @@ private:
 
     bool isInCalibrationMode = false;
     bool isDirectionInverted = false;
+    bool ignoreFinishedEvent = false;
 
     StepControl stepControl{};
     Stepper stepperMotor{StepperStepPin, StepperDirectionPin};
     TMC2209 tmc2209{0, UartPeripherie};
     util::Gpio stepperEnable{StepperEnable_GPIO_Port, StepperEnable_Pin};
+
+    Callback callback = nullptr;
 
     uint8_t maximumMotorCurrentInPercentage = 0;
     uint32_t maximumMotorSpeed = 0;
@@ -96,6 +110,10 @@ private:
     /// Postive values closes the door.
     void moveRelative(int32_t microSteps);
 
+    /// Moves the motor asynchronously.
+    /// @param position moves the motor to given position.
+    void moveAbsolute(int32_t position);
+
     /// Stops a currently active movement with deaccerlation ramp.
     /// Blocking.
     void stopMovement();
@@ -104,14 +122,12 @@ private:
     void stopMovementImmediately();
 
     /// Enables Calibration mode:
-    /// - stops a current movement
-    /// - reduces max speed / acceleration
+    /// - reduces max speed
     /// - sets motor current to 100%
     void enableCalibrationMode();
 
     /// Disables calibration mode:
-    /// - stops a current movement
-    /// - restores the settings (speed/acceleration/motor current)
+    /// - restores the settings (speed/motor current)
     void disableCalibrationMode();
 
     /// Setter for maximum motor current in percent

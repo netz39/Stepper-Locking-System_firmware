@@ -22,8 +22,10 @@ void StateMachine::taskMain()
                 {
                     // lock switch is pressed -> lock bolt is extended
                     // ToDo: compare with saved hall encoder value
+                    // if that matchs -> set to closed, otherwise recalibrate
+                    // currentState = State::Closed;
 
-                    currentState = State::Closed;
+                    currentState = State::Calibrating;
                 }
                 else
                 {
@@ -34,6 +36,7 @@ void StateMachine::taskMain()
             else
             {
                 // door wing is open, so we assume door and lock bolt are correctly open
+                // we will calibrate later at the moment, when the door is closing
                 currentState = State::Opened;
             }
         }
@@ -44,10 +47,15 @@ void StateMachine::taskMain()
             waitForCloseCommand();
 
             if (tactileSwitches.doorSwitch.isLongPressing())
-            {
-                // door wing is triggering doorSwitch
-                motorController.closeDoor();
-                currentState = State::Closing;
+            { // door wing is triggering doorSwitch
+
+                if (isCalibrated)
+                {
+                    motorController.closeDoor();
+                    currentState = State::Closing;
+                }
+                else
+                    currentState = State::Calibrating;
             }
             else
             {
@@ -68,38 +76,60 @@ void StateMachine::taskMain()
 
         case State::Opening:
         {
-            while (motorController.isRunning())
-                vTaskDelay(toOsTicks(100.0_Hz));
+            waitForFinishedEvent();
+
+            if (stateChanged)
+            {
+                stateChanged = false;
+                break;
+            }
 
             currentState = State::Opened;
         }
         break;
 
         case State::Closing:
-            while (motorController.isRunning())
-                vTaskDelay(toOsTicks(100.0_Hz));
+        {
+            waitForFinishedEvent();
+
+            if (stateChanged)
+            {
+                stateChanged = false;
+                break;
+            }
 
             currentState = State::Closed;
             break;
+        }
 
         case State::WantToClose:
         {
             waitForDoorStateTriggered();
 
-            motorController.closeDoor();
-            currentState = State::Closing;
+            if (isCalibrated)
+            {
+                motorController.closeDoor();
+                currentState = State::Closing;
+            }
+            else
+                currentState = State::Calibrating;
         }
         break;
 
         case State::Calibrating:
         {
+            if (!tactileSwitches.lockSwitch.isLongPressing())
+            { // lock switch already triggered, so opens the door until the lock switch is released
+
+                motorController.doCalibration(true);
+                waitForLockStateReleased();
+                motorController.abortCalibration();
+            }
+
             motorController.doCalibration();
-
             waitForLockStateTriggered();
-
             motorController.calibrationIsDone();
-            // ToDo: save actual hall encoder value
-
+            isCalibrated = true;
             currentState = State::Closed;
         }
         break;
@@ -115,39 +145,32 @@ void StateMachine::taskMain()
 }
 
 //--------------------------------------------------------------------------------------------------
-void StateMachine::waitForOpenCommand()
+bool StateMachine::waitForCommand(uint32_t eventBit, TickType_t xTicksToWait)
 {
     while (true)
     {
-        listenForOpenButton = true;
-
         uint32_t notifiedValue;
-        notifyWait(ULONG_MAX, ULONG_MAX, &notifiedValue, portMAX_DELAY);
-
-        if ((notifiedValue & OpenCommandBit) != 0)
+        if (notifyWait(ULONG_MAX, ULONG_MAX, &notifiedValue, xTicksToWait))
         {
-            listenForOpenButton = false;
-            break;
+            if ((notifiedValue & eventBit) != 0)
+                return true;
         }
+        else
+            // timeout occurred
+            return false;
     }
+}
+
+//--------------------------------------------------------------------------------------------------
+void StateMachine::waitForOpenCommand()
+{
+    waitForCommand(OpenCommandBit, portMAX_DELAY);
 }
 
 //--------------------------------------------------------------------------------------------------
 void StateMachine::waitForCloseCommand()
 {
-    while (true)
-    {
-        listenForCloseButton = true;
-
-        uint32_t notifiedValue;
-        notifyWait(ULONG_MAX, ULONG_MAX, &notifiedValue, portMAX_DELAY);
-
-        if ((notifiedValue & CloseCommandBit) != 0)
-        {
-            listenForCloseButton = false;
-            break;
-        }
-    }
+    waitForCommand(CloseCommandBit, portMAX_DELAY);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -156,19 +179,7 @@ void StateMachine::waitForDoorStateTriggered()
     if (tactileSwitches.doorSwitch.isLongPressing())
         return;
 
-    while (true)
-    {
-        listenForDoorSwitch = true;
-
-        uint32_t notifiedValue;
-        notifyWait(ULONG_MAX, ULONG_MAX, &notifiedValue, portMAX_DELAY);
-
-        if ((notifiedValue & DoorStateTriggerBit) != 0)
-        {
-            listenForDoorSwitch = false;
-            break;
-        }
-    }
+    waitForCommand(DoorStateTriggerBit, portMAX_DELAY);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -177,49 +188,103 @@ void StateMachine::waitForLockStateTriggered()
     if (!tactileSwitches.lockSwitch.isLongPressing())
         return;
 
-    while (true)
-    {
-        listenForLockSwitch = true;
+    waitForCommand(LockStateTriggerBit, portMAX_DELAY);
+}
 
-        uint32_t notifiedValue;
-        notifyWait(ULONG_MAX, ULONG_MAX, &notifiedValue, portMAX_DELAY);
+//--------------------------------------------------------------------------------------------------
+void StateMachine::waitForLockStateReleased()
+{
+    if (tactileSwitches.lockSwitch.isLongPressing())
+        return;
 
-        if ((notifiedValue & LockStateTriggerBit) != 0)
-        {
-            listenForLockSwitch = false;
-            break;
-        }
-    }
+    waitForCommand(LockStateReleaseBit, portMAX_DELAY);
+}
+
+//--------------------------------------------------------------------------------------------------
+void StateMachine::waitForFinishedEvent()
+{
+    waitForCommand(FinishedEvent, portMAX_DELAY);
 }
 
 //--------------------------------------------------------------------------------------------------
 void StateMachine::openButtonCallback(util::Button::Action action)
 {
     if (action == Button::Action::ShortPress || action == Button::Action::LongPress)
-        if (listenForOpenButton)
+    {
+        if (currentState == State::Closed)
             notify(OpenCommandBit, eSetBits);
+
+        else if (currentState == State::Closing)
+        {
+            currentState = State::Opening;
+            stateChanged = true;
+            motorController.revertClosing();
+        }
+    }
 }
 
 //--------------------------------------------------------------------------------------------------
 void StateMachine::closeButtonCallback(util::Button::Action action)
 {
     if (action == Button::Action::ShortPress || action == Button::Action::LongPress)
-        if (listenForCloseButton)
+    {
+        if (currentState == State::Opened)
             notify(CloseCommandBit, eSetBits);
+
+        else if (currentState == State::Opening)
+        {
+            currentState = State::Closing;
+            stateChanged = true;
+            motorControllerFinishedCallback(); // invoke state change
+            motorController.revertOpening();
+        }
+    }
 }
 
 //--------------------------------------------------------------------------------------------------
 void StateMachine::doorSwitchCallback(util::Button::Action action)
 {
     if (action == Button::Action::ShortPress || action == Button::Action::LongPress)
-        if (listenForDoorSwitch)
+    {
+        if (currentState == State::WantToClose)
             notify(DoorStateTriggerBit, eSetBits);
+    }
+    else if (action == Button::Action::StopLongPress && currentState == State::Closing)
+    {
+        currentState = State::Opening;
+        stateChanged = true;
+        motorControllerFinishedCallback(); // invoke state change
+        motorController.revertClosing();
+    }
 }
 
 //--------------------------------------------------------------------------------------------------
 void StateMachine::lockSwitchCallback(util::Button::Action action)
 {
     if (action == Button::Action::StopLongPress)
-        if (listenForLockSwitch)
+    { // lock switch is triggered
+
+        if (currentState == State::Calibrating)
             notify(LockStateTriggerBit, eSetBits);
+
+        else if (currentState == State::Closing)
+        {
+            // check position with hall value
+            // stop movement?
+            // save new value?
+        }
+    }
+    else if (action == Button::Action::ShortPress || action == Button::Action::LongPress)
+    { // lock switch is released
+
+        if (currentState == State::Calibrating)
+            notify(LockStateReleaseBit, eSetBits);
+    }
+}
+
+//--------------------------------------------------------------------------------------------------
+void StateMachine::motorControllerFinishedCallback()
+{
+    if (currentState == State::Opening || currentState == State::Closing)
+        notify(FinishedEvent, eSetBits);
 }
