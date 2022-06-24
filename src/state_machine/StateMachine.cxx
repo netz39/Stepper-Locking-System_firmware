@@ -12,6 +12,8 @@ void StateMachine::taskMain()
     {
         switch (currentState)
         {
+
+        //------------------------------
         case State::Unknown:
         {
             if (tactileSwitches.doorSwitch.isLongPressing())
@@ -42,6 +44,7 @@ void StateMachine::taskMain()
         }
         break;
 
+        //------------------------------
         case State::Opened:
         {
             waitForCloseCommand();
@@ -65,6 +68,7 @@ void StateMachine::taskMain()
         }
         break;
 
+        //------------------------------
         case State::Closed:
         {
             waitForOpenCommand();
@@ -74,6 +78,7 @@ void StateMachine::taskMain()
         }
         break;
 
+        //------------------------------
         case State::Opening:
         {
             waitForFinishedEvent();
@@ -88,6 +93,7 @@ void StateMachine::taskMain()
         }
         break;
 
+        //------------------------------
         case State::Closing:
         {
             waitForFinishedEvent();
@@ -102,6 +108,7 @@ void StateMachine::taskMain()
             break;
         }
 
+        //------------------------------
         case State::WantToClose:
         {
             waitForDoorStateTriggered();
@@ -116,6 +123,7 @@ void StateMachine::taskMain()
         }
         break;
 
+        //------------------------------
         case State::Calibrating:
         {
             if (!tactileSwitches.lockSwitch.isLongPressing())
@@ -134,9 +142,11 @@ void StateMachine::taskMain()
         }
         break;
 
+        //------------------------------
         case State::Warning:
             break;
 
+        //------------------------------
         default:
         case State::FatalError:
             break;
