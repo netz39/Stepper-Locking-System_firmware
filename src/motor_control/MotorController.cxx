@@ -24,8 +24,11 @@ void MotorController::taskMain()
 
         if (isInCalibrationMode && !stepControl.isRunning())
         {
-            // calibration was not successful, retry it
-            doCalibration();
+            disableCalibrationMode();
+
+            // calibration was not successful
+            if (callback)
+                callback(false);
         }
 
         checkMotorTemperature();
@@ -61,7 +64,7 @@ void MotorController::finishedCallback()
         disableMotorTorque();
 
         if (callback)
-            callback();
+            callback(true);
     }
 }
 
@@ -114,6 +117,7 @@ void MotorController::doCalibration(bool forceInverted)
 //--------------------------------------------------------------------------------------------------
 void MotorController::abortCalibration()
 {
+    isInCalibrationMode = false;
     stopMovement();
     disableCalibrationMode();
 }

@@ -57,7 +57,7 @@ public:
     /// Interrupt closing action and return to position before closing -> fully opened
     void revertClosing();
 
-    using Callback = std::function<void()>;
+    using Callback = std::function<void(bool success)>;
 
     /// set up callback which will be called when the target is reached
     void setFinishedCallback(Callback newCallback)
