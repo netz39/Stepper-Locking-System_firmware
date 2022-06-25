@@ -30,7 +30,7 @@ public:
             std::bind(&StateMachine::lockSwitchCallback, this, std::placeholders::_1));
 
         motorController.setFinishedCallback(
-            std::bind(&StateMachine::motorControllerFinishedCallback, this));
+            std::bind(&StateMachine::motorControllerFinishedCallback, this, std::placeholders::_1));
     };
 
     enum class State
@@ -41,11 +41,13 @@ public:
         Opening,
         Closing,
         WantToClose,
+        RetryToClose,
         Calibrating,
         Warning,
         FatalError
     };
 
+    static constexpr uint32_t ErrorBit = 1 << 1;
     static constexpr uint32_t OpenCommandBit = 1 << 2;
     static constexpr uint32_t CloseCommandBit = 1 << 3;
     static constexpr uint32_t DoorStateTriggerBit = 1 << 4;
@@ -62,22 +64,21 @@ private:
     TactileSwitches &tactileSwitches;
     MotorController &motorController;
 
-    bool stateChanged = false;
     bool isCalibrated = false;
 
     bool waitForCommand(uint32_t eventBit, TickType_t xTicksToWait);
 
-    void waitForOpenCommand();
-    void waitForCloseCommand();
-    void waitForDoorStateTriggered();
-    void waitForLockStateTriggered();
-    void waitForLockStateReleased();
-    void waitForFinishedEvent();
+    bool waitForOpenCommand();
+    bool waitForCloseCommand();
+    bool waitForDoorStateTriggered();
+    bool waitForLockStateTriggered();
+    bool waitForLockStateReleased();
+    bool waitForFinishedEvent();
 
     void openButtonCallback(util::Button::Action action);
     void closeButtonCallback(util::Button::Action action);
     void doorSwitchCallback(util::Button::Action action);
     void lockSwitchCallback(util::Button::Action action);
 
-    void motorControllerFinishedCallback();
+    void motorControllerFinishedCallback(bool success);
 };

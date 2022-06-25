@@ -57,7 +57,16 @@ public:
     /// Interrupt closing action and return to position before closing -> fully opened
     void revertClosing();
 
-    using Callback = std::function<void()>;
+    /// Permit further motor movements.
+    void freezeMotor();
+
+    /// Allow further motor movements again.
+    void unfreezeMotor();
+
+    /// Return the progess of opening/closing actions in percentage.
+    uint8_t getProgress();
+
+    using Callback = std::function<void(bool success)>;
 
     /// set up callback which will be called when the target is reached
     void setFinishedCallback(Callback newCallback)
@@ -91,8 +100,14 @@ private:
     uint32_t warningTempCounter;
 
     bool isInCalibrationMode = false;
+    bool isCalibrating = false;
     bool isDirectionInverted = false;
     bool ignoreFinishedEvent = false;
+    bool isMotorFreezed = false;
+
+    // only for progess bar
+    bool isOpening = false;
+    bool isClosing = false;
 
     StepControl stepControl{};
     Stepper stepperMotor{StepperStepPin, StepperDirectionPin};

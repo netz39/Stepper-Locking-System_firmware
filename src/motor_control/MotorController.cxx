@@ -22,10 +22,13 @@ void MotorController::taskMain()
         // check current movement - stepControl.getCurrentSpeed()
         // compare with values from hall encoder
 
-        if (isInCalibrationMode && !stepControl.isRunning())
+        if (isCalibrating && !stepControl.isRunning())
         {
-            // calibration was not successful, retry it
-            doCalibration();
+            disableCalibrationMode();
+
+            // calibration was not successful
+            if (callback)
+                callback(false);
         }
 
         checkMotorTemperature();
@@ -56,19 +59,22 @@ void MotorController::onSettingsUpdate()
 //--------------------------------------------------------------------------------------------------
 void MotorController::finishedCallback()
 {
+    isOpening = false;
+    isClosing = false;
+
     if (!ignoreFinishedEvent)
     {
         disableMotorTorque();
 
         if (callback)
-            callback();
+            callback(true);
     }
 }
 
 //--------------------------------------------------------------------------------------------------
 void MotorController::moveAbsolute(int32_t position)
 {
-    if (!isOverheated)
+    if (!isOverheated && !isMotorFreezed)
     {
         enableMotorTorque();
 
@@ -80,7 +86,7 @@ void MotorController::moveAbsolute(int32_t position)
 //--------------------------------------------------------------------------------------------------
 void MotorController::moveRelative(int32_t microSteps)
 {
-    if (!isOverheated)
+    if (!isOverheated && !isMotorFreezed)
     {
         enableMotorTorque();
 
@@ -92,12 +98,14 @@ void MotorController::moveRelative(int32_t microSteps)
 //--------------------------------------------------------------------------------------------------
 void MotorController::openDoor()
 {
+    isOpening = true;
     moveAbsolute(isDirectionInverted ? 1 : -1 * NumberOfMicrostepsForOperation);
 }
 
 //--------------------------------------------------------------------------------------------------
 void MotorController::closeDoor()
 {
+    isClosing = true;
     moveAbsolute(0);
 }
 
@@ -109,6 +117,8 @@ void MotorController::doCalibration(bool forceInverted)
 
     enableCalibrationMode();
     moveRelative((invert ? -1.0f : 1.0f) * NumberOfMicrostepsForOperation * 1.25f);
+
+    isCalibrating = true;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -116,6 +126,7 @@ void MotorController::abortCalibration()
 {
     stopMovement();
     disableCalibrationMode();
+    isCalibrating = false;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -232,4 +243,32 @@ void MotorController::revertClosing()
     stopMovement();
     openDoor();
     ignoreFinishedEvent = false;
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::freezeMotor()
+{
+    stopMovementImmediately();
+    isMotorFreezed = true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::unfreezeMotor()
+{
+    isMotorFreezed = false;
+}
+
+//--------------------------------------------------------------------------------------------------
+uint8_t MotorController::getProgress()
+{
+    if (!isOpening && !isClosing)
+        return 100;
+
+    const auto Target =
+        isOpening ? (isDirectionInverted ? 1 : -1 * NumberOfMicrostepsForOperation) : 0;
+
+    const auto Diff = std::abs(Target - stepperMotor.getPosition());
+    const uint8_t Percentage =
+        ((NumberOfMicrostepsForOperation - Diff) * 100) / NumberOfMicrostepsForOperation;
+    return std::clamp<uint8_t>(Percentage, 0, 100);
 }
