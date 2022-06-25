@@ -13,6 +13,7 @@ constexpr std::string_view MotorMaxCurrent = "motor maximum current in percentag
 constexpr std::string_view MotorMaxSpeed = "motor maximum speed in steps per second";
 constexpr std::string_view MotorMaxAcc = "motor maximum accerlation in steps per second^2";
 constexpr std::string_view CalibrationSpeed = "calibration speed in steps per second";
+constexpr std::string_view CalibrationAcc = "calibration accerlation in steps per second^2";
 
 // TODO: separate it
 constexpr std::string_view MotorOverheatCounter = "counter of motor has reached overtemperature";
@@ -25,6 +26,7 @@ inline constexpr std::array EntryArray = {
     SettingsEntry{0, 35000, 50000, MotorMaxSpeed, VariableType::integerType},   //
     SettingsEntry{0, 7000, 10000, MotorMaxAcc, VariableType::integerType},      //
     SettingsEntry{0, 2000, 50000, CalibrationSpeed, VariableType::integerType}, //
+    SettingsEntry{0, 7000, 10000, CalibrationAcc, VariableType::integerType},   //
 
     SettingsEntry{0, 0, 16777216, MotorOverheatCounter, VariableType::integerType},   //
     SettingsEntry{0, 0, 16777216, MotorWarningTempCounter, VariableType::integerType} //

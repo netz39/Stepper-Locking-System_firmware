@@ -105,6 +105,7 @@ private:
     uint32_t maximumMotorSpeed = 0;
     uint32_t maximumMotorAcc = 0;
     uint32_t calibrationSpeed = 0;
+    uint32_t calibrationAcc = 0;
 
     /// Moves the motor asynchronously.
     /// @param microSteps moves the motor the given microSteps.
@@ -123,12 +124,12 @@ private:
     void stopMovementImmediately();
 
     /// Enables Calibration mode:
-    /// - reduces max speed
+    /// - reduces max speed/acc
     /// - sets motor current to 100%
     void enableCalibrationMode();
 
     /// Disables calibration mode:
-    /// - restores the settings (speed/motor current)
+    /// - restores the settings (speed/acc/motor current)
     void disableCalibrationMode();
 
     /// Setter for maximum motor current in percent

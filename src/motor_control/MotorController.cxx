@@ -44,12 +44,13 @@ void MotorController::onSettingsUpdate()
     maximumMotorSpeed = settingsContainer.getValue<firmwareSettings::MotorMaxSpeed>();
     maximumMotorAcc = settingsContainer.getValue<firmwareSettings::MotorMaxAcc>();
     calibrationSpeed = settingsContainer.getValue<firmwareSettings::CalibrationSpeed>();
+    calibrationAcc = settingsContainer.getValue<firmwareSettings::CalibrationAcc>();
 
     overheatedCounter = settingsContainer.getValue<firmwareSettings::MotorOverheatCounter>();
     warningTempCounter = settingsContainer.getValue<firmwareSettings::MotorWarningTempCounter>();
 
-    if (!isInCalibrationMode)
-        disableCalibrationMode(); // set parameters in normal mode
+    // set to new parameters
+    isInCalibrationMode ? enableCalibrationMode() : disableCalibrationMode();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -145,6 +146,7 @@ void MotorController::enableCalibrationMode()
     isInCalibrationMode = true;
 
     stepperMotor.setMaxSpeed(calibrationSpeed);
+    stepperMotor.setAcceleration(calibrationAcc);
     setMotorMaxCurrentPercentage(100);
 }
 
@@ -155,6 +157,7 @@ void MotorController::disableCalibrationMode()
 
     setMotorMaxCurrentPercentage(maximumMotorCurrentInPercentage);
     stepperMotor.setMaxSpeed(maximumMotorSpeed);
+    stepperMotor.setAcceleration(maximumMotorAcc);
 }
 
 //--------------------------------------------------------------------------------------------------
