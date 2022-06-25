@@ -232,6 +232,7 @@ void StateMachine::openButtonCallback(util::Button::Action action)
         {
             currentState = State::Opening;
             stateChanged = true;
+            motorControllerFinishedCallback(); // invoke state change
             motorController.revertClosing();
         }
     }
@@ -258,7 +259,7 @@ void StateMachine::closeButtonCallback(util::Button::Action action)
 //--------------------------------------------------------------------------------------------------
 void StateMachine::doorSwitchCallback(util::Button::Action action)
 {
-    if (action == Button::Action::ShortPress || action == Button::Action::LongPress)
+    if (action == Button::Action::LongPress)
     {
         if (currentState == State::WantToClose)
             notify(DoorStateTriggerBit, eSetBits);

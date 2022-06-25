@@ -14,7 +14,7 @@ void MotorController::taskMain()
 
     while (true)
     {
-        snprintf(buffer, BufferSize, "motor position: %ld", stepperMotor.getPosition());
+        snprintf(buffer, BufferSize, "motor position: %ld\n", stepperMotor.getPosition());
         HAL_UART_Transmit(DebugUartPeripherie, reinterpret_cast<uint8_t *>(buffer), strlen(buffer),
                           1000);
 
@@ -30,7 +30,7 @@ void MotorController::taskMain()
 
         checkMotorTemperature();
 
-        vTaskDelayUntil(&lastWakeTime, toOsTicks(100.0_Hz));
+        vTaskDelayUntil(&lastWakeTime, toOsTicks(50.0_Hz));
     }
 
     // deal with cases like loosing steps, obstacle while moving
@@ -60,7 +60,7 @@ void MotorController::finishedCallback()
     {
         disableMotorTorque();
 
-        if (!callback)
+        if (callback)
             callback();
     }
 }
@@ -108,7 +108,7 @@ void MotorController::doCalibration(bool forceInverted)
     bool invert = isDirectionInverted != forceInverted;
 
     enableCalibrationMode();
-    moveRelative(invert ? -1 : 1 * NumberOfMicrostepsForOperation * 1.25f);
+    moveRelative((invert ? -1.0f : 1.0f) * NumberOfMicrostepsForOperation * 1.25f);
 }
 
 //--------------------------------------------------------------------------------------------------
