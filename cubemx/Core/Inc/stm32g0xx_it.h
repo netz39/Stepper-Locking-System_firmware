@@ -49,9 +49,11 @@
 void NMI_Handler(void);
 void HardFault_Handler(void);
 void DMA1_Channel1_IRQHandler(void);
+void DMA1_Channel2_3_IRQHandler(void);
 void ADC1_COMP_IRQHandler(void);
 void TIM6_DAC_LPTIM1_IRQHandler(void);
 void I2C1_IRQHandler(void);
+void SPI1_IRQHandler(void);
 /* USER CODE BEGIN EFP */
 
 /* USER CODE END EFP */

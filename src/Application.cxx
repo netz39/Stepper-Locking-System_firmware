@@ -15,6 +15,8 @@ Application::Application()
 {
     HAL_ADC_RegisterCallback(AnalogDigital::AdcPeripherie, HAL_ADC_CONVERSION_COMPLETE_CB_ID,
                              &adcConversionCompleteCallback);
+
+    // SPI callback for addressable LEDs
     HAL_SPI_RegisterCallback(LightController::SpiDevice, HAL_SPI_TX_COMPLETE_CB_ID,
                              &ledSpiCallback);
 

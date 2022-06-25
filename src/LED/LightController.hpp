@@ -4,11 +4,12 @@
 #include "spi.h"
 #include "tim.h"
 
-#include "BgrColor.hpp"
-#include "GammaCorrection.hpp"
+#include "LedDataTypes.hpp"
 #include "state_machine/StateMachine.hpp"
 #include "util/PwmLed.hpp"
 #include "wrappers/Task.hpp"
+
+#include "AnimationController.hpp"
 
 #include <array>
 
@@ -20,7 +21,7 @@ class LightController : public TaskWithMemberFunctionBase
 {
 public:
     LightController(StateMachine &stateMaschine)
-        : TaskWithMemberFunctionBase("statusLedTask", 512, osPriorityLow4), //
+        : TaskWithMemberFunctionBase("lightControllerTask", 512, osPriorityLow4), //
           stateMaschine(stateMaschine)
     {
         endFrames.fill(0xFF);
@@ -32,38 +33,39 @@ public:
 
     static constexpr auto SpiDevice = &hspi1;
 
-    struct LedSpiData
-    {
-        uint8_t Start = 0xFF;
-        BgrColor color;
-
-        void assignGammaCorrectedColor(BgrColor newColor)
-        {
-            color.blue = GammaCorrectionLUT[newColor.blue];
-            color.green = GammaCorrectionLUT[newColor.green];
-            color.red = GammaCorrectionLUT[newColor.red];
-        }
-    };
-
     void notifySpiIsFinished();
 
 protected:
     void taskMain() override;
 
 private:
-    static constexpr auto NumberOfLedsInRing = 32;
-    static constexpr auto NumberOfLedsInCrossbar = 10;
-    static constexpr auto TotalNumberOfLeds = NumberOfLedsInRing + NumberOfLedsInCrossbar;
-    static constexpr auto NumberOfEndFrames = (TotalNumberOfLeds + 15) / 16;
+    static constexpr auto NumberOfEndFrames = (NumberOfRings * NumberOfLedsPerRing + 15) / 16;
 
-    std::array<BgrColor, TotalNumberOfLeds> ledSegments;
-    std::array<LedSpiData, TotalNumberOfLeds> ledSpiDatas;
+    LedSegmentArray ledSegments1;
+    LedSpiDataArray ledSpiData1;
+    LedSegmentArray ledSegments2;
+    LedSpiDataArray ledSpiData2;
     std::array<uint8_t, NumberOfEndFrames> endFrames;
 
+    DoorIsOpenAnimation doorIsOpenAnimation{ledSegments1};
+    DoorIsClosedAnimation doorIsClosedAnimation{ledSegments1};
+    DoorShouldCloseAnimation doorShouldCloseAnimation{ledSegments1};
+    WhirlingAnimation whirlingAnimation{ledSegments1};
+    RainbowAnimation rainbowAnimation{ledSegments1};
+
+    ShowStatusAnimation showStatusAnimation{ledSegments1};
+    TestAllColorsAnimation testAllColorsAnimation{ledSegments1};
+
+    LedAnimationBase *targetAnimation{&showStatusAnimation};
+
     void sendStartFrame();
-    void convertToGammaCorrectedColors();
+
+    /// convert LED data to gamma corrected colors and put it to SPI-related array
+    void convertToGammaCorrectedColors(LedSegmentArray &source, LedSpiDataArray &destination);
+
     void sendBuffer();
     void updateLightState();
 
     StateMachine &stateMaschine;
+    StateMachine::State prevState = StateMachine::State::Unknown;
 };
