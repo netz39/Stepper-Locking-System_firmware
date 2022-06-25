@@ -63,6 +63,9 @@ public:
     /// Allow further motor movements again.
     void unfreezeMotor();
 
+    /// Return the progess of opening/closing actions in percentage.
+    uint8_t getProgress();
+
     using Callback = std::function<void(bool success)>;
 
     /// set up callback which will be called when the target is reached
@@ -101,6 +104,10 @@ private:
     bool isDirectionInverted = false;
     bool ignoreFinishedEvent = false;
     bool isMotorFreezed = false;
+
+    // only for progess bar
+    bool isOpening = false;
+    bool isClosing = false;
 
     StepControl stepControl{};
     Stepper stepperMotor{StepperStepPin, StepperDirectionPin};

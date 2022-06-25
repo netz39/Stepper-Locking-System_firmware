@@ -38,7 +38,7 @@ public:
             ledData[i] = ColorOff;
 
         const uint8_t ProgessLedEnd = progress * NumberOfLedsInRing / 100;
-        constexpr auto ProgessColor = Blue * 0.4;
+        constexpr auto ProgessColor = Blue * 0.25;
 
         if (isClockwiseWhirling)
             for (uint8_t i = NumberOfLedsInRing - 1; i >= NumberOfLedsInRing - ProgessLedEnd; i--)
@@ -57,17 +57,6 @@ public:
         ledData[LedIndex2] = WhirlingColor;
         ledData[LedIndex3] = WhirlingColor;
         ledData[LedIndex4] = WhirlingColor;
-
-        // progess simulation
-        /*
-        if (whirlIndex % (NumberOfLedsInRing / 32) == 0)
-            if (++progress >= 100)
-            {
-                progress = 0;
-                animationIsFinished();
-                return;
-            }
-        */
 
         isClockwiseWhirling ? whirlIndex-- : whirlIndex++;
 

@@ -59,6 +59,9 @@ void MotorController::onSettingsUpdate()
 //--------------------------------------------------------------------------------------------------
 void MotorController::finishedCallback()
 {
+    isOpening = false;
+    isClosing = false;
+
     if (!ignoreFinishedEvent)
     {
         disableMotorTorque();
@@ -95,12 +98,14 @@ void MotorController::moveRelative(int32_t microSteps)
 //--------------------------------------------------------------------------------------------------
 void MotorController::openDoor()
 {
+    isOpening = true;
     moveAbsolute(isDirectionInverted ? 1 : -1 * NumberOfMicrostepsForOperation);
 }
 
 //--------------------------------------------------------------------------------------------------
 void MotorController::closeDoor()
 {
+    isClosing = true;
     moveAbsolute(0);
 }
 
@@ -251,4 +256,19 @@ void MotorController::freezeMotor()
 void MotorController::unfreezeMotor()
 {
     isMotorFreezed = false;
+}
+
+//--------------------------------------------------------------------------------------------------
+uint8_t MotorController::getProgress()
+{
+    if (!isOpening && !isClosing)
+        return 100;
+
+    const auto Target =
+        isOpening ? (isDirectionInverted ? 1 : -1 * NumberOfMicrostepsForOperation) : 0;
+
+    const auto Diff = std::abs(Target - stepperMotor.getPosition());
+    const uint8_t Percentage =
+        ((NumberOfMicrostepsForOperation - Diff) * 100) / NumberOfMicrostepsForOperation;
+    return std::clamp<uint8_t>(Percentage, 0, 100);
 }

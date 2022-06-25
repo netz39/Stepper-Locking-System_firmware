@@ -93,7 +93,7 @@ void LightController::updateLightState()
         targetAnimation = &whirlingAnimation;
         whirlingAnimation.setClockwiseWhirling();
         whirlingAnimation.setOpening();
-        // whirlingAnimation.setProgess();
+        whirlingAnimation.setProgess(motorController.getProgress());
         break;
 
     case StateMachine::State::Closed:
@@ -106,7 +106,7 @@ void LightController::updateLightState()
         targetAnimation = &whirlingAnimation;
         whirlingAnimation.setCounterClockwiseWhirling();
         whirlingAnimation.setClosing();
-        // whirlingAnimation.setProgess();
+        whirlingAnimation.setProgess(motorController.getProgress());
         break;
 
     case StateMachine::State::Calibrating:

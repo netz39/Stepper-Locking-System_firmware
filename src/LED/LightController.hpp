@@ -20,9 +20,11 @@ using util::wrappers::TaskWithMemberFunctionBase;
 class LightController : public TaskWithMemberFunctionBase
 {
 public:
-    LightController(StateMachine &stateMaschine)
+    LightController(StateMachine &stateMaschine, MotorController &motorController)
         : TaskWithMemberFunctionBase("lightControllerTask", 512, osPriorityLow4), //
-          stateMaschine(stateMaschine)
+          stateMaschine(stateMaschine),                                           //
+          motorController(motorController)
+
     {
         endFrames.fill(0xFF);
     }
@@ -68,4 +70,6 @@ private:
 
     StateMachine &stateMaschine;
     StateMachine::State prevState = StateMachine::State::Unknown;
+
+    MotorController &motorController;
 };
