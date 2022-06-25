@@ -20,22 +20,35 @@ GENERATE_CUBEMX_TARGETS(${HalDir} true)
 # Affects if arm specific code is compiled in which would SEGFAULT on non arm targets
 set(core_BUILDCONFIGURATION "embedded")
 
-# Adds the core library
 add_subdirectory(core)
+add_subdirectory(src/util)
+add_subdirectory(src/LED/gcem)
+add_subdirectory(src/i2c-drivers)
+add_subdirectory(src/settings/parameter_manager)
 
 add_compile_definitions(STM32G0xx)
 
 set(INCLUDE_FILES
         src
 
+        src/TeensyStep/src/
         src/TeensyStep/src/timer/
         src/TeensyStep/src/hal_port/
         src/TeensyStep/src/timer/generic/
         src/TeensyStep/src/timer/stm32/
-        )
+)
 
 set(Sources
         src/Application.cxx
+        src/sync.cxx
+
+        src/analog_to_digital/AnalogDigital.cxx
+        src/LED/LightController.cxx
+        src/motor_control/MotorController.cxx
+        src/motor_control/TMC2209.cxx
+        src/settings/Settings.cxx
+        src/state_machine/StateMachine.cxx
+        src/tactile_switches/TactileSwitches.cxx
 
         src/TeensyStep/src/ErrorHandler.cpp
         src/TeensyStep/src/Stepper.cpp
@@ -44,7 +57,7 @@ set(Sources
         src/TeensyStep/src/hal_port/timer.c
         src/TeensyStep/src/timer/stm32/TimerField.cpp
         src/TeensyStep/src/timer/generic/TickTimer.cpp
-        )
+)
 
 # Instructs CMake to build your firmware
 add_executable(${PROJECT_NAME} ${Sources})
@@ -55,11 +68,16 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${INCLUDE_FILES})
 # libraries' code is added to your firmware but also sets up include directories. So you don't have to add them manually.
 # Read libraries' README files for information about specifics.
 target_link_libraries(${PROJECT_NAME} PRIVATE
+
         # Core's libraries
         hal
         core
         freertos
-        )
+        util
+        gcem
+        i2c-drivers
+        parameter_manager
+)
 
 # Sets up generation of .list and .bin files after your firmware has generated.
 # Makes firmware image generate as an .elf file.

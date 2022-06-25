@@ -7,15 +7,12 @@
 #define HIGH 1
 #define OUTPUT 1
 #define LOW 0
-#define LED_BUILTIN 2
 
 #define interrupts() __enable_irq()
 #define noInterrupts() __disable_irq()
 
-#define PA3 8
 #define PA5 32
 #define PA6 64
-#define StepperEnablePin PA3
 #define StepperDirectionPin PA6
 #define StepperStepPin PA5
 

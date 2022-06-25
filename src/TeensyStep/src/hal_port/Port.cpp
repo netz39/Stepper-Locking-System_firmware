@@ -1,11 +1,13 @@
 #include "Port.h"
 #include "main.h"
 
+#include "FreeRTOS.h"
+#include "task.h"
+
 GPIO_TypeDef *pinToGPIOBase(int8_t pin)
 {
     switch (pin)
     {
-    case PA3:
     case PA5:
     case PA6:
         return GPIOA;
@@ -20,9 +22,6 @@ uint16_t pinToGPIOPinNumber(int8_t pin)
     uint16_t pinNumber = 0;
     switch (pin)
     {
-    case PA3:
-        pinNumber = GPIO_PIN_3;
-        break;
     case PA5:
         pinNumber = GPIO_PIN_5;
         break;
@@ -58,7 +57,7 @@ void pinMode(int8_t pin, uint8_t polarity)
 }
 void delay(uint32_t ms)
 {
-    HAL_Delay(ms);
+    vTaskDelay(pdMS_TO_TICKS(ms));
 }
 
 uint32_t dwt_getCycles()
@@ -69,14 +68,12 @@ uint32_t dwt_getCycles()
 
 void teensyStepErrorHandler()
 {
+#ifdef DEBUG
+    __asm("bkpt");
+#endif
+
     while (true)
     {
-        HAL_GPIO_TogglePin(LED_Red_GPIO_Port, LED_Red_Pin); // let red led flash
-
-#ifdef DEBUG
-        __asm("bkpt");
-#endif
-        HAL_Delay(500);
     }
 }
 void _Error_Handler(const char *, int)

@@ -4,45 +4,85 @@
 #include "gpio.h"
 #include "main.h"
 
+#include "Application.hpp"
 #include "TeensyStep/src/TeensyStep.h"
+#include "motor_control/TMC2209.hpp"
+#include "wrappers/Task.hpp"
 
-StepControl stepControl;
-Stepper testStepper(StepperStepPin, StepperDirectionPin);
+#include <memory>
 
-extern "C" void StartDefaultTask(void *)
+Application::Application()
 {
-    testStepper.setAcceleration(10000);
-    testStepper.setMaxSpeed(5000);
+    HAL_ADC_RegisterCallback(AnalogDigital::AdcPeripherie, HAL_ADC_CONVERSION_COMPLETE_CB_ID,
+                             &adcConversionCompleteCallback);
+    HAL_SPI_RegisterCallback(LightController::SpiDevice, HAL_SPI_TX_COMPLETE_CB_ID,
+                             &ledSpiCallback);
 
-    constexpr auto StepsPerFullRevolution = 200;
-    constexpr auto MicroStepsPerStep = 8;
-    constexpr auto TearDown = 1;
-    constexpr auto NumberRevolutions = 1;
+    // EEPROM callbacks
+    HAL_I2C_RegisterCallback(EepromBus, HAL_I2C_MASTER_TX_COMPLETE_CB_ID, &i2cMasterTxCallback);
+    HAL_I2C_RegisterCallback(EepromBus, HAL_I2C_MASTER_RX_COMPLETE_CB_ID, &i2cMasterRxCallback);
+    HAL_I2C_RegisterCallback(EepromBus, HAL_I2C_ERROR_CB_ID, &i2cErrorCallback);
+}
 
-    constexpr auto StepsNeeded =
-        NumberRevolutions * TearDown * MicroStepsPerStep * StepsPerFullRevolution;
-
-    HAL_GPIO_WritePin(StepperEnable_GPIO_Port, StepperEnable_Pin, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin, GPIO_PIN_SET);
-
-    testStepper.setTargetRel(StepsNeeded);
-    stepControl.move(testStepper);
-    // testStepper.setTargetRel(-StepsNeeded);
-    // stepControl.move(testStepper);
-
-    HAL_GPIO_WritePin(StepperEnable_GPIO_Port, StepperEnable_Pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin, GPIO_PIN_RESET);
-
-    while (1)
+//--------------------------------------------------------------------------------------------------
+void Application::run()
+{
+    util::wrappers::Task::applicationIsReadyStartAllTasks();
+    while (true)
     {
-        // HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin, GPIO_PIN_SET);
-        HAL_GPIO_WritePin(LED_Red_GPIO_Port, LED_Red_Pin, GPIO_PIN_RESET);
-
-        vTaskDelay(1000);
-
-        // HAL_GPIO_WritePin(LED_Green_GPIO_Port, LED_Green_Pin, GPIO_PIN_RESET);
-        HAL_GPIO_WritePin(LED_Red_GPIO_Port, LED_Red_Pin, GPIO_PIN_SET);
-
-        vTaskDelay(1000);
+        vTaskDelay(portMAX_DELAY);
     }
+}
+
+//--------------------------------------------------------------------------------------------------
+Application &Application::getApplicationInstance()
+{
+    static auto app = std::make_unique<Application>();
+    return *app;
+}
+
+//--------------------------------------------------------------------------------------------------
+void Application::adcConversionCompleteCallback(ADC_HandleTypeDef *)
+{
+    getApplicationInstance().analogDigital.conversionCompleteCallback();
+}
+
+//--------------------------------------------------------------------------------------------------
+void Application::ledSpiCallback(SPI_HandleTypeDef *)
+{
+    getApplicationInstance().lightController.notifySpiIsFinished();
+}
+
+//--------------------------------------------------------------------------------------------------
+void Application::i2cMasterTxCallback(I2C_HandleTypeDef *)
+{
+    auto higherPrioTaskWoken = pdFALSE;
+    getApplicationInstance().eepromBusAccessor.signalTransferCompleteFromIsr(&higherPrioTaskWoken);
+    portYIELD_FROM_ISR(higherPrioTaskWoken);
+}
+
+//--------------------------------------------------------------------------------------------------
+void Application::i2cMasterRxCallback(I2C_HandleTypeDef *)
+{
+    auto higherPrioTaskWoken = pdFALSE;
+    getApplicationInstance().eepromBusAccessor.signalTransferCompleteFromIsr(&higherPrioTaskWoken);
+    portYIELD_FROM_ISR(higherPrioTaskWoken);
+}
+
+//--------------------------------------------------------------------------------------------------
+void Application::i2cErrorCallback(I2C_HandleTypeDef *)
+{
+    auto higherPrioTaskWoken = pdFALSE;
+    getApplicationInstance().eepromBusAccessor.signalErrorFromIsr(&higherPrioTaskWoken);
+    portYIELD_FROM_ISR(higherPrioTaskWoken);
+}
+
+//--------------------------------------------------------------------------------------------------
+extern "C" void StartDefaultTask(void *) // NOLINT
+{
+
+    auto &app = Application::getApplicationInstance();
+    app.run();
+
+    __asm("bkpt"); // this line should be never reached
 }

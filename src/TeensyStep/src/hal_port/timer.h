@@ -277,6 +277,14 @@ extern "C"
     /* Exported functions ------------------------------------------------------- */
     timerObj_t *get_timer_obj(TIM_HandleTypeDef *htim);
 
+    // registered callbacks - called from CubeHal
+    void mspInitCallback(TIM_HandleTypeDef *htim_base);
+    void mspDeInitCallback(TIM_HandleTypeDef *htim_base);
+    void mspInitOCCallback(TIM_HandleTypeDef *htim);
+    void mspDeInitOCCallback(TIM_HandleTypeDef *htim);
+    void mspInitICCallback(TIM_HandleTypeDef *htim);
+    void mspDeInitICCallback(TIM_HandleTypeDef *htim);
+
     void enableTimerClock(TIM_HandleTypeDef *htim);
     void disableTimerClock(TIM_HandleTypeDef *htim);
 
