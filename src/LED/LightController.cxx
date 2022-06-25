@@ -116,12 +116,20 @@ void LightController::updateLightState()
         break;
 
     case StateMachine::State::WantToClose:
+    case StateMachine::State::RetryToClose:
         statusLed.setColorBlinking(DualLedColor::DarkRed, 0.5_Hz);
         targetAnimation = &doorShouldCloseAnimation;
         break;
 
+    case StateMachine::State::Warning:
     default:
-        statusLed.setColorBlinking(DualLedColor::Orange, 0.5_Hz);
+        statusLed.setColorBlinking(DualLedColor::Yellow, 3.0_Hz);
+        targetAnimation = &showStatusAnimation;
+        showStatusAnimation.showWarning();
+        break;
+
+    case StateMachine::State::FatalError:
+        statusLed.setColorBlinking(DualLedColor::Red, 3.0_Hz);
         targetAnimation = &showStatusAnimation;
         showStatusAnimation.showCritical();
         break;

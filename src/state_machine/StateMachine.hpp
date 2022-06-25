@@ -41,6 +41,7 @@ public:
         Opening,
         Closing,
         WantToClose,
+        RetryToClose,
         Calibrating,
         Warning,
         FatalError

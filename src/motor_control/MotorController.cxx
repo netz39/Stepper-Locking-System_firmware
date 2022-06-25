@@ -22,7 +22,7 @@ void MotorController::taskMain()
         // check current movement - stepControl.getCurrentSpeed()
         // compare with values from hall encoder
 
-        if (isInCalibrationMode && !stepControl.isRunning())
+        if (isCalibrating && !stepControl.isRunning())
         {
             disableCalibrationMode();
 
@@ -71,7 +71,7 @@ void MotorController::finishedCallback()
 //--------------------------------------------------------------------------------------------------
 void MotorController::moveAbsolute(int32_t position)
 {
-    if (!isOverheated)
+    if (!isOverheated && !isMotorFreezed)
     {
         enableMotorTorque();
 
@@ -83,7 +83,7 @@ void MotorController::moveAbsolute(int32_t position)
 //--------------------------------------------------------------------------------------------------
 void MotorController::moveRelative(int32_t microSteps)
 {
-    if (!isOverheated)
+    if (!isOverheated && !isMotorFreezed)
     {
         enableMotorTorque();
 
@@ -112,14 +112,16 @@ void MotorController::doCalibration(bool forceInverted)
 
     enableCalibrationMode();
     moveRelative((invert ? -1.0f : 1.0f) * NumberOfMicrostepsForOperation * 1.25f);
+
+    isCalibrating = true;
 }
 
 //--------------------------------------------------------------------------------------------------
 void MotorController::abortCalibration()
 {
-    isInCalibrationMode = false;
     stopMovement();
     disableCalibrationMode();
+    isCalibrating = false;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -236,4 +238,17 @@ void MotorController::revertClosing()
     stopMovement();
     openDoor();
     ignoreFinishedEvent = false;
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::freezeMotor()
+{
+    stopMovementImmediately();
+    isMotorFreezed = true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::unfreezeMotor()
+{
+    isMotorFreezed = false;
 }

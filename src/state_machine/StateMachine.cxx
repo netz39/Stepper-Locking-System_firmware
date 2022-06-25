@@ -121,6 +121,17 @@ void StateMachine::taskMain()
         break;
 
         //------------------------------
+        case State::RetryToClose:
+        {
+            if (!waitForFinishedEvent())
+                break;
+
+            vTaskDelay(toOsTicks(1.0_s));
+            currentState = State::WantToClose;
+        }
+        break;
+
+        //------------------------------
         case State::Calibrating:
         {
             if (!tactileSwitches.lockSwitch.isLongPressing())
@@ -132,6 +143,7 @@ void StateMachine::taskMain()
                     break;
 
                 motorController.abortCalibration();
+                vTaskDelay(toOsTicks(50.0_ms));
             }
 
             motorController.doCalibration();
@@ -149,6 +161,7 @@ void StateMachine::taskMain()
         default:
         case State::Warning:
         case State::FatalError:
+            motorController.freezeMotor();
             vTaskDelay(toOsTicks(20.0_ms));
             break;
         }
@@ -268,8 +281,10 @@ void StateMachine::doorSwitchCallback(util::Button::Action action)
             notify(DoorStateTriggerBit, eSetBits);
     }
     else if (action == Button::Action::StopLongPress && currentState == State::Closing)
-    {
-        currentState = State::Opening;
+    { // door wing is opening while closing the lock
+
+        // revert closing and retry the close procedure later
+        currentState = State::RetryToClose;
         notify(ErrorBit, eSetBits);
         motorController.revertClosing();
     }
@@ -304,10 +319,10 @@ void StateMachine::motorControllerFinishedCallback(bool success)
 {
     if (success)
     {
-        if (currentState == State::Opening || currentState == State::Closing)
+        if (currentState == State::Opening || currentState == State::Closing ||
+            currentState == State::RetryToClose)
             notify(FinishedEvent, eSetBits);
     }
-
     else
     {
         notify(ErrorBit, eSetBits);
