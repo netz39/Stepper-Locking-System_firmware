@@ -1,6 +1,7 @@
 #pragma once
 
 #include "main.h"
+#include "usart.h"
 
 #include "helpers/freertos.hpp"
 #include "parameter_manager/SettingsUser.hpp"
@@ -21,7 +22,8 @@ using util::wrappers::TaskWithMemberFunctionBase;
 class MotorController : public TaskWithMemberFunctionBase, SettingsUser
 {
 public:
-    static constexpr auto UartPeripherie = &huart2;
+    static constexpr auto DebugUartPeripherie = &huart1;
+    static constexpr auto TmcUartPeripherie = &huart2;
 
     MotorController(firmwareSettings::Container &settingsContainer, Temperature &motorTemperature)
         : TaskWithMemberFunctionBase("motorControllerTask", 128, osPriorityAboveNormal3), //
@@ -94,7 +96,7 @@ private:
 
     StepControl stepControl{};
     Stepper stepperMotor{StepperStepPin, StepperDirectionPin};
-    TMC2209 tmc2209{0, UartPeripherie};
+    TMC2209 tmc2209{0, TmcUartPeripherie};
     util::Gpio stepperEnable{StepperEnable_GPIO_Port, StepperEnable_Pin};
 
     Callback callback = nullptr;

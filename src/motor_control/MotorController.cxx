@@ -1,6 +1,12 @@
 #include "MotorController.hpp"
 #include "sync.hpp"
 
+#include <cstdio>
+#include <cstring>
+
+constexpr auto BufferSize = 128;
+char buffer[BufferSize];
+
 void MotorController::taskMain()
 {
     sync::waitForAll(sync::ConfigurationLoaded);
@@ -8,6 +14,10 @@ void MotorController::taskMain()
 
     while (true)
     {
+        snprintf(buffer, BufferSize, "motor position: %ld", stepperMotor.getPosition());
+        HAL_UART_Transmit(DebugUartPeripherie, reinterpret_cast<uint8_t *>(buffer), strlen(buffer),
+                          1000);
+
         // ToDo:
         // check current movement - stepControl.getCurrentSpeed()
         // compare with values from hall encoder
