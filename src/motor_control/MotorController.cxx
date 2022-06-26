@@ -4,7 +4,7 @@
 #include <cstdio>
 #include <cstring>
 
-constexpr auto BufferSize = 128;
+constexpr auto BufferSize = 256;
 char buffer[BufferSize];
 
 void MotorController::taskMain()
@@ -14,9 +14,16 @@ void MotorController::taskMain()
 
     while (true)
     {
-        snprintf(buffer, BufferSize, "motor position: %ld\n", stepperMotor.getPosition());
-        HAL_UART_Transmit(DebugUartPeripherie, reinterpret_cast<uint8_t *>(buffer), strlen(buffer),
-                          1000);
+        if (isOpening || isClosing)
+        {
+            uint32_t loadResult = tmc2209.getSGResult().sgResultValue;
+            const auto speed = stepControl.getCurrentSpeed();
+
+            snprintf(buffer, BufferSize, "%ld, %ld, %d\n", stepperMotor.getPosition(), loadResult,
+                     speed);
+            HAL_UART_Transmit(DebugUartPeripherie, reinterpret_cast<uint8_t *>(buffer),
+                              strlen(buffer), 1000);
+        }
 
         // ToDo:
         // check current movement - stepControl.getCurrentSpeed()
@@ -33,7 +40,7 @@ void MotorController::taskMain()
 
         checkMotorTemperature();
 
-        vTaskDelayUntil(&lastWakeTime, toOsTicks(50.0_Hz));
+        vTaskDelayUntil(&lastWakeTime, toOsTicks(100.0_Hz));
     }
 
     // deal with cases like loosing steps, obstacle while moving
