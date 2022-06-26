@@ -86,7 +86,7 @@ public:
         eeprom.write(MemoryOffset, reinterpret_cast<uint8_t *>(&rawContent), sizeof(EepromContent));
     }
 
-    static constexpr size_t Signature = 0x0110CA6E;
+    static constexpr size_t Signature = 0x0110CA6F;
     static constexpr uint16_t MemoryOffset = 0;
     struct EepromContent
     {
