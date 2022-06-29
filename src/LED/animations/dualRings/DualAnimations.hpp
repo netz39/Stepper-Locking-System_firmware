@@ -14,13 +14,14 @@ public:
     }
 
     // only for whirling animations, see definitions below this class
-    void setOpening();
-    void setClosing();
+    void setOpening(bool invertRotationDirection = false);
+    void setClosing(bool invertRotationDirection = false);
     void setProgess(uint8_t valueInPercent);
 
     // only for warning animations, see definitions below this class
     void showWarning();
     void showCritical();
+    void showCalibration();
 
     void doAnimationStep() override
     {
@@ -46,23 +47,39 @@ private:
 };
 
 template <>
-inline void DualAnimations<WhirlingAnimation>::setOpening()
+inline void DualAnimations<WhirlingAnimation>::setOpening(bool invertRotationDirection)
 {
     firstRing.setOpening();
     secondRing.setOpening();
 
-    firstRing.setCounterClockwiseWhirling();
-    secondRing.setClockwiseWhirling();
+    if (invertRotationDirection)
+    {
+        firstRing.setCounterClockwiseWhirling();
+        secondRing.setClockwiseWhirling();
+    }
+    else
+    {
+        firstRing.setClockwiseWhirling();
+        secondRing.setCounterClockwiseWhirling();
+    }
 }
 
 template <>
-inline void DualAnimations<WhirlingAnimation>::setClosing()
+inline void DualAnimations<WhirlingAnimation>::setClosing(bool invertRotationDirection)
 {
     firstRing.setClosing();
     secondRing.setClosing();
 
-    firstRing.setClockwiseWhirling();
-    secondRing.setCounterClockwiseWhirling();
+    if (invertRotationDirection)
+    {
+        firstRing.setClockwiseWhirling();
+        secondRing.setCounterClockwiseWhirling();
+    }
+    else
+    {
+        firstRing.setCounterClockwiseWhirling();
+        secondRing.setClockwiseWhirling();
+    }
 }
 
 template <>
@@ -84,4 +101,11 @@ inline void DualAnimations<ShowStatusAnimation>::showCritical()
 {
     firstRing.showCritical();
     secondRing.showCritical();
+}
+
+template <>
+inline void DualAnimations<ShowStatusAnimation>::showCalibration()
+{
+    firstRing.showCalibration();
+    secondRing.showCalibration();
 }
