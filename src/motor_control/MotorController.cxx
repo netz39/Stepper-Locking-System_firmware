@@ -55,6 +55,8 @@ void MotorController::onSettingsUpdate()
     maximumMotorAcc = settingsContainer.getValue<firmwareSettings::MotorMaxAcc>();
     calibrationSpeed = settingsContainer.getValue<firmwareSettings::CalibrationSpeed>();
     calibrationAcc = settingsContainer.getValue<firmwareSettings::CalibrationAcc>();
+    invertRotationDirection =
+        settingsContainer.getValue<firmwareSettings::InvertRotationDirection>();
 
     overheatedCounter = settingsContainer.getValue<firmwareSettings::MotorOverheatCounter>();
     warningTempCounter = settingsContainer.getValue<firmwareSettings::MotorWarningTempCounter>();
@@ -106,7 +108,7 @@ void MotorController::moveRelative(int32_t microSteps)
 void MotorController::openDoor()
 {
     isOpening = true;
-    moveAbsolute(isDirectionInverted ? 1 : -1 * NumberOfMicrostepsForOperation);
+    moveAbsolute(invertRotationDirection ? 1 : -1 * NumberOfMicrostepsForOperation);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -120,7 +122,7 @@ void MotorController::closeDoor()
 
 void MotorController::doCalibration(bool forceInverted)
 {
-    bool invert = isDirectionInverted != forceInverted;
+    bool invert = invertRotationDirection != forceInverted;
 
     enableCalibrationMode();
     moveRelative((invert ? -1.0f : 1.0f) * NumberOfMicrostepsForOperation * 1.25f);
@@ -272,7 +274,7 @@ uint8_t MotorController::getProgress()
         return 100;
 
     const auto Target =
-        isOpening ? (isDirectionInverted ? 1 : -1 * NumberOfMicrostepsForOperation) : 0;
+        isOpening ? (invertRotationDirection ? 1 : -1 * NumberOfMicrostepsForOperation) : 0;
 
     const auto Diff = std::abs(Target - stepperMotor.getPosition());
     const uint8_t Percentage =

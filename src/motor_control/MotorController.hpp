@@ -101,7 +101,7 @@ private:
 
     bool isInCalibrationMode = false;
     bool isCalibrating = false;
-    bool isDirectionInverted = false;
+    bool invertRotationDirection = false;
     bool ignoreFinishedEvent = false;
     bool isMotorFreezed = false;
 

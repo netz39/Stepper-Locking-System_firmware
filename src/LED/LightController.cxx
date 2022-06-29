@@ -30,6 +30,13 @@ void LightController::taskMain()
 }
 
 //--------------------------------------------------------------------------------------------------
+void LightController::onSettingsUpdate()
+{
+    invertRotationDirection =
+        settingsContainer.getValue<firmwareSettings::InvertRotationDirection>();
+}
+
+//--------------------------------------------------------------------------------------------------
 inline void LightController::sendStartFrame()
 {
     uint32_t startFrame = 0;
@@ -91,7 +98,6 @@ void LightController::updateLightState()
     case StateMachine::State::Opening:
         statusLed.setColorBlinking(DualLedColor::Green, 2.0_Hz);
         targetAnimation = &whirlingAnimation;
-        whirlingAnimation.setClockwiseWhirling();
         whirlingAnimation.setOpening();
         whirlingAnimation.setProgess(motorController.getProgress());
         break;
@@ -104,7 +110,6 @@ void LightController::updateLightState()
     case StateMachine::State::Closing:
         statusLed.setColorBlinking(DualLedColor::Red, 2.0_Hz);
         targetAnimation = &whirlingAnimation;
-        whirlingAnimation.setCounterClockwiseWhirling();
         whirlingAnimation.setClosing();
         whirlingAnimation.setProgess(motorController.getProgress());
         break;

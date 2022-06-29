@@ -17,11 +17,13 @@ using util::PwmOutput8Bit;
 using util::pwm_led::DualLed;
 using util::wrappers::TaskWithMemberFunctionBase;
 
-class LightController : public TaskWithMemberFunctionBase
+class LightController : public TaskWithMemberFunctionBase, SettingsUser
 {
 public:
-    LightController(StateMachine &stateMaschine, MotorController &motorController)
+    LightController(firmwareSettings::Container &settingsContainer, StateMachine &stateMaschine,
+                    MotorController &motorController)
         : TaskWithMemberFunctionBase("lightControllerTask", 512, osPriorityLow4), //
+          settingsContainer(settingsContainer),                                   //
           stateMaschine(stateMaschine),                                           //
           motorController(motorController)
 
@@ -39,9 +41,12 @@ public:
 
 protected:
     void taskMain() override;
+    void onSettingsUpdate() override;
 
 private:
     static constexpr auto NumberOfEndFrames = (NumberOfRings * NumberOfLedsPerRing + 15) / 16;
+
+    bool invertRotationDirection = false;
 
     LedSegmentArray ledSegments1;
     LedSpiDataArray ledSpiData1;
@@ -68,6 +73,7 @@ private:
     void sendBuffer();
     void updateLightState();
 
+    firmwareSettings::Container &settingsContainer;
     StateMachine &stateMaschine;
     StateMachine::State prevState = StateMachine::State::Unknown;
 

@@ -37,7 +37,7 @@ public:
     MotorController motorController{settingsContainer, motorTemperature};
     StateMachine stateMachine{tactileSwitches, motorController};
 
-    LightController lightController{stateMachine, motorController};
+    LightController lightController{settingsContainer,stateMachine, motorController};
 
     static void adcConversionCompleteCallback(ADC_HandleTypeDef *);
     static void ledSpiCallback(SPI_HandleTypeDef *);
