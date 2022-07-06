@@ -5,6 +5,7 @@
 
 #include "LED/LightController.hpp"
 #include "analog_to_digital/AnalogDigital.hpp"
+#include "hall_encoder/HallEncoder.hpp"
 #include "motor_control/MotorController.hpp"
 #include "settings/Settings.hpp"
 #include "state_machine/StateMachine.hpp"
@@ -19,7 +20,7 @@ public:
     static Application &getApplicationInstance();
 
     static constexpr auto EepromBus = &hi2c1;
-    i2c::RtosAccessor eepromBusAccessor{EepromBus};
+    i2c::RtosAccessor eepromBusAccessor{EepromBus}; // also for hall encoder
     Eeprom24LC64 eeprom{eepromBusAccessor, 0b000};
 
     // private:
@@ -32,6 +33,7 @@ public:
     uint32_t warningTempCounter = 0;
 
     AnalogDigital analogDigital{motorTemperature};
+    HallEncoder hallEncoder{eepromBusAccessor};
 
     TactileSwitches tactileSwitches;
     MotorController motorController{settingsContainer, motorTemperature};

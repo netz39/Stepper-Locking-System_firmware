@@ -3,6 +3,7 @@
 #include "main.h"
 #include "usart.h"
 
+#include "hall_encoder/HallEncoder.hpp"
 #include "helpers/freertos.hpp"
 #include "parameter_manager/SettingsUser.hpp"
 #include "settings/Settings.hpp"
@@ -25,11 +26,12 @@ public:
     static constexpr auto DebugUartPeripherie = &huart1;
     static constexpr auto TmcUartPeripherie = &huart2;
 
-    MotorController(firmwareSettings::Container &settingsContainer, Temperature &motorTemperature)
+    MotorController(firmwareSettings::Container &settingsContainer, Temperature &motorTemperature,
+                    HallEncoder &hallEncoder)
         : TaskWithMemberFunctionBase("motorControllerTask", 128, osPriorityAboveNormal3), //
           settingsContainer(settingsContainer),                                           //
-          motorTemperature(motorTemperature)                                              //
-
+          motorTemperature(motorTemperature),                                             //
+          hallEncoder(hallEncoder)                                                        //
     {
         stepControl.setCallback(std::bind(&MotorController::finishedCallback, this));
     }
@@ -92,8 +94,9 @@ private:
     static constexpr auto CriticalMotorTemp = 85.0_degC;
 
     firmwareSettings::Container &settingsContainer;
-
     Temperature &motorTemperature;
+    HallEncoder &hallEncoder;
+
     bool isOverheated = false;
     uint32_t overheatedCounter;
     bool hasWarningTemp = false;
