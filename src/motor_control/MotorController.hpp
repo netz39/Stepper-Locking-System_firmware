@@ -41,7 +41,8 @@ public:
     void closeDoor();
 
     /// calibration by homing the lock switch
-    /// @param forceInvert invert the moving direction
+    /// moves the stepper in closing direction
+    /// @param forceInvert invert the moving direction - true will "opening" the door
     void doCalibration(bool forceInvert = false);
 
     /// Stops calibration movement and restore motor params
@@ -104,7 +105,6 @@ private:
 
     bool isInCalibrationMode = false;
     bool isCalibrating = false;
-    bool invertRotationDirection = false;
     bool ignoreFinishedEvent = false;
     bool isMotorFreezed = false;
 
@@ -127,7 +127,7 @@ private:
 
     /// Moves the motor asynchronously.
     /// @param microSteps moves the motor the given microSteps.
-    /// Postive values closes the door.
+    /// Postive values opens the door.
     void moveRelative(int32_t microSteps);
 
     /// Moves the motor asynchronously.

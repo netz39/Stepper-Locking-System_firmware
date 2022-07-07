@@ -55,11 +55,12 @@ void MotorController::onSettingsUpdate()
     maximumMotorAcc = settingsContainer.getValue<firmwareSettings::MotorMaxAcc>();
     calibrationSpeed = settingsContainer.getValue<firmwareSettings::CalibrationSpeed>();
     calibrationAcc = settingsContainer.getValue<firmwareSettings::CalibrationAcc>();
-    invertRotationDirection =
-        settingsContainer.getValue<firmwareSettings::InvertRotationDirection>();
 
     overheatedCounter = settingsContainer.getValue<firmwareSettings::MotorOverheatCounter>();
     warningTempCounter = settingsContainer.getValue<firmwareSettings::MotorWarningTempCounter>();
+
+    stepperMotor.setInverseRotation(
+        settingsContainer.getValue<firmwareSettings::InvertRotationDirection>());
 
     // set to new parameters
     isInCalibrationMode ? enableCalibrationMode() : disableCalibrationMode();
@@ -108,7 +109,7 @@ void MotorController::moveRelative(int32_t microSteps)
 void MotorController::openDoor()
 {
     isOpening = true;
-    moveAbsolute(invertRotationDirection ? 1 : -1 * NumberOfMicrostepsForOperation);
+    moveAbsolute(NumberOfMicrostepsForOperation);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -122,10 +123,10 @@ void MotorController::closeDoor()
 
 void MotorController::doCalibration(bool forceInverted)
 {
-    bool invert = invertRotationDirection != forceInverted;
-
     enableCalibrationMode();
-    moveRelative((invert ? -1.0f : 1.0f) * NumberOfMicrostepsForOperation * 1.25f);
+    const auto NeededSteps = static_cast<int32_t>((forceInverted ? 1.0f : -1.0f) *
+                                                  NumberOfMicrostepsForOperation * 1.25f);
+    moveRelative(NeededSteps);
 
     isCalibrating = true;
 }
@@ -165,9 +166,9 @@ void MotorController::enableCalibrationMode()
 {
     isInCalibrationMode = true;
 
+    setMotorMaxCurrentPercentage(100);
     stepperMotor.setMaxSpeed(calibrationSpeed);
     stepperMotor.setAcceleration(calibrationAcc);
-    setMotorMaxCurrentPercentage(100);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -273,9 +274,7 @@ uint8_t MotorController::getProgress()
     if (!isOpening && !isClosing)
         return 100;
 
-    const auto Target =
-        isOpening ? (invertRotationDirection ? 1 : -1 * NumberOfMicrostepsForOperation) : 0;
-
+    const auto Target = isOpening ? (NumberOfMicrostepsForOperation * -1) : 0;
     const auto Diff = std::abs(Target - stepperMotor.getPosition());
     const uint8_t Percentage =
         ((NumberOfMicrostepsForOperation - Diff) * 100) / NumberOfMicrostepsForOperation;
