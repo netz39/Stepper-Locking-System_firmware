@@ -35,7 +35,7 @@ public:
     uint32_t warningTempCounter = 0;
 
     AnalogDigital analogDigital{motorTemperature};
-    HallEncoder hallEncoder{eepromBusAccessor};
+    HallEncoder hallEncoder{settingsContainer, eepromBusAccessor};
 
     TactileSwitches tactileSwitches;
     MotorController motorController{settingsContainer, motorTemperature, hallEncoder};

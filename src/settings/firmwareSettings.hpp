@@ -28,7 +28,7 @@ inline constexpr std::array EntryArray = {
     SettingsEntry{0, 12500, 750000, MotorMaxAcc, VariableType::integerType},     //
     SettingsEntry{0, 2000, 300000, CalibrationSpeed, VariableType::integerType}, //
     SettingsEntry{0, 12500, 750000, CalibrationAcc, VariableType::integerType},  //
-    SettingsEntry{false, InvertRotationDirection},
+    SettingsEntry{true, InvertRotationDirection},                                //
 
     SettingsEntry{0, 0, 16777216, MotorOverheatCounter, VariableType::integerType},   //
     SettingsEntry{0, 0, 16777216, MotorWarningTempCounter, VariableType::integerType} //

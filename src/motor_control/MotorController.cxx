@@ -14,6 +14,31 @@ void MotorController::taskMain()
 
     while (true)
     {
+        if (isCalibrating)
+        {
+            if (!stepControl.isRunning())
+            {
+                disableCalibrationMode();
+
+                // calibration was not successful
+                if (finishedCallback)
+                    finishedCallback(false);
+            }
+        }
+        else if (isCalibrated && hallEncoder.isEncoderOkay())
+        {
+            if (std::abs(stepperMotor.getPosition() - hallEncoder.getPosition()) >
+                MicrostepLossThreshold)
+            {
+                // step losses occured, update steppers internal position to hall encoder
+                // movement will be corrected by TeensyStep
+                stepperMotor.setPosition(hallEncoder.getPosition());
+
+                // ToDo: count losses - at excessive losses at time stop all
+            }
+        }
+
+#ifdef DEBUG
         if (isOpening || isClosing)
         {
             uint32_t loadResult = tmc2209.getSGResult().sgResultValue;
@@ -24,26 +49,12 @@ void MotorController::taskMain()
             HAL_UART_Transmit(DebugUartPeripherie, reinterpret_cast<uint8_t *>(buffer),
                               strlen(buffer), 1000);
         }
-
-        // ToDo:
-        // check current movement - stepControl.getCurrentSpeed()
-        // compare with values from hall encoder
-
-        if (isCalibrating && !stepControl.isRunning())
-        {
-            disableCalibrationMode();
-
-            // calibration was not successful
-            if (callback)
-                callback(false);
-        }
+#endif
 
         checkMotorTemperature();
 
         vTaskDelayUntil(&lastWakeTime, toOsTicks(100.0_Hz));
     }
-
-    // deal with cases like loosing steps, obstacle while moving
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -67,7 +78,7 @@ void MotorController::onSettingsUpdate()
 }
 
 //--------------------------------------------------------------------------------------------------
-void MotorController::finishedCallback()
+void MotorController::invokeFinishedCallback()
 {
     isOpening = false;
     isClosing = false;
@@ -76,8 +87,8 @@ void MotorController::finishedCallback()
     {
         disableMotorTorque();
 
-        if (callback)
-            callback(true);
+        if (finishedCallback)
+            finishedCallback(true);
     }
 }
 
@@ -128,6 +139,7 @@ void MotorController::doCalibration(bool forceInverted)
                                                   NumberOfMicrostepsForOperation * 1.25f);
     moveRelative(NeededSteps);
 
+	isCalibrated = false;
     isCalibrating = true;
 }
 
@@ -144,8 +156,8 @@ void MotorController::calibrationIsDone()
 {
     abortCalibration();
     stepperMotor.setPosition(0);
-
-    // ToDo: get hall encoder value and save it
+    hallEncoder.setPosition(0);
+    isCalibrated = true;
 }
 
 //--------------------------------------------------------------------------------------------------

@@ -52,7 +52,7 @@ public:
     void calibrationIsDone();
 
     // called by TeensyStep when it is finished with a movement
-    void finishedCallback();
+    void invokeFinishedCallback();
 
     /// Interrupt opening action and return to position before opening -> fully closed
     void revertOpening();
@@ -74,15 +74,9 @@ public:
     /// set up callback which will be called when the target is reached
     void setFinishedCallback(Callback newCallback)
     {
-        callback = newCallback;
+        finishedCallback = newCallback;
     }
 
-protected:
-    void taskMain() override;
-
-    void onSettingsUpdate() override;
-
-private:
     static constexpr auto MicrostepsPerFullStep = 8;
     static constexpr auto NumberOfFullSteps = 200;
     static constexpr auto MicrostepsPerRevolution = MicrostepsPerFullStep * NumberOfFullSteps;
@@ -91,9 +85,17 @@ private:
     static constexpr int32_t NumberOfMicrostepsForOperation =
         NeededRevolutions * MicrostepsPerRevolution * GearReduction;
 
+    static constexpr auto MicrostepLossThreshold = 16;
+
     static constexpr auto WarningMotorTemp = 70.0_degC;
     static constexpr auto CriticalMotorTemp = 85.0_degC;
 
+protected:
+    void taskMain() override;
+
+    void onSettingsUpdate() override;
+
+private:
     firmwareSettings::Container &settingsContainer;
     Temperature &motorTemperature;
     HallEncoder &hallEncoder;
@@ -105,6 +107,7 @@ private:
 
     bool isInCalibrationMode = false;
     bool isCalibrating = false;
+    bool isCalibrated = false;
     bool ignoreFinishedEvent = false;
     bool isMotorFreezed = false;
 
@@ -117,7 +120,7 @@ private:
     TMC2209 tmc2209{0, TmcUartPeripherie};
     util::Gpio stepperEnable{StepperEnable_GPIO_Port, StepperEnable_Pin};
 
-    Callback callback = nullptr;
+    Callback finishedCallback = nullptr;
 
     uint8_t maximumMotorCurrentInPercentage = 0;
     uint32_t maximumMotorSpeed = 0;
