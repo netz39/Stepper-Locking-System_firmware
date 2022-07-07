@@ -9,6 +9,7 @@
 
 using util::wrappers::TaskWithMemberFunctionBase;
 
+/// State machine of locking system. Handle all cases and switches inputs.
 class StateMachine : public TaskWithMemberFunctionBase
 {
 public:

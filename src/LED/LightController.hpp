@@ -17,6 +17,7 @@ using util::PwmOutput8Bit;
 using util::pwm_led::DualLed;
 using util::wrappers::TaskWithMemberFunctionBase;
 
+/// Controls the status LED and the addressable LED rings
 class LightController : public TaskWithMemberFunctionBase, SettingsUser
 {
 public:

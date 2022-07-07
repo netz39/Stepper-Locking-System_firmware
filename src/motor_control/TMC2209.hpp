@@ -3,6 +3,7 @@
 #include "usart.h"
 #include <cstdint>
 
+// Class to control the Trinamic IC, contains register accesses etc
 class TMC2209
 {
 private:

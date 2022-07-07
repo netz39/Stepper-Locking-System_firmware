@@ -5,7 +5,7 @@
 
 struct LedSpiData
 {
-    uint8_t Start = 0xFF;
+    uint8_t Start = 0xFF; //!< the first byte contains control data like brightness
     BgrColor color;
 
     void assignGammaCorrectedColor(BgrColor newColor)
