@@ -4,7 +4,7 @@
 #include <cstdio>
 #include <cstring>
 
-constexpr auto BufferSize = 128;
+constexpr auto BufferSize = 256;
 char buffer[BufferSize];
 
 void MotorController::taskMain()
@@ -14,29 +14,46 @@ void MotorController::taskMain()
 
     while (true)
     {
-        snprintf(buffer, BufferSize, "motor position: %ld\n", stepperMotor.getPosition());
-        HAL_UART_Transmit(DebugUartPeripherie, reinterpret_cast<uint8_t *>(buffer), strlen(buffer),
-                          1000);
-
-        // ToDo:
-        // check current movement - stepControl.getCurrentSpeed()
-        // compare with values from hall encoder
-
-        if (isCalibrating && !stepControl.isRunning())
+        if (isCalibrating)
         {
-            disableCalibrationMode();
+            if (!stepControl.isRunning())
+            {
+                disableCalibrationMode();
 
-            // calibration was not successful
-            if (callback)
-                callback(false);
+                // calibration was not successful
+                if (finishedCallback)
+                    finishedCallback(false);
+            }
+        }
+        else if (isCalibrated && hallEncoder.isEncoderOkay())
+        {
+            if (std::abs(stepperMotor.getPosition() - hallEncoder.getPosition()) >
+                MicrostepLossThreshold)
+            {
+                // step losses occured, update steppers internal position to hall encoder
+                // movement will be corrected by TeensyStep
+                stepperMotor.setPosition(hallEncoder.getPosition());
+
+                if (stepLossCounter++ >= 256)
+                {
+                    if (finishedCallback)
+                        finishedCallback(false);
+                }
+            }
+        }
+
+        if (isOpening || isClosing)
+        {
+            snprintf(buffer, BufferSize, "%ld, %ld, %d\n", stepperMotor.getPosition(),
+                     hallEncoder.getPosition(), hallEncoder.prevHallEncoderRawValue);
+            HAL_UART_Transmit(DebugUartPeripherie, reinterpret_cast<uint8_t *>(buffer),
+                              strlen(buffer), 1000);
         }
 
         checkMotorTemperature();
 
-        vTaskDelayUntil(&lastWakeTime, toOsTicks(50.0_Hz));
+        vTaskDelayUntil(&lastWakeTime, toOsTicks(100.0_Hz));
     }
-
-    // deal with cases like loosing steps, obstacle while moving
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -52,13 +69,17 @@ void MotorController::onSettingsUpdate()
     overheatedCounter = settingsContainer.getValue<firmwareSettings::MotorOverheatCounter>();
     warningTempCounter = settingsContainer.getValue<firmwareSettings::MotorWarningTempCounter>();
 
+    stepperMotor.setInverseRotation(
+        settingsContainer.getValue<firmwareSettings::InvertRotationDirection>());
+
     // set to new parameters
     isInCalibrationMode ? enableCalibrationMode() : disableCalibrationMode();
 }
 
 //--------------------------------------------------------------------------------------------------
-void MotorController::finishedCallback()
+void MotorController::invokeFinishedCallback()
 {
+    stepLossCounter = 0;
     isOpening = false;
     isClosing = false;
 
@@ -66,8 +87,8 @@ void MotorController::finishedCallback()
     {
         disableMotorTorque();
 
-        if (callback)
-            callback(true);
+        if (finishedCallback)
+            finishedCallback(true);
     }
 }
 
@@ -99,7 +120,7 @@ void MotorController::moveRelative(int32_t microSteps)
 void MotorController::openDoor()
 {
     isOpening = true;
-    moveAbsolute(isDirectionInverted ? 1 : -1 * NumberOfMicrostepsForOperation);
+    moveAbsolute(NumberOfMicrostepsForOperation);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -113,11 +134,12 @@ void MotorController::closeDoor()
 
 void MotorController::doCalibration(bool forceInverted)
 {
-    bool invert = isDirectionInverted != forceInverted;
-
     enableCalibrationMode();
-    moveRelative((invert ? -1.0f : 1.0f) * NumberOfMicrostepsForOperation * 1.25f);
+    const auto NeededSteps = static_cast<int32_t>((forceInverted ? 1.0f : -1.0f) *
+                                                  NumberOfMicrostepsForOperation * 1.25f);
+    moveRelative(NeededSteps);
 
+    isCalibrated = false;
     isCalibrating = true;
 }
 
@@ -133,9 +155,11 @@ void MotorController::abortCalibration()
 void MotorController::calibrationIsDone()
 {
     abortCalibration();
-    stepperMotor.setPosition(0);
 
-    // ToDo: get hall encoder value and save it
+    vTaskDelay(10);
+    stepperMotor.setPosition(0);
+    hallEncoder.setPosition(0);
+    isCalibrated = true;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -156,9 +180,9 @@ void MotorController::enableCalibrationMode()
 {
     isInCalibrationMode = true;
 
+    setMotorMaxCurrentPercentage(100);
     stepperMotor.setMaxSpeed(calibrationSpeed);
     stepperMotor.setAcceleration(calibrationAcc);
-    setMotorMaxCurrentPercentage(100);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -262,11 +286,9 @@ void MotorController::unfreezeMotor()
 uint8_t MotorController::getProgress()
 {
     if (!isOpening && !isClosing)
-        return 100;
+        return 0;
 
-    const auto Target =
-        isOpening ? (isDirectionInverted ? 1 : -1 * NumberOfMicrostepsForOperation) : 0;
-
+    const auto Target = isOpening ? NumberOfMicrostepsForOperation : 0;
     const auto Diff = std::abs(Target - stepperMotor.getPosition());
     const uint8_t Percentage =
         ((NumberOfMicrostepsForOperation - Diff) * 100) / NumberOfMicrostepsForOperation;

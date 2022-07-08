@@ -8,3 +8,5 @@
 #include "animations/ShowStatusAnimation.hpp"
 #include "animations/TestAllColorsAnimation.hpp"
 #include "animations/WhirlingAnimation.hpp"
+
+#include "animations/dualRings/DualAnimations.hpp"

@@ -6,6 +6,7 @@
 #include "LED/LedDataTypes.hpp"
 #include "units/si/time.hpp"
 
+/// abstract class where animation implemention should derives
 class LedAnimationBase
 {
 public:

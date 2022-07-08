@@ -124,13 +124,13 @@ public:
 
     void
     setPrescaleFactor(uint32_t prescaler); // set prescaler register (which is factor value - 1)
-    uint32_t getPrescaleFactor();
+    uint32_t getPrescaleFactor() const;
 
     void setOverflow(
         uint32_t val,
         TimerFormat_t format = TICK_FORMAT); // set AutoReload register depending on format provided
-    uint32_t
-    getOverflow(TimerFormat_t format = TICK_FORMAT); // return overflow depending on format provided
+    uint32_t getOverflow(
+        TimerFormat_t format = TICK_FORMAT) const; // return overflow depending on format provided
 
     //    void setPWM(uint32_t channel, PinName pin, uint32_t frequency, uint32_t dutycycle,
     //    callback_function_t PeriodCallback = nullptr, callback_function_t CompareCallback =
@@ -179,11 +179,11 @@ public:
     void refresh(void); // Generate update event to force all registers (Autoreload, prescaler,
                         // compare) to be taken into account
 
-    uint32_t getTimerClkFreq(); // return timer clock frequency in Hz.
+    uint32_t getTimerClkFreq() const; // return timer clock frequency in Hz.
 
-    static void captureCompareCallback(
-        TIM_HandleTypeDef
-            *htim); // Generic Capture and Compare callback which will call user callback
+    static void
+    captureCompareCallback(TIM_HandleTypeDef *htim);     // Generic Capture and Compare callback
+                                                         // which will call user callback
     static void updateCallback(TIM_HandleTypeDef *htim); // Generic Update (rollover) callback which
                                                          // will call user callback
 

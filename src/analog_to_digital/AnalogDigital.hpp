@@ -14,6 +14,8 @@
 using namespace units::si;
 using util::wrappers::TaskWithMemberFunctionBase;
 
+/// Convert analog values into digital.
+/// Measurement of input current, motor temperature and µC temperature
 class AnalogDigital : public TaskWithMemberFunctionBase
 {
 public:

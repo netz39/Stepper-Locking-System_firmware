@@ -491,11 +491,11 @@ void HardwareTimer::resumeChannel(uint32_t channel)
  * @param  None
  * @retval prescaler factor
  */
-// uint32_t HardwareTimer::getPrescaleFactor()
-//{
-//   // Hardware register correspond to prescaler-1. Example PSC register value 0 means divided by 1
-//   return (LL_TIM_GetPrescaler(_timerObj.handle.Instance) + 1);
-// }
+uint32_t HardwareTimer::getPrescaleFactor() const
+{
+    // Hardware register correspond to prescaler-1. Example PSC register value 0 means divided by 1
+    return (LL_TIM_GetPrescaler(_timerObj.handle.Instance) + 1);
+}
 
 /**
  * @brief  Configure hardwareTimer prescaler
@@ -516,7 +516,7 @@ void HardwareTimer::resumeChannel(uint32_t channel)
  *           MICROSEC_FORMAT: return number of microsecondes for overflow
  *           HERTZ_FORMAT:    return frequency in hertz for overflow
  */
-uint32_t HardwareTimer::getOverflow(TimerFormat_t format)
+uint32_t HardwareTimer::getOverflow(TimerFormat_t format) const
 {
     // Hardware register correspond to period count-1. Example ARR register value
     // 9 means period of 10 timer cycle
@@ -1457,7 +1457,7 @@ timer_index_t get_timer_index(TIM_TypeDef *instance)
  * @param  None
  * @retval frequency in Hz
  */
-uint32_t HardwareTimer::getTimerClkFreq()
+uint32_t HardwareTimer::getTimerClkFreq() const
 {
 #if defined(STM32MP1xx)
     uint8_t timerClkSrc = getTimerClkSrc(_timerObj.handle.Instance);

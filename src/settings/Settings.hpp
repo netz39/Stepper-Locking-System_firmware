@@ -5,6 +5,7 @@
 
 using util::wrappers::TaskWithMemberFunctionBase;
 
+/// Load settings from EEPROM, send signals and save new settings to it, if needed
 class Settings : public TaskWithMemberFunctionBase
 {
 public:

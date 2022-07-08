@@ -17,11 +17,14 @@ using util::PwmOutput8Bit;
 using util::pwm_led::DualLed;
 using util::wrappers::TaskWithMemberFunctionBase;
 
-class LightController : public TaskWithMemberFunctionBase
+/// Controls the status LED and the addressable LED rings
+class LightController : public TaskWithMemberFunctionBase, SettingsUser
 {
 public:
-    LightController(StateMachine &stateMaschine, MotorController &motorController)
+    LightController(firmwareSettings::Container &settingsContainer, StateMachine &stateMaschine,
+                    MotorController &motorController)
         : TaskWithMemberFunctionBase("lightControllerTask", 512, osPriorityLow4), //
+          settingsContainer(settingsContainer),                                   //
           stateMaschine(stateMaschine),                                           //
           motorController(motorController)
 
@@ -39,9 +42,12 @@ public:
 
 protected:
     void taskMain() override;
+    void onSettingsUpdate() override;
 
 private:
     static constexpr auto NumberOfEndFrames = (NumberOfRings * NumberOfLedsPerRing + 15) / 16;
+
+    bool invertRotationDirection = false;
 
     LedSegmentArray ledSegments1;
     LedSpiDataArray ledSpiData1;
@@ -49,14 +55,11 @@ private:
     LedSpiDataArray ledSpiData2;
     std::array<uint8_t, NumberOfEndFrames> endFrames;
 
-    DoorIsOpenAnimation doorIsOpenAnimation{ledSegments1};
-    DoorIsClosedAnimation doorIsClosedAnimation{ledSegments1};
-    DoorShouldCloseAnimation doorShouldCloseAnimation{ledSegments1};
-    WhirlingAnimation whirlingAnimation{ledSegments1};
-    RainbowAnimation rainbowAnimation{ledSegments1};
-
-    ShowStatusAnimation showStatusAnimation{ledSegments1};
-    TestAllColorsAnimation testAllColorsAnimation{ledSegments1};
+    DualAnimations<DoorIsOpenAnimation> doorIsOpenAnimation{ledSegments1, ledSegments2};
+    DualAnimations<DoorIsClosedAnimation> doorIsClosedAnimation{ledSegments1, ledSegments2};
+    DualAnimations<DoorShouldCloseAnimation> doorShouldCloseAnimation{ledSegments1, ledSegments2};
+    DualAnimations<WhirlingAnimation> whirlingAnimation{ledSegments1, ledSegments2};
+    DualAnimations<ShowStatusAnimation> showStatusAnimation{ledSegments1, ledSegments2};
 
     LedAnimationBase *targetAnimation{&showStatusAnimation};
 
@@ -68,6 +71,7 @@ private:
     void sendBuffer();
     void updateLightState();
 
+    firmwareSettings::Container &settingsContainer;
     StateMachine &stateMaschine;
     StateMachine::State prevState = StateMachine::State::Unknown;
 

@@ -3,6 +3,7 @@
 #include "main.h"
 #include "usart.h"
 
+#include "hall_encoder/HallEncoder.hpp"
 #include "helpers/freertos.hpp"
 #include "parameter_manager/SettingsUser.hpp"
 #include "settings/Settings.hpp"
@@ -25,13 +26,14 @@ public:
     static constexpr auto DebugUartPeripherie = &huart1;
     static constexpr auto TmcUartPeripherie = &huart2;
 
-    MotorController(firmwareSettings::Container &settingsContainer, Temperature &motorTemperature)
+    MotorController(firmwareSettings::Container &settingsContainer, Temperature &motorTemperature,
+                    HallEncoder &hallEncoder)
         : TaskWithMemberFunctionBase("motorControllerTask", 128, osPriorityAboveNormal3), //
           settingsContainer(settingsContainer),                                           //
-          motorTemperature(motorTemperature)                                              //
-
+          motorTemperature(motorTemperature),                                             //
+          hallEncoder(hallEncoder)                                                        //
     {
-        stepControl.setCallback(std::bind(&MotorController::finishedCallback, this));
+        stepControl.setCallback(std::bind(&MotorController::invokeFinishedCallback, this));
     }
 
     void openDoor();
@@ -39,7 +41,8 @@ public:
     void closeDoor();
 
     /// calibration by homing the lock switch
-    /// @param forceInvert invert the moving direction
+    /// moves the stepper in closing direction
+    /// @param forceInvert invert the moving direction - true will "opening" the door
     void doCalibration(bool forceInvert = false);
 
     /// Stops calibration movement and restore motor params
@@ -49,7 +52,7 @@ public:
     void calibrationIsDone();
 
     // called by TeensyStep when it is finished with a movement
-    void finishedCallback();
+    void invokeFinishedCallback();
 
     /// Interrupt opening action and return to position before opening -> fully closed
     void revertOpening();
@@ -71,15 +74,9 @@ public:
     /// set up callback which will be called when the target is reached
     void setFinishedCallback(Callback newCallback)
     {
-        callback = newCallback;
+        finishedCallback = newCallback;
     }
 
-protected:
-    void taskMain() override;
-
-    void onSettingsUpdate() override;
-
-private:
     static constexpr auto MicrostepsPerFullStep = 8;
     static constexpr auto NumberOfFullSteps = 200;
     static constexpr auto MicrostepsPerRevolution = MicrostepsPerFullStep * NumberOfFullSteps;
@@ -88,12 +85,21 @@ private:
     static constexpr int32_t NumberOfMicrostepsForOperation =
         NeededRevolutions * MicrostepsPerRevolution * GearReduction;
 
+    static constexpr auto MicrostepLossThreshold = 64;
+
     static constexpr auto WarningMotorTemp = 70.0_degC;
     static constexpr auto CriticalMotorTemp = 85.0_degC;
 
-    firmwareSettings::Container &settingsContainer;
+protected:
+    void taskMain() override;
 
+    void onSettingsUpdate() override;
+
+private:
+    firmwareSettings::Container &settingsContainer;
     Temperature &motorTemperature;
+    HallEncoder &hallEncoder;
+
     bool isOverheated = false;
     uint32_t overheatedCounter;
     bool hasWarningTemp = false;
@@ -101,7 +107,7 @@ private:
 
     bool isInCalibrationMode = false;
     bool isCalibrating = false;
-    bool isDirectionInverted = false;
+    bool isCalibrated = false;
     bool ignoreFinishedEvent = false;
     bool isMotorFreezed = false;
 
@@ -114,7 +120,7 @@ private:
     TMC2209 tmc2209{0, TmcUartPeripherie};
     util::Gpio stepperEnable{StepperEnable_GPIO_Port, StepperEnable_Pin};
 
-    Callback callback = nullptr;
+    Callback finishedCallback = nullptr;
 
     uint8_t maximumMotorCurrentInPercentage = 0;
     uint32_t maximumMotorSpeed = 0;
@@ -122,9 +128,11 @@ private:
     uint32_t calibrationSpeed = 0;
     uint32_t calibrationAcc = 0;
 
+    uint32_t stepLossCounter = 0;
+
     /// Moves the motor asynchronously.
     /// @param microSteps moves the motor the given microSteps.
-    /// Postive values closes the door.
+    /// Postive values opens the door.
     void moveRelative(int32_t microSteps);
 
     /// Moves the motor asynchronously.

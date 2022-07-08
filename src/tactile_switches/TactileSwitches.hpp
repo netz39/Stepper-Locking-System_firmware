@@ -8,6 +8,7 @@
 
 using util::wrappers::TaskWithMemberFunctionBase;
 
+/// All switches and button are handled here, incl. deboucing, long press detection etc
 class TactileSwitches : public TaskWithMemberFunctionBase
 {
 public:

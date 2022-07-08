@@ -20,7 +20,7 @@ public:
     inline void stepTimerStart();
     inline void stepTimerStop();
     inline void setStepFrequency(unsigned f);
-    inline unsigned getStepFrequency()
+    inline unsigned getStepFrequency() const
     {
         return stepTimer.getTimerClkFreq() / stepTimer.getPrescaleFactor() /
                stepTimer.getOverflow();
