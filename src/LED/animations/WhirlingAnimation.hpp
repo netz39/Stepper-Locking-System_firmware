@@ -41,8 +41,8 @@ public:
         constexpr auto ProgessColor = Blue * 0.25;
 
         if (isClockwiseWhirling)
-            for (uint8_t i = NumberOfLedsInRing - 1; i >= NumberOfLedsInRing - ProgessLedEnd; i--)
-                ledData[i] = ProgessColor;
+            for (uint8_t i = 0; i < ProgessLedEnd; i++)
+                ledData[NumberOfLedsInRing - 1 - i] = ProgessColor;
         else
             for (uint8_t i = 0; i < ProgessLedEnd; i++)
                 ledData[i] = ProgessColor;
