@@ -86,6 +86,7 @@ public:
         NeededRevolutions * MicrostepsPerRevolution * GearReduction;
 
     static constexpr auto MicrostepLossThreshold = 64;
+    static constexpr auto StepLossEventCounterThreshold = 256;
 
     static constexpr auto WarningMotorTemp = 70.0_degC;
     static constexpr auto CriticalMotorTemp = 85.0_degC;
@@ -128,7 +129,7 @@ private:
     uint32_t calibrationSpeed = 0;
     uint32_t calibrationAcc = 0;
 
-    uint32_t stepLossCounter = 0;
+    uint32_t stepLossEventCounter = 0;
 
     /// Moves the motor asynchronously.
     /// @param microSteps moves the motor the given microSteps.
@@ -158,9 +159,15 @@ private:
     /// Setter for maximum motor current in percent
     void setMotorMaxCurrentPercentage(uint8_t percentage);
 
+    /// enable power to motor
     void enableMotorTorque();
 
+    /// disable power to motor - no heating
     void disableMotorTorque();
 
     void checkMotorTemperature();
+
+    void signalSuccess();
+
+    void signalFailure();
 };

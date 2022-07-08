@@ -18,11 +18,9 @@ void MotorController::taskMain()
         {
             if (!stepControl.isRunning())
             {
-                disableCalibrationMode();
-
                 // calibration was not successful
-                if (finishedCallback)
-                    finishedCallback(false);
+                disableCalibrationMode();
+                signalFailure();
             }
         }
         else if (isCalibrated && hallEncoder.isEncoderOkay())
@@ -34,10 +32,10 @@ void MotorController::taskMain()
                 // movement will be corrected by TeensyStep
                 stepperMotor.setPosition(hallEncoder.getPosition());
 
-                if (stepLossCounter++ >= 256)
+                if (stepLossEventCounter++ >= StepLossEventCounterThreshold)
                 {
-                    if (finishedCallback)
-                        finishedCallback(false);
+                    signalFailure();
+                    stepLossEventCounter = 0;
                 }
             }
         }
@@ -45,7 +43,7 @@ void MotorController::taskMain()
         if (isOpening || isClosing)
         {
             snprintf(buffer, BufferSize, "%ld, %ld, %d\n", stepperMotor.getPosition(),
-                     hallEncoder.getPosition(), hallEncoder.prevHallEncoderRawValue);
+                     hallEncoder.getPosition(), hallEncoder.getRawPosition());
             HAL_UART_Transmit(DebugUartPeripherie, reinterpret_cast<uint8_t *>(buffer),
                               strlen(buffer), 1000);
         }
@@ -79,17 +77,29 @@ void MotorController::onSettingsUpdate()
 //--------------------------------------------------------------------------------------------------
 void MotorController::invokeFinishedCallback()
 {
-    stepLossCounter = 0;
+    stepLossEventCounter = 0;
     isOpening = false;
     isClosing = false;
 
     if (!ignoreFinishedEvent)
     {
         disableMotorTorque();
-
-        if (finishedCallback)
-            finishedCallback(true);
+        signalSuccess();
     }
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::signalSuccess()
+{
+    if (finishedCallback)
+        finishedCallback(true);
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::signalFailure()
+{
+    if (finishedCallback)
+        finishedCallback(false);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -156,7 +166,7 @@ void MotorController::calibrationIsDone()
 {
     abortCalibration();
 
-    vTaskDelay(10);
+    vTaskDelay(10); // wait for new steady value from hall encoder
     stepperMotor.setPosition(0);
     hallEncoder.setPosition(0);
     isCalibrated = true;
