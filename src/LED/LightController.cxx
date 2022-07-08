@@ -98,7 +98,7 @@ void LightController::updateLightState()
     case StateMachine::State::Opening:
         statusLed.setColorBlinking(DualLedColor::Green, 2.0_Hz);
         targetAnimation = &whirlingAnimation;
-        whirlingAnimation.setOpening();
+        whirlingAnimation.setOpening(invertRotationDirection);
         whirlingAnimation.setProgess(motorController.getProgress());
         break;
 
@@ -110,7 +110,7 @@ void LightController::updateLightState()
     case StateMachine::State::Closing:
         statusLed.setColorBlinking(DualLedColor::Red, 2.0_Hz);
         targetAnimation = &whirlingAnimation;
-        whirlingAnimation.setClosing();
+        whirlingAnimation.setClosing(invertRotationDirection);
         whirlingAnimation.setProgess(motorController.getProgress());
         break;
 
