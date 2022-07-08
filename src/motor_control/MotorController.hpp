@@ -33,7 +33,7 @@ public:
           motorTemperature(motorTemperature),                                             //
           hallEncoder(hallEncoder)                                                        //
     {
-        stepControl.setCallback(std::bind(&MotorController::finishedCallback, this));
+        stepControl.setCallback(std::bind(&MotorController::invokeFinishedCallback, this));
     }
 
     void openDoor();
