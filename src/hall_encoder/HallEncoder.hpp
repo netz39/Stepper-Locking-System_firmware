@@ -15,7 +15,7 @@ class HallEncoder : public TaskWithMemberFunctionBase, SettingsUser
 
 public:
     HallEncoder(firmwareSettings::Container &settingsContainer, i2c::RtosAccessor &busAccessor)
-        : TaskWithMemberFunctionBase("hallEncoderTask", 128, osPriorityNormal3), //
+        : TaskWithMemberFunctionBase("hallEncoderTask", 256, osPriorityNormal3), //
           settingsContainer(settingsContainer),                                  //
           busAccessor(busAccessor)                                               //
     {
@@ -53,6 +53,6 @@ private:
     void calculatePosition();
 
     uint16_t prevHallEncoderRawValue = 0;
-    int32_t accumulatedPosition = 0;
+    float accumulatedPosition = 0.0f;
     bool isIncrementingAtOpening = false;
 };

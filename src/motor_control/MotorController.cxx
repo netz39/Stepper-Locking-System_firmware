@@ -34,22 +34,21 @@ void MotorController::taskMain()
                 // movement will be corrected by TeensyStep
                 stepperMotor.setPosition(hallEncoder.getPosition());
 
-                // ToDo: count losses - at excessive losses at time stop all
+                if (stepLossCounter++ >= 256)
+                {
+                    if (finishedCallback)
+                        finishedCallback(false);
+                }
             }
         }
 
-#ifdef DEBUG
         if (isOpening || isClosing)
         {
-            uint32_t loadResult = tmc2209.getSGResult().sgResultValue;
-            const auto speed = stepControl.getCurrentSpeed();
-
-            snprintf(buffer, BufferSize, "%ld, %ld, %d\n", stepperMotor.getPosition(), loadResult,
-                     speed);
+            snprintf(buffer, BufferSize, "%ld, %ld, %d\n", stepperMotor.getPosition(),
+                     hallEncoder.getPosition(), hallEncoder.prevHallEncoderRawValue);
             HAL_UART_Transmit(DebugUartPeripherie, reinterpret_cast<uint8_t *>(buffer),
                               strlen(buffer), 1000);
         }
-#endif
 
         checkMotorTemperature();
 
@@ -80,6 +79,7 @@ void MotorController::onSettingsUpdate()
 //--------------------------------------------------------------------------------------------------
 void MotorController::invokeFinishedCallback()
 {
+    stepLossCounter = 0;
     isOpening = false;
     isClosing = false;
 
@@ -139,7 +139,7 @@ void MotorController::doCalibration(bool forceInverted)
                                                   NumberOfMicrostepsForOperation * 1.25f);
     moveRelative(NeededSteps);
 
-	isCalibrated = false;
+    isCalibrated = false;
     isCalibrating = true;
 }
 
@@ -155,6 +155,8 @@ void MotorController::abortCalibration()
 void MotorController::calibrationIsDone()
 {
     abortCalibration();
+
+    vTaskDelay(10);
     stepperMotor.setPosition(0);
     hallEncoder.setPosition(0);
     isCalibrated = true;
@@ -284,9 +286,9 @@ void MotorController::unfreezeMotor()
 uint8_t MotorController::getProgress()
 {
     if (!isOpening && !isClosing)
-        return 100;
+        return 0;
 
-    const auto Target = isOpening ? (NumberOfMicrostepsForOperation * -1) : 0;
+    const auto Target = isOpening ? NumberOfMicrostepsForOperation : 0;
     const auto Diff = std::abs(Target - stepperMotor.getPosition());
     const uint8_t Percentage =
         ((NumberOfMicrostepsForOperation - Diff) * 100) / NumberOfMicrostepsForOperation;

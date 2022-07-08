@@ -25,7 +25,7 @@ void HallEncoder::taskMain()
         if (isEncoderOkay())
             calculatePosition();
 
-        constexpr auto TaskFrequency = 100.0_Hz;
+        constexpr auto TaskFrequency = 200.0_Hz;
         vTaskDelayUntil(&lastWakeTime, toOsTicks(TaskFrequency));
     }
 }
@@ -57,10 +57,14 @@ void HallEncoder::onSettingsUpdate()
 //--------------------------------------------------------------------------------------------------
 void HallEncoder::calculatePosition()
 {
-    int32_t diff = isIncrementingAtOpening ? (getRawPosition() - prevHallEncoderRawValue)
-                                           : (prevHallEncoderRawValue - getRawPosition());
+    const uint16_t CurrentPosition = getRawPosition();
+    int32_t diff = isIncrementingAtOpening ? (CurrentPosition - prevHallEncoderRawValue)
+                                           : (prevHallEncoderRawValue - CurrentPosition);
 
-    prevHallEncoderRawValue = getRawPosition();
+    prevHallEncoderRawValue = CurrentPosition;
+
+    if (diff == 0)
+        return;
 
     // cross over detection - 360° to 0° and vice versa
     if (diff < -EncoderResolution / 2)
@@ -72,7 +76,7 @@ void HallEncoder::calculatePosition()
     constexpr auto EncoderToMicrostepsFactor =
         (float)EncoderResolution / MotorController::MicrostepsPerRevolution;
 
-    const int32_t CoveredMicrosteps = std::round(diff / EncoderToMicrostepsFactor);
+    const float CoveredMicrosteps = (float)diff / EncoderToMicrostepsFactor;
 
     accumulatedPosition += CoveredMicrosteps;
 }
@@ -85,7 +89,7 @@ bool HallEncoder::isEncoderOkay()
 //--------------------------------------------------------------------------------------------------
 int32_t HallEncoder::getPosition()
 {
-    return accumulatedPosition;
+    return std::round(accumulatedPosition);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -99,4 +103,5 @@ uint16_t HallEncoder::getRawPosition()
 void HallEncoder::setPosition(int32_t microsteps)
 {
     accumulatedPosition = microsteps;
+    prevHallEncoderRawValue = getRawPosition();
 }

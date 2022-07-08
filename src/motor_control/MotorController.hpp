@@ -85,7 +85,7 @@ public:
     static constexpr int32_t NumberOfMicrostepsForOperation =
         NeededRevolutions * MicrostepsPerRevolution * GearReduction;
 
-    static constexpr auto MicrostepLossThreshold = 16;
+    static constexpr auto MicrostepLossThreshold = 64;
 
     static constexpr auto WarningMotorTemp = 70.0_degC;
     static constexpr auto CriticalMotorTemp = 85.0_degC;
@@ -127,6 +127,8 @@ private:
     uint32_t maximumMotorAcc = 0;
     uint32_t calibrationSpeed = 0;
     uint32_t calibrationAcc = 0;
+
+    uint32_t stepLossCounter = 0;
 
     /// Moves the motor asynchronously.
     /// @param microSteps moves the motor the given microSteps.
