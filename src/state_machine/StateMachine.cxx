@@ -20,11 +20,11 @@ void StateMachine::taskMain()
         //------------------------------
         case State::Unknown:
         {
-            if (tactileSwitches.doorSwitch.isLongPressing())
+            if (tactileSwitches.doorSwitch.isPressing())
             {
                 // door wing is triggering doorSwitch
 
-                if (!tactileSwitches.lockSwitch.isLongPressing())
+                if (!tactileSwitches.lockSwitch.isPressing())
                 {
                     // lock switch is pressed -> lock bolt is extended
                     // ToDo: compare with saved hall encoder value
@@ -54,7 +54,7 @@ void StateMachine::taskMain()
             if (!waitForCloseCommand())
                 break;
 
-            if (tactileSwitches.doorSwitch.isLongPressing())
+            if (tactileSwitches.doorSwitch.isPressing())
             { // door wing is triggering doorSwitch
 
                 if (isCalibrated)
@@ -134,7 +134,7 @@ void StateMachine::taskMain()
         //------------------------------
         case State::Calibrating:
         {
-            if (!tactileSwitches.lockSwitch.isLongPressing())
+            if (!tactileSwitches.lockSwitch.isPressing())
             { // lock switch already triggered, so opens the door until the lock switch is released
 
                 motorController.doCalibration(true);
@@ -203,7 +203,7 @@ bool StateMachine::waitForCloseCommand()
 //--------------------------------------------------------------------------------------------------
 bool StateMachine::waitForDoorStateTriggered()
 {
-    if (tactileSwitches.doorSwitch.isLongPressing())
+    if (tactileSwitches.doorSwitch.isPressing())
         return true;
 
     return waitForCommand(DoorStateTriggerBit, portMAX_DELAY);
@@ -212,7 +212,7 @@ bool StateMachine::waitForDoorStateTriggered()
 //--------------------------------------------------------------------------------------------------
 bool StateMachine::waitForLockStateTriggered()
 {
-    if (!tactileSwitches.lockSwitch.isLongPressing())
+    if (!tactileSwitches.lockSwitch.isPressing())
         return true;
 
     return waitForCommand(LockStateTriggerBit, portMAX_DELAY);
@@ -221,7 +221,7 @@ bool StateMachine::waitForLockStateTriggered()
 //--------------------------------------------------------------------------------------------------
 bool StateMachine::waitForLockStateReleased()
 {
-    if (tactileSwitches.lockSwitch.isLongPressing())
+    if (tactileSwitches.lockSwitch.isPressing())
         return true;
 
     return waitForCommand(LockStateReleaseBit, portMAX_DELAY);

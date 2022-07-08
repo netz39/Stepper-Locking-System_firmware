@@ -20,6 +20,7 @@ public:
     {
         ShortPress,
         LongPress,
+        SuperLongPress,
         StopLongPress
     };
 
@@ -33,6 +34,12 @@ public:
         : buttonGpio{buttonGpio}, LongPressTime{longPressTime},
           isInverted{isInverted}, callback{callback} {};
 
+    Button(util::Gpio buttonGpio, const units::si::Time longPressTime,
+           const units::si::Time superLongPressTime, bool isInverted = false,
+           Callback callback = nullptr)
+        : buttonGpio{buttonGpio}, LongPressTime{longPressTime},
+          SuperLongPressTime{superLongPressTime}, isInverted{isInverted}, callback{callback} {};
+
     void update(units::si::Time timePassed);
 
     void setCallback(Callback newCallback)
@@ -40,8 +47,8 @@ public:
         callback = newCallback;
     }
 
-    /// returns true if button state is long pressed at the moment
-    [[nodiscard]] bool isLongPressing() const;
+    /// returns true if button state is long pressed or super long pressed at the moment
+    [[nodiscard]] bool isPressing() const;
 
 private:
     void loadTimer();
@@ -53,6 +60,7 @@ private:
 
     util::Gpio buttonGpio;
     const units::si::Time LongPressTime = 500.0_ms;
+    const units::si::Time SuperLongPressTime = 2.0_s;
     bool isInverted = false;
     Callback callback;
 
@@ -60,7 +68,8 @@ private:
     {
         Idle,
         Pressed,
-        LongPress
+        LongPress,
+        SuperLongPress
     };
 
     InternalState internalState = InternalState::Idle;

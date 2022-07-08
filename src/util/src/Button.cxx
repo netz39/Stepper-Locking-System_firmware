@@ -2,9 +2,10 @@
 
 namespace util
 {
-bool Button::isLongPressing() const
+bool Button::isPressing() const
 {
-    return (internalState == InternalState::LongPress);
+    return (internalState == InternalState::LongPress ||
+            internalState == InternalState::SuperLongPress);
 }
 
 void Button::update(const units::si::Time timePassed)
@@ -40,12 +41,25 @@ void Button::update(const units::si::Time timePassed)
         break;
 
     case InternalState::LongPress:
+        updateTimer(timePassed);
         if (state == State::NotPressed)
         {
             buttonCallback(Action::StopLongPress);
             internalState = InternalState::Idle;
         }
+        else if (getPassedTime() >= SuperLongPressTime)
+        {
+            buttonCallback(Action::SuperLongPress);
+            internalState = InternalState::SuperLongPress;
+        }
+        break;
 
+    case InternalState::SuperLongPress:
+        if (state == State::NotPressed)
+        {
+            buttonCallback(Action::StopLongPress);
+            internalState = InternalState::Idle;
+        }
         break;
     }
 }
