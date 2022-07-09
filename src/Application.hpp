@@ -48,4 +48,6 @@ public:
     static void i2cMasterTxCallback(I2C_HandleTypeDef *);
     static void i2cMasterRxCallback(I2C_HandleTypeDef *);
     static void i2cErrorCallback(I2C_HandleTypeDef *);
+    static void uartTmcTxCallback(UART_HandleTypeDef *);
+    static void uartTmcRxCallback(UART_HandleTypeDef *);
 };

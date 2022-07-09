@@ -110,6 +110,10 @@ public:
         finishedCallback = newCallback;
     }
 
+    void notifyUartTxComplete();
+
+    void notifyUartRxComplete();
+
     static constexpr auto MicrostepsPerFullStep = 8;
     static constexpr auto NumberOfFullSteps = 200;
     static constexpr auto MicrostepsPerRevolution = MicrostepsPerFullStep * NumberOfFullSteps;

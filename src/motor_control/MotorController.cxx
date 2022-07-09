@@ -439,3 +439,19 @@ void MotorController::resetOpeningClosingState()
     isOpening = false;
     isClosing = false;
 }
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::notifyUartTxComplete()
+{
+    auto higherPriorityTaskWoken = pdFALSE;
+    notifyFromISR(1, eSetBits, &higherPriorityTaskWoken);
+    portYIELD_FROM_ISR(higherPriorityTaskWoken);
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::notifyUartRxComplete()
+{
+    auto higherPriorityTaskWoken = pdFALSE;
+    notifyFromISR(1, eSetBits, &higherPriorityTaskWoken);
+    portYIELD_FROM_ISR(higherPriorityTaskWoken);
+}

@@ -24,6 +24,12 @@ Application::Application()
     HAL_I2C_RegisterCallback(EepromBus, HAL_I2C_MASTER_TX_COMPLETE_CB_ID, &i2cMasterTxCallback);
     HAL_I2C_RegisterCallback(EepromBus, HAL_I2C_MASTER_RX_COMPLETE_CB_ID, &i2cMasterRxCallback);
     HAL_I2C_RegisterCallback(EepromBus, HAL_I2C_ERROR_CB_ID, &i2cErrorCallback);
+
+    // TMC UART callbacks
+    HAL_UART_RegisterCallback(MotorController::TmcUartPeripherie, HAL_UART_TX_COMPLETE_CB_ID,
+                              &uartTmcTxCallback);
+    HAL_UART_RegisterCallback(MotorController::TmcUartPeripherie, HAL_UART_RX_COMPLETE_CB_ID,
+                              &uartTmcRxCallback);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -77,6 +83,18 @@ void Application::i2cErrorCallback(I2C_HandleTypeDef *)
     auto higherPrioTaskWoken = pdFALSE;
     getApplicationInstance().eepromBusAccessor.signalErrorFromIsr(&higherPrioTaskWoken);
     portYIELD_FROM_ISR(higherPrioTaskWoken);
+}
+
+//--------------------------------------------------------------------------------------------------
+void Application::uartTmcTxCallback(UART_HandleTypeDef *)
+{
+    getApplicationInstance().motorController.notifyUartTxComplete();
+}
+
+//--------------------------------------------------------------------------------------------------
+void Application::uartTmcRxCallback(UART_HandleTypeDef *)
+{
+    getApplicationInstance().motorController.notifyUartRxComplete();
 }
 
 //--------------------------------------------------------------------------------------------------
