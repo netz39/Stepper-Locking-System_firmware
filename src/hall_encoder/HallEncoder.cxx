@@ -20,13 +20,16 @@ void HallEncoder::taskMain()
     auto lastWakeTime = xTaskGetTickCount();
     while (true)
     {
-        device.run();
-
-        if (isEncoderOkay())
-            calculatePosition();
-
         constexpr auto TaskFrequency = 200.0_Hz;
         vTaskDelayUntil(&lastWakeTime, toOsTicks(TaskFrequency));
+
+        device.run();
+
+        if (!isOkay())
+            continue;
+
+        detectCrossovers();
+        calculatePosition();
     }
 }
 
@@ -57,31 +60,39 @@ void HallEncoder::onSettingsUpdate()
 //--------------------------------------------------------------------------------------------------
 void HallEncoder::calculatePosition()
 {
-    const uint16_t CurrentPosition = getRawPosition();
-    int32_t diff = isIncrementingAtOpening ? (CurrentPosition - prevHallEncoderRawValue)
-                                           : (prevHallEncoderRawValue - CurrentPosition);
+    const uint16_t CurrentEncoderRawValue = getRawPosition();
 
-    prevHallEncoderRawValue = CurrentPosition;
+    const int32_t Diff = isIncrementingAtOpening
+                             ? (CurrentEncoderRawValue - encoderValueAtHomePoint)
+                             : (encoderValueAtHomePoint - CurrentEncoderRawValue);
 
-    if (diff == 0)
+    currentPosition = Diff * MotorController::MicrostepsPerRevolution / EncoderResolution;
+    currentPosition += currentTurn * MotorController::MicrostepsPerRevolution;
+}
+
+//--------------------------------------------------------------------------------------------------
+void HallEncoder::detectCrossovers()
+{
+    const auto CurrentEncoderRawValue = getRawPosition();
+    const int32_t Diff = CurrentEncoderRawValue - prevHallEncoderRawValue;
+
+    if (Diff == 0)
         return;
 
-    // cross over detection - 360° to 0° and vice versa
-    if (diff < -EncoderResolution / 2)
-        diff += EncoderResolution;
+    if (Diff > EncoderResolution / 2)
+    {
+        currentTurn = currentTurn + (isIncrementingAtOpening ? -1 : 1);
+    }
+    else if (Diff < -EncoderResolution / 2)
+    {
+        currentTurn = currentTurn + (isIncrementingAtOpening ? 1 : -1);
+    }
 
-    else if (diff > EncoderResolution / 2)
-        diff -= EncoderResolution;
-
-    constexpr auto EncoderToMicrostepsFactor =
-        (float)EncoderResolution / MotorController::MicrostepsPerRevolution;
-
-    const float CoveredMicrosteps = (float)diff / EncoderToMicrostepsFactor;
-
-    accumulatedPosition += CoveredMicrosteps;
+    prevHallEncoderRawValue = CurrentEncoderRawValue;
 }
+
 //--------------------------------------------------------------------------------------------------
-bool HallEncoder::isEncoderOkay()
+bool HallEncoder::isOkay()
 {
     return device.isOK();
 }
@@ -89,7 +100,7 @@ bool HallEncoder::isEncoderOkay()
 //--------------------------------------------------------------------------------------------------
 int32_t HallEncoder::getPosition()
 {
-    return std::round(accumulatedPosition);
+    return currentPosition;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -100,8 +111,12 @@ uint16_t HallEncoder::getRawPosition()
 }
 
 //--------------------------------------------------------------------------------------------------
-void HallEncoder::setPosition(int32_t microsteps)
+bool HallEncoder::saveHomePosition()
 {
-    accumulatedPosition = microsteps;
-    prevHallEncoderRawValue = getRawPosition();
+    if (!isOkay())
+        return false;
+
+    encoderValueAtHomePoint = getRawPosition();
+    currentTurn = 0;
+    return true;
 }

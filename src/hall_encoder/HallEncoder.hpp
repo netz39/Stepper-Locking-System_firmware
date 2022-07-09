@@ -23,7 +23,8 @@ public:
 
     static constexpr auto EncoderResolution = 1 << 12;
 
-    bool isEncoderOkay();
+    /// @return true if values are valid for further processings
+    bool isOkay();
 
     /// get accumulated position in microsteps,
     /// crossovers (360° - 0° and vice versa ) are considered
@@ -32,8 +33,9 @@ public:
     /// get hall encoders raw position, value will be between 0 and 4095
     uint16_t getRawPosition();
 
-    /// set the position in microsteps, use it after successful homing
-    void setPosition(int32_t microsteps);
+    /// save the current position at home point, use it after successful homing
+    /// @return true if current position can be readed and saved successfully
+    bool saveHomePosition();
 
 protected:
     void taskMain() override;
@@ -52,7 +54,12 @@ private:
     /// get difference to previous time step and detect cross overs and convert to mircosteps
     void calculatePosition();
 
-    uint16_t prevHallEncoderRawValue = 0;
-    float accumulatedPosition = 0.0f;
+    /// crossovers (360° - 0° and vice versa ) will be detected and inc/dec the current turn
+    void detectCrossovers();
+
     bool isIncrementingAtOpening = false;
+    uint16_t prevHallEncoderRawValue = 0;
+    int32_t currentPosition = 0;
+    int32_t currentTurn = 0;
+    uint16_t encoderValueAtHomePoint = 0;
 };
