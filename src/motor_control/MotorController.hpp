@@ -202,4 +202,10 @@ private:
     void signalFailure(FailureType failureType);
 
     bool checkForStepLosses();
+
+    void setOpeningState();
+
+    void setClosingState();
+
+    void resetOpeningClosingState();
 };

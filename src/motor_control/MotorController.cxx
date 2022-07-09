@@ -102,8 +102,7 @@ void MotorController::onSettingsUpdate()
 void MotorController::invokeFinishedCallback()
 {
     stepLossEventCounter = 0;
-    isOpening = false;
-    isClosing = false;
+    resetOpeningClosingState();
 
     if (!ignoreFinishedEvent)
     {
@@ -153,16 +152,14 @@ void MotorController::moveRelative(int32_t microSteps)
 //--------------------------------------------------------------------------------------------------
 void MotorController::openDoor()
 {
-    isClosing = false;
-    isOpening = true;
+    setOpeningState();
     moveAbsolute(NumberOfMicrostepsForOperation);
 }
 
 //--------------------------------------------------------------------------------------------------
 void MotorController::closeDoor()
 {
-    isClosing = true;
-    isOpening = false;
+    setClosingState();
     moveAbsolute(0);
 }
 
@@ -350,6 +347,7 @@ bool MotorController::checkForStepLosses()
 //--------------------------------------------------------------------------------------------------
 void MotorController::revertOpening()
 {
+    setClosingState();
     ignoreFinishedEvent = true;
     stopMovement();
     closeDoor();
@@ -359,6 +357,7 @@ void MotorController::revertOpening()
 //--------------------------------------------------------------------------------------------------
 void MotorController::revertClosing()
 {
+    setOpeningState();
     ignoreFinishedEvent = true;
     stopMovement();
     openDoor();
@@ -389,4 +388,25 @@ uint8_t MotorController::getProgress()
     const uint8_t Percentage =
         ((NumberOfMicrostepsForOperation - Diff) * 100) / NumberOfMicrostepsForOperation;
     return std::clamp<uint8_t>(Percentage, 0, 100);
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::setOpeningState()
+{
+    isOpening = true;
+    isClosing = false;
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::setClosingState()
+{
+    isOpening = false;
+    isClosing = true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::resetOpeningClosingState()
+{
+    isOpening = false;
+    isClosing = false;
 }
