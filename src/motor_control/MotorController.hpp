@@ -24,7 +24,6 @@ class MotorController : public TaskWithMemberFunctionBase, SettingsUser
 {
 public:
     static constexpr auto DebugUartPeripherie = &huart1;
-    static constexpr auto TmcUartPeripherie = &huart2;
 
     enum class FailureType
     {
@@ -38,11 +37,12 @@ public:
     };
 
     MotorController(firmwareSettings::Container &settingsContainer, Temperature &motorTemperature,
-                    HallEncoder &hallEncoder)
+                    HallEncoder &hallEncoder, UartAccessor &uartAccessorTmc)
         : TaskWithMemberFunctionBase("motorControllerTask", 128, osPriorityAboveNormal3), //
           settingsContainer(settingsContainer),                                           //
           motorTemperature(motorTemperature),                                             //
-          hallEncoder(hallEncoder)                                                        //
+          hallEncoder(hallEncoder),                                                       //
+          uartAccessorTmc{uartAccessorTmc}                                                //
     {
         stepControl.setCallback(std::bind(&MotorController::invokeFinishedCallback, this));
     }
@@ -157,8 +157,10 @@ private:
 
     StepControl stepControl{};
     Stepper stepperMotor{StepperStepPin, StepperDirectionPin};
-    TMC2209 tmc2209{0, TmcUartPeripherie};
     util::Gpio stepperEnable{StepperEnable_GPIO_Port, StepperEnable_Pin};
+
+    UartAccessor &uartAccessorTmc;
+    TMC2209 tmc2209{0, uartAccessorTmc};
 
     bool hadTmcFailure = false;
     bool hadHallEncoderFailure = false;

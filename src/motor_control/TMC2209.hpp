@@ -3,6 +3,8 @@
 #include "usart.h"
 #include <cstdint>
 
+#include "UartAccessor.hpp"
+
 // Class to control the Trinamic IC, contains register accesses etc
 class TMC2209
 {
@@ -10,7 +12,7 @@ private:
     uint8_t slaveaddress;
     bool commOk = true;
 
-    UART_HandleTypeDef *uartPeripherie;
+    UartAccessor &uartAccessor;
 
     struct ReadRequest
     {
@@ -147,7 +149,7 @@ private:
     };
 
 public:
-    TMC2209(uint8_t slave, UART_HandleTypeDef *uartPeripherie);
+    TMC2209(uint8_t slave, UartAccessor &uartAccessor);
     TMC2209(TMC2209 const &other) = default;
     TMC2209(TMC2209 &&other) = delete;
     TMC2209 &operator=(TMC2209 const &other) = delete;

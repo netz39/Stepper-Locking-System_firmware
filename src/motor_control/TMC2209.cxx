@@ -1,7 +1,7 @@
 #include "TMC2209.hpp"
 
-TMC2209::TMC2209(uint8_t slave, UART_HandleTypeDef *uartPeripherie)
-    : slaveaddress(slave), uartPeripherie(uartPeripherie)
+TMC2209::TMC2209(uint8_t slave, UartAccessor &uartAccessor)
+    : slaveaddress(slave), uartAccessor(uartAccessor)
 {
 }
 
@@ -18,12 +18,12 @@ uint32_t TMC2209::readData(uint8_t regAddr)
     DataReverseUnion dataReverseUnion{};
     DataReverse dataReverse{};
 
-    HAL_HalfDuplex_EnableTransmitter(uartPeripherie);
-    HAL_UART_Transmit(uartPeripherie, reinterpret_cast<uint8_t *>(&rdReqData), sizeof(rdReqData),
-                      1000);
-    HAL_HalfDuplex_EnableReceiver(uartPeripherie);
-    HAL_UART_Receive(uartPeripherie, reinterpret_cast<uint8_t *>(&readReqReply),
-                     sizeof(readReqReply), 2000);
+    uartAccessor.beginTransaction();
+    uartAccessor.halfDuplexSwitchToTx();
+    uartAccessor.transmit(reinterpret_cast<uint8_t *>(&rdReqData), sizeof(rdReqData));
+    uartAccessor.halfDuplexSwitchToRx();
+    uartAccessor.receive(reinterpret_cast<uint8_t *>(&readReqReply), sizeof(readReqReply));
+    uartAccessor.endTransaction();
 
     ReadReply readReply1{};
     readReply1 = readReqReply.readReply;
@@ -61,9 +61,12 @@ bool TMC2209::writeData(uint8_t regAddr, uint32_t data)
 
     calcCRC(reinterpret_cast<uint8_t *>(&writeAccess), sizeof(writeAccess));
     initialCount = getTransmissionCount();
-    HAL_HalfDuplex_EnableTransmitter(uartPeripherie);
-    HAL_UART_Transmit(uartPeripherie, reinterpret_cast<uint8_t *>(&writeAccess),
-                      sizeof(writeAccess), 1000);
+
+    uartAccessor.beginTransaction();
+    uartAccessor.halfDuplexSwitchToTx();
+    uartAccessor.transmit(reinterpret_cast<uint8_t *>(&writeAccess), sizeof(writeAccess));
+    uartAccessor.endTransaction();
+
     finalCount = getTransmissionCount();
 
     bool writeSuccessful = initialCount != finalCount;

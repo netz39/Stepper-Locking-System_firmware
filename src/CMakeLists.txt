@@ -47,6 +47,7 @@ set(Sources
         src/LED/LightController.cxx
         src/motor_control/MotorController.cxx
         src/motor_control/TMC2209.cxx
+        src/motor_control/UartAccessor.cxx
         src/settings/Settings.cxx
         src/state_machine/StateMachine.cxx
         src/tactile_switches/TactileSwitches.cxx
