@@ -142,7 +142,13 @@ void LightController::updateLightState()
 
     if (prevState != stateMaschine.currentState)
     {
-        targetAnimation->resetAnimation();
+        // prevent interruption of animation when switching from RetryToClose to WantToClose
+        if (prevState != StateMachine::State::RetryToClose ||
+            stateMaschine.currentState != StateMachine::State::WantToClose)
+        {
+            targetAnimation->resetAnimation();
+        }
+
         prevState = stateMaschine.currentState;
     }
 }
