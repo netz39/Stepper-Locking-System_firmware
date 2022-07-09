@@ -21,6 +21,7 @@ void StateMachine::taskMain()
         //------------------------------
         case State::Initializing:
         {
+            motorController.unfreezeMotor();
             if (tactileSwitches.doorSwitch.isPressing())
             { // door wing is triggering doorSwitch
 
@@ -231,11 +232,9 @@ void StateMachine::openButtonCallback(util::Button::Action action)
     switch (action)
     {
     case Button::Action::ShortPress:
-        if (currentState == State::FatalError && tactileSwitches.doorSwitch.isPressing())
-        {
-            motorController.unfreezeMotor();
-            currentState = State::Calibrating;
-        }
+        if (currentState == State::FatalError)
+            currentState = State::Initializing;
+
         [[fallthrough]];
 
     case Button::Action::LongPress:
@@ -287,11 +286,9 @@ void StateMachine::closeButtonCallback(util::Button::Action action)
     switch (action)
     {
     case Button::Action::ShortPress:
-        if (currentState == State::FatalError && tactileSwitches.doorSwitch.isPressing())
-        {
-            motorController.unfreezeMotor();
-            currentState = State::Calibrating;
-        }
+        if (currentState == State::FatalError)
+            currentState = State::Initializing;
+
         [[fallthrough]];
 
     case Button::Action::LongPress:
@@ -392,20 +389,39 @@ void StateMachine::motorControllerFinishedCallback(MotorController::FailureType 
         if (currentState == State::Opening || //
             currentState == State::Closing || //
             currentState == State::RetryToClose)
+        {
             notify(FinishedEvent, eSetBits);
+        }
+        else if (currentState == State::FatalError)
+        {
+            currentState = State::Initializing;
+        }
         break;
 
     case MotorController::FailureType::CalibrationFailed:
+    case MotorController::FailureType::StepperDriverNoAnswer:
         // notify failure, revoke calibration
         motorController.revokeCalibration();
         currentState = State::FatalError;
         notify(ErrorBit, eSetBits);
         break;
 
+    case MotorController::FailureType::HallEncoderNoAnswer:
+        if (currentState != State::Opening && currentState != State::Closing)
+            [[fallthrough]];
+        else
+            break;
+
     case MotorController::FailureType::ExcessiveStepLosses:
     case MotorController::FailureType::MotorMovedExternally:
         // switch to warning, but do not revoke calibration
         currentState = State::Warning;
+        notify(ErrorBit, eSetBits);
+        break;
+
+    case MotorController::FailureType::HallEncoderReconnected:
+        // do re-calibration
+        currentState = State::Initializing;
         notify(ErrorBit, eSetBits);
         break;
     }

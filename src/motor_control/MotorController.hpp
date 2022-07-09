@@ -31,7 +31,10 @@ public:
         None,
         ExcessiveStepLosses,
         CalibrationFailed,
-        MotorMovedExternally
+        MotorMovedExternally,
+        StepperDriverNoAnswer,
+        HallEncoderNoAnswer,
+        HallEncoderReconnected
     };
 
     MotorController(firmwareSettings::Container &settingsContainer, Temperature &motorTemperature,
@@ -152,6 +155,9 @@ private:
     Stepper stepperMotor{StepperStepPin, StepperDirectionPin};
     TMC2209 tmc2209{0, TmcUartPeripherie};
     util::Gpio stepperEnable{StepperEnable_GPIO_Port, StepperEnable_Pin};
+
+    bool hadTmcFailure = false;
+    bool hadHallEncoderFailure = false;
 
     Callback finishedCallback = nullptr;
 

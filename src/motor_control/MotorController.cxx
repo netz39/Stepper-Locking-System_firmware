@@ -14,6 +14,38 @@ void MotorController::taskMain()
 
     while (true)
     {
+        vTaskDelayUntil(&lastWakeTime, toOsTicks(100.0_Hz));
+
+        /*
+        const auto MotorLoad = tmc2209.getSGResult().sgResultValue;
+        if (tmc2209.isCommFailure())
+        {
+            hadTmcFailure = true;
+            signalFailure(FailureType::StepperDriverNoAnswer);
+            continue;
+        }
+
+        if (hadTmcFailure)
+        {
+            // TMC is reachable again, send sucess signal
+            hadTmcFailure = false;
+            signalSuccess();
+        }
+        */
+
+        if (!hallEncoder.isOkay())
+        {
+            // send warning, but door can open/close normally
+            hadHallEncoderFailure = true;
+            signalFailure(FailureType::HallEncoderNoAnswer);
+        }
+        else if (hadHallEncoderFailure)
+        {
+            // send signal for recalibrating
+            hadHallEncoderFailure = false;
+            signalFailure(FailureType::HallEncoderReconnected);
+        }
+
         if (isCalibrating)
         {
             // check if there is no calibration movement anymore
@@ -77,8 +109,6 @@ void MotorController::taskMain()
         }
 
         checkMotorTemperature();
-
-        vTaskDelayUntil(&lastWakeTime, toOsTicks(100.0_Hz));
     }
 }
 
