@@ -231,7 +231,7 @@ void StateMachine::openButtonCallback(util::Button::Action action)
     switch (action)
     {
     case Button::Action::ShortPress:
-        if (currentState == State::FatalError)
+        if (currentState == State::FatalError && tactileSwitches.doorSwitch.isPressing())
         {
             motorController.unfreezeMotor();
             currentState = State::Calibrating;
@@ -287,7 +287,7 @@ void StateMachine::closeButtonCallback(util::Button::Action action)
     switch (action)
     {
     case Button::Action::ShortPress:
-        if (currentState == State::FatalError)
+        if (currentState == State::FatalError && tactileSwitches.doorSwitch.isPressing())
         {
             motorController.unfreezeMotor();
             currentState = State::Calibrating;
