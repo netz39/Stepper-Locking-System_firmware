@@ -14,8 +14,8 @@ public:
     }
 
     // only for whirling animations, see definitions below this class
-    void setOpening(bool invertRotationDirection = false);
-    void setClosing(bool invertRotationDirection = false);
+    void setWhirlingMode(WhirlingAnimation::WhirlingMode mode,
+                         bool invertRotationDirection = false);
     void setProgess(uint8_t valueInPercent);
 
     // only for warning animations, see definitions below this class
@@ -47,12 +47,16 @@ private:
 };
 
 template <>
-inline void DualAnimations<WhirlingAnimation>::setOpening(bool invertRotationDirection)
+inline void DualAnimations<WhirlingAnimation>::setWhirlingMode(WhirlingAnimation::WhirlingMode mode,
+                                                               bool invertRotationDirection)
 {
-    firstRing.setOpening();
-    secondRing.setOpening();
+    firstRing.setWhirlingMode(mode);
+    secondRing.setWhirlingMode(mode);
 
-    if (invertRotationDirection)
+    const bool IsOpening = mode == WhirlingAnimation::WhirlingMode::Opening ||
+                           mode == WhirlingAnimation::WhirlingMode::ManualOpening;
+
+    if (IsOpening == invertRotationDirection)
     {
         firstRing.setCounterClockwiseWhirling();
         secondRing.setClockwiseWhirling();
@@ -61,24 +65,6 @@ inline void DualAnimations<WhirlingAnimation>::setOpening(bool invertRotationDir
     {
         firstRing.setClockwiseWhirling();
         secondRing.setCounterClockwiseWhirling();
-    }
-}
-
-template <>
-inline void DualAnimations<WhirlingAnimation>::setClosing(bool invertRotationDirection)
-{
-    firstRing.setClosing();
-    secondRing.setClosing();
-
-    if (invertRotationDirection)
-    {
-        firstRing.setClockwiseWhirling();
-        secondRing.setCounterClockwiseWhirling();
-    }
-    else
-    {
-        firstRing.setCounterClockwiseWhirling();
-        secondRing.setClockwiseWhirling();
     }
 }
 
