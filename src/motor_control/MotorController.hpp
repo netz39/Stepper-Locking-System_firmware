@@ -200,4 +200,6 @@ private:
     void signalSuccess();
 
     void signalFailure(FailureType failureType);
+
+    bool checkForStepLosses();
 };

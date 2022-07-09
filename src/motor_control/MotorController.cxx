@@ -26,26 +26,22 @@ void MotorController::taskMain()
             }
 
             // check for step losses while calibrating
-            /*
-            else if (hallEncoder.isEncoderOkay() &&
-                     (std::abs(stepperMotor.getPosition() - hallEncoder.getPosition()) >
-                      MicrostepLossThreshold))
+            if (checkForStepLosses())
             {
                 // step losses occured, count it
                 if (stepLossEventCounter++ >= StepLossEventAtCalibrationCounterThreshold)
                 {
                     isCalibrating = false;
+                    stopMovementImmediately();
                     signalFailure(FailureType::CalibrationFailed);
                     stepLossEventCounter = 0;
                 }
             }
-            */
         }
-        else if (isCalibrated && hallEncoder.isEncoderOkay())
+        else if (isCalibrated)
         {
             // check for step losses while normal movement
-            if (std::abs(stepperMotor.getPosition() - hallEncoder.getPosition()) >
-                MicrostepLossThreshold)
+            if (checkForStepLosses())
             {
                 // step losses occured, update steppers internal position to hall encoder
                 // movement will be corrected by TeensyStep
@@ -55,6 +51,7 @@ void MotorController::taskMain()
                 {
                     if (stepLossEventCounter++ >= StepLossEventCounterThreshold)
                     {
+                        stopMovementImmediately();
                         signalFailure(FailureType::ExcessiveStepLosses);
                         stepLossEventCounter = 0;
                     }
@@ -156,6 +153,7 @@ void MotorController::moveRelative(int32_t microSteps)
 //--------------------------------------------------------------------------------------------------
 void MotorController::openDoor()
 {
+    isClosing = false;
     isOpening = true;
     moveAbsolute(NumberOfMicrostepsForOperation);
 }
@@ -164,6 +162,7 @@ void MotorController::openDoor()
 void MotorController::closeDoor()
 {
     isClosing = true;
+    isOpening = false;
     moveAbsolute(0);
 }
 
@@ -201,6 +200,12 @@ void MotorController::revokeCalibration()
 void MotorController::doCalibration(bool forceInverted)
 {
     enableCalibrationMode();
+
+    // only do it to get comparable values to detect step losses reliable
+    stepperMotor.setPosition(0);
+    hallEncoder.saveHomePosition();
+    stepLossEventCounter = 0;
+
     const auto NeededSteps = static_cast<int32_t>((forceInverted ? 1.0f : -1.0f) *
                                                   NumberOfMicrostepsForOperation * 1.25f);
     moveRelative(NeededSteps);
@@ -224,8 +229,14 @@ void MotorController::calibrationIsDone()
 
     vTaskDelay(10); // wait for new steady value from hall encoder
     stepperMotor.setPosition(0);
-    hallEncoder.setPosition(0);
-    isCalibrated = true;
+
+    if (hallEncoder.saveHomePosition())
+        isCalibrated = true;
+
+    else
+    {
+        // ToDo: error handling
+    }
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -325,6 +336,15 @@ void MotorController::checkMotorTemperature()
         isOverheated = false;
         hasWarningTemp = false;
     }
+}
+
+//--------------------------------------------------------------------------------------------------
+bool MotorController::checkForStepLosses()
+{
+    if (!hallEncoder.isOkay())
+        return false;
+    return (std::abs(stepperMotor.getPosition() - hallEncoder.getPosition()) >
+            MicrostepLossThreshold);
 }
 
 //--------------------------------------------------------------------------------------------------
