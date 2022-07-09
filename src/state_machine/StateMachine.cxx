@@ -300,8 +300,15 @@ void StateMachine::closeButtonCallback(util::Button::Action action)
 
         else if (currentState == State::Warning)
         {
-            motorController.closeDoor();
-            currentState = State::Closing;
+            if (tactileSwitches.doorSwitch.isPressing())
+            {
+                motorController.closeDoor();
+                currentState = State::Closing;
+            }
+            else
+            {
+                currentState = State::WantToClose;
+            }
         }
         else if (currentState == State::Opening)
         {
