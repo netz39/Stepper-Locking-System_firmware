@@ -115,8 +115,8 @@ public:
     static constexpr int32_t NumberOfMicrostepsForOperation =
         NeededRevolutions * MicrostepsPerRevolution * GearReduction;
 
-    static constexpr auto MicrostepLossThreshold = 64;
-    static constexpr auto StepLossEventCounterThreshold = 256;
+    static constexpr auto MicrostepLossThreshold = 96;
+    static constexpr auto StepLossEventCounterThreshold = 64;
     static constexpr auto StepLossEventAtCalibrationCounterThreshold = 16;
 
     static constexpr auto WarningMotorTemp = 70.0_degC;
