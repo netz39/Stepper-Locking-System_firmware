@@ -73,7 +73,7 @@ private:
 
     firmwareSettings::Container &settingsContainer;
     StateMachine &stateMaschine;
-    StateMachine::State prevState = StateMachine::State::Unknown;
+    StateMachine::State prevState = StateMachine::State::Initializing;
 
     MotorController &motorController;
 };

@@ -150,10 +150,17 @@ private:
     /// Enables Calibration mode:
     /// - reduces max speed/acc
     /// - sets motor current to 100%
+    void applyCalibrationMotorSettings();
+
+    /// Set motor settings to values saved in EEPROM
+    void applyNormalMotorSettings();
+
+    /// Enables Calibration mode:
+    /// - update motor settings
     void enableCalibrationMode();
 
     /// Disables calibration mode:
-    /// - restores the settings (speed/acc/motor current)
+    /// - restores motor settings
     void disableCalibrationMode();
 
     /// Setter for maximum motor current in percent

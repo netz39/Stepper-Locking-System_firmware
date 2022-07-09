@@ -3,6 +3,7 @@
 #include "task.h"
 
 #include "LightController.hpp"
+#include "sync.hpp"
 
 #include <algorithm>
 #include <climits>
@@ -14,8 +15,7 @@ void LightController::taskMain()
     RedChannel.startPwmTimer();
     GreenChannel.startPwmTimer();
 
-    // wait for state machine is started
-    vTaskDelay(toOsTicks(550.0_ms));
+    sync::waitForAll(sync::StateMachineStarted);
 
     while (true)
     {

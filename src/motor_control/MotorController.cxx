@@ -9,7 +9,7 @@ char buffer[BufferSize];
 
 void MotorController::taskMain()
 {
-    sync::waitForAll(sync::ConfigurationLoaded);
+    sync::waitForAll(sync::ConfigurationLoaded | sync::StateMachineStarted);
     auto lastWakeTime = xTaskGetTickCount();
 
     while (true)
@@ -186,23 +186,33 @@ void MotorController::stopMovementImmediately()
 }
 
 //--------------------------------------------------------------------------------------------------
-void MotorController::enableCalibrationMode()
+void MotorController::applyCalibrationMotorSettings()
 {
-    isInCalibrationMode = true;
-
     setMotorMaxCurrentPercentage(100);
     stepperMotor.setMaxSpeed(calibrationSpeed);
     stepperMotor.setAcceleration(calibrationAcc);
 }
 
 //--------------------------------------------------------------------------------------------------
-void MotorController::disableCalibrationMode()
+void MotorController::applyNormalMotorSettings()
 {
-    isInCalibrationMode = false;
-
     setMotorMaxCurrentPercentage(maximumMotorCurrentInPercentage);
     stepperMotor.setMaxSpeed(maximumMotorSpeed);
     stepperMotor.setAcceleration(maximumMotorAcc);
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::enableCalibrationMode()
+{
+    isInCalibrationMode = true;
+    applyCalibrationMotorSettings();
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::disableCalibrationMode()
+{
+    isInCalibrationMode = false;
+    applyNormalMotorSettings();
 }
 
 //--------------------------------------------------------------------------------------------------

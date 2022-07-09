@@ -11,6 +11,7 @@ void StateMachine::taskMain()
     vTaskDelay(toOsTicks(550.0_ms));
 
     sync::waitForAll(sync::ConfigurationLoaded);
+    sync::signal(sync::StateMachineStarted);
 
     while (true)
     {
@@ -18,7 +19,7 @@ void StateMachine::taskMain()
         {
 
         //------------------------------
-        case State::Unknown:
+        case State::Initializing:
         {
             if (tactileSwitches.doorSwitch.isPressing())
             {

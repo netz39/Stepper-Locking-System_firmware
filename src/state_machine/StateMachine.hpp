@@ -36,7 +36,7 @@ public:
 
     enum class State
     {
-        Unknown,
+        Initializing,
         Opened,
         Closed,
         Opening,
@@ -56,7 +56,7 @@ public:
     static constexpr uint32_t LockStateReleaseBit = 1 << 6;
     static constexpr uint32_t FinishedEvent = 1 << 7;
 
-    State currentState = State::Unknown;
+    State currentState = State::Initializing;
 
 protected:
     void taskMain() override;
