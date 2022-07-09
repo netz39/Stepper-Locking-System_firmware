@@ -29,12 +29,12 @@ void MotorController::taskMain()
             if (checkForStepLosses())
             {
                 // step losses occured, count it
-                if (stepLossEventCounter++ >= StepLossEventAtCalibrationCounterThreshold)
+                if (eventCounter++ >= StepLossEventAtCalibrationCounterThreshold)
                 {
                     isCalibrating = false;
                     stopMovementImmediately();
                     signalFailure(FailureType::CalibrationFailed);
-                    stepLossEventCounter = 0;
+                    eventCounter = 0;
                 }
             }
         }
@@ -49,17 +49,21 @@ void MotorController::taskMain()
 
                 if (stepControl.isRunning())
                 {
-                    if (stepLossEventCounter++ >= StepLossEventCounterThreshold)
+                    if (eventCounter++ >= StepLossEventCounterThreshold)
                     {
                         stopMovementImmediately();
                         signalFailure(FailureType::ExcessiveStepLosses);
-                        stepLossEventCounter = 0;
+                        eventCounter = 0;
                     }
                 }
                 else
                 {
-                    // motor is moving externally
-                    signalFailure(FailureType::MotorMovedExternally);
+                    if (eventCounter++ >= ExternalMotorMoveEventCounterThreshold)
+                    {
+                        // motor is moving externally
+                        signalFailure(FailureType::MotorMovedExternally);
+                        eventCounter = 0;
+                    }
                 }
             }
         }
@@ -101,7 +105,7 @@ void MotorController::onSettingsUpdate()
 //--------------------------------------------------------------------------------------------------
 void MotorController::invokeFinishedCallback()
 {
-    stepLossEventCounter = 0;
+    eventCounter = 0;
     resetOpeningClosingState();
 
     if (!ignoreFinishedEvent)
@@ -201,7 +205,7 @@ void MotorController::doCalibration(bool forceInverted)
     // only do it to get comparable values to detect step losses reliable
     stepperMotor.setPosition(0);
     hallEncoder.saveHomePosition();
-    stepLossEventCounter = 0;
+    eventCounter = 0;
 
     const auto NeededSteps = static_cast<int32_t>((forceInverted ? 1.0f : -1.0f) *
                                                   NumberOfMicrostepsForOperation * 1.25f);
@@ -229,11 +233,6 @@ void MotorController::calibrationIsDone()
 
     if (hallEncoder.saveHomePosition())
         isCalibrated = true;
-
-    else
-    {
-        // ToDo: error handling
-    }
 }
 
 //--------------------------------------------------------------------------------------------------
