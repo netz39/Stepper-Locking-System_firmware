@@ -41,6 +41,8 @@ public:
         Closed,
         Opening,
         Closing,
+        ManualOpening,
+        ManualClosing,
         WantToClose,
         RetryToClose,
         Calibrating,
@@ -81,5 +83,5 @@ private:
     void doorSwitchCallback(util::Button::Action action);
     void lockSwitchCallback(util::Button::Action action);
 
-    void motorControllerFinishedCallback(bool success);
+    void motorControllerFinishedCallback(MotorController::FailureType failureType);
 };

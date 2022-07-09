@@ -26,6 +26,14 @@ public:
     static constexpr auto DebugUartPeripherie = &huart1;
     static constexpr auto TmcUartPeripherie = &huart2;
 
+    enum class FailureType
+    {
+        None,
+        ExcessiveStepLosses,
+        CalibrationFailed,
+        MotorMovedExternally
+    };
+
     MotorController(firmwareSettings::Container &settingsContainer, Temperature &motorTemperature,
                     HallEncoder &hallEncoder)
         : TaskWithMemberFunctionBase("motorControllerTask", 128, osPriorityAboveNormal3), //
@@ -39,6 +47,14 @@ public:
     void openDoor();
 
     void closeDoor();
+
+    /// Start a movement which is slow
+    /// for manual drive
+    void manualOpen();
+
+    /// Start a movement which is slow
+    /// for manual drive
+    void manualClose();
 
     /// calibration by homing the lock switch
     /// moves the stepper in closing direction
@@ -66,10 +82,24 @@ public:
     /// Allow further motor movements again.
     void unfreezeMotor();
 
+    /// Stops a currently active movement with deaccerlation ramp.
+    /// Blocking.
+    void stopMovement();
+
+    /// Stops a currently active movement immediately.
+    void stopMovementImmediately();
+
+    /// should be called after using manualOpen or manualClose to stop the movement and reset the
+    /// motor settings
+    void disableManualMode();
+
+    /// set state to not calibrated
+    void revokeCalibration();
+
     /// Return the progess of opening/closing actions in percentage.
     uint8_t getProgress();
 
-    using Callback = std::function<void(bool success)>;
+    using Callback = std::function<void(FailureType failureType)>;
 
     /// set up callback which will be called when the target is reached
     void setFinishedCallback(Callback newCallback)
@@ -87,6 +117,7 @@ public:
 
     static constexpr auto MicrostepLossThreshold = 64;
     static constexpr auto StepLossEventCounterThreshold = 256;
+    static constexpr auto StepLossEventAtCalibrationCounterThreshold = 16;
 
     static constexpr auto WarningMotorTemp = 70.0_degC;
     static constexpr auto CriticalMotorTemp = 85.0_degC;
@@ -140,14 +171,6 @@ private:
     /// @param position moves the motor to given position.
     void moveAbsolute(int32_t position);
 
-    /// Stops a currently active movement with deaccerlation ramp.
-    /// Blocking.
-    void stopMovement();
-
-    /// Stops a currently active movement immediately.
-    void stopMovementImmediately();
-
-    /// Enables Calibration mode:
     /// - reduces max speed/acc
     /// - sets motor current to 100%
     void applyCalibrationMotorSettings();
@@ -176,5 +199,5 @@ private:
 
     void signalSuccess();
 
-    void signalFailure();
+    void signalFailure(FailureType failureType);
 };

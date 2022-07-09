@@ -16,15 +16,34 @@ void MotorController::taskMain()
     {
         if (isCalibrating)
         {
+            // check if there is no calibration movement anymore
             if (!stepControl.isRunning())
             {
                 // calibration was not successful
+                isCalibrating = false;
                 disableCalibrationMode();
-                signalFailure();
+                signalFailure(FailureType::CalibrationFailed);
             }
+
+            // check for step losses while calibrating
+            /*
+            else if (hallEncoder.isEncoderOkay() &&
+                     (std::abs(stepperMotor.getPosition() - hallEncoder.getPosition()) >
+                      MicrostepLossThreshold))
+            {
+                // step losses occured, count it
+                if (stepLossEventCounter++ >= StepLossEventAtCalibrationCounterThreshold)
+                {
+                    isCalibrating = false;
+                    signalFailure(FailureType::CalibrationFailed);
+                    stepLossEventCounter = 0;
+                }
+            }
+            */
         }
         else if (isCalibrated && hallEncoder.isEncoderOkay())
         {
+            // check for step losses while normal movement
             if (std::abs(stepperMotor.getPosition() - hallEncoder.getPosition()) >
                 MicrostepLossThreshold)
             {
@@ -32,10 +51,18 @@ void MotorController::taskMain()
                 // movement will be corrected by TeensyStep
                 stepperMotor.setPosition(hallEncoder.getPosition());
 
-                if (stepLossEventCounter++ >= StepLossEventCounterThreshold)
+                if (stepControl.isRunning())
                 {
-                    signalFailure();
-                    stepLossEventCounter = 0;
+                    if (stepLossEventCounter++ >= StepLossEventCounterThreshold)
+                    {
+                        signalFailure(FailureType::ExcessiveStepLosses);
+                        stepLossEventCounter = 0;
+                    }
+                }
+                else
+                {
+                    // motor is moving externally
+                    signalFailure(FailureType::MotorMovedExternally);
                 }
             }
         }
@@ -92,14 +119,14 @@ void MotorController::invokeFinishedCallback()
 void MotorController::signalSuccess()
 {
     if (finishedCallback)
-        finishedCallback(true);
+        finishedCallback(FailureType::None);
 }
 
 //--------------------------------------------------------------------------------------------------
-void MotorController::signalFailure()
+void MotorController::signalFailure(FailureType failureType)
 {
     if (finishedCallback)
-        finishedCallback(false);
+        finishedCallback(failureType);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -138,6 +165,35 @@ void MotorController::closeDoor()
 {
     isClosing = true;
     moveAbsolute(0);
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::manualOpen()
+{
+    unfreezeMotor();
+    applyCalibrationMotorSettings();
+    moveRelative(2 * NumberOfMicrostepsForOperation);
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::manualClose()
+{
+    unfreezeMotor();
+    applyCalibrationMotorSettings();
+    moveRelative(-2 * NumberOfMicrostepsForOperation);
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::disableManualMode()
+{
+    stopMovementImmediately();
+    applyNormalMotorSettings();
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::revokeCalibration()
+{
+    isCalibrated = false;
 }
 
 //--------------------------------------------------------------------------------------------------
