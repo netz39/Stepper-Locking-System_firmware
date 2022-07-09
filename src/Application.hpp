@@ -26,7 +26,7 @@ public:
     Eeprom24LC64 eeprom{eepromBusAccessor, 0b000};
 
     // private:
-    firmwareSettings::Container settingsContainer;
+    firmwareSettings::Container settingsContainer{};
     firmwareSettings::IO settingsIo{eeprom, settingsContainer};
     Settings settings{settingsIo};
 

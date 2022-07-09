@@ -3,6 +3,7 @@
 #include "task.h"
 
 #include "LightController.hpp"
+#include "sync.hpp"
 
 #include <algorithm>
 #include <climits>
@@ -14,8 +15,7 @@ void LightController::taskMain()
     RedChannel.startPwmTimer();
     GreenChannel.startPwmTimer();
 
-    // wait for state machine is started
-    vTaskDelay(toOsTicks(550.0_ms));
+    sync::waitForAll(sync::StateMachineStarted);
 
     while (true)
     {
@@ -142,7 +142,13 @@ void LightController::updateLightState()
 
     if (prevState != stateMaschine.currentState)
     {
-        targetAnimation->resetAnimation();
+        // prevent interruption of animation when switching from RetryToClose to WantToClose
+        if (prevState != StateMachine::State::RetryToClose ||
+            stateMaschine.currentState != StateMachine::State::WantToClose)
+        {
+            targetAnimation->resetAnimation();
+        }
+
         prevState = stateMaschine.currentState;
     }
 }
