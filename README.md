@@ -1,6 +1,8 @@
 # Stepper-Locking-System_firmware
 The C++ firmware for our **[Stepper-Locking-System](https://github.com/netz39/Stepper-Locking-System) hardware**.
 
+An [overview](https://wiki.netz39.de/projects:2022:stepper_locking_system) (German) of this complete project is also available.
+
 On the basis of stepper motor and its driver, the hall encoder and connected switches, the firmware implements a error-tolerant and robust state maschine with overwatchings of current state. At non-planned events like step losses it tries to recover from this.
 
 ## Animations
