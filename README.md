@@ -1,10 +1,11 @@
 # Stepper-Locking-System_firmware
-The C++ firmware for our [Stepper-Locking-System](https://github.com/netz39/Stepper-Locking-System) hardware.
+The C++ firmware for our **[Stepper-Locking-System](https://github.com/netz39/Stepper-Locking-System) hardware**.
 
-*ToDo: more general description*
+On the basis of stepper motor and its driver, the hall encoder and connected switches, the firmware implements a error-tolerant and robust state maschine with overwatchings of current state. At non-planned events like step losses it tries to recover from this.
 
 ## Animations
-The system controls two LED-rings with integrated crossbar. Each unit has 42 LEDs. Both rings are visible from inside and outside respectively.
+For visualization of current state the system controls two **[LED-rings with integrated crossbar](https://github.com/netz39/LED-ring-with-crossbar)**. Each unit has 42 LEDs. Both rings are visible from inside and outside respectively.
+
 | appearance                                        | description                       | meaning   |
 |---------------------------------------------------|-----------------------------------|-----------|
 | <img src="images/opened.svg" width="250">         | The ring is full with green.      | The door lock is open. You can entrance.         |
