@@ -32,4 +32,14 @@ C-style callbacks from CubeHAL are passed on over the Application class to the r
 With this structure one can clearly understand, which dependencies between the objects exist. This handling is especially important for unit testing.
 
 ## RTOS Tasks
-*ToDo*
+RTOS tasks are integrated in classes. These classes derive from a base class, which automatically creates a task when constructing the class. With this a class has to override its member `taskMain` function. After Application class is completely finished with the initializing the tasks will be called.
+
+| classes with RTOS task     | description |
+|-------------------|-------------|
+| AnalogDigital     | convert analog values to digital (input current, motor temperature) |
+| HallEncoder       | polling raw values and calculate an absolute postion |
+| LightController   | controls status LED and addressable LEDs  |
+| MotorController   | controls stepper motor and overwatch its operation |
+| Settings          | load and save settings from/to EEPROM, also notifies classes, which are derived from SettingsUser to get newest parameters |
+| StateMachine      | the brain of system - knows to every action a reaction|
+| TacticleSwitches  | polling the input of switches/buttons and update state of each button class instances |
