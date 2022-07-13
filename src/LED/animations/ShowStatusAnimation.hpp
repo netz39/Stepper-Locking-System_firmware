@@ -49,7 +49,7 @@ public:
         if (currentState == State::Calibration)
         {
             ledData[(counter) % NumberOfLedsInRing] = targetColor;
-            ledData[(13 + counter) % NumberOfLedsInRing] = targetColor;
+            ledData[(14 + counter) % NumberOfLedsInRing] = targetColor;
             ledData[(16 + counter) % NumberOfLedsInRing] = targetColor;
             ledData[(30 + counter) % NumberOfLedsInRing] = targetColor;
         }
