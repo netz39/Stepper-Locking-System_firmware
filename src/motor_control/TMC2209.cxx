@@ -1,7 +1,7 @@
 #include "TMC2209.hpp"
 
-TMC2209::TMC2209(uint8_t slave, UART_HandleTypeDef *uartPeripherie)
-    : slaveaddress(slave), uartPeripherie(uartPeripherie)
+TMC2209::TMC2209(uint8_t slave, UartAccessor &uartAccessor)
+    : slaveaddress(slave), uartAccessor(uartAccessor)
 {
 }
 
@@ -18,12 +18,26 @@ uint32_t TMC2209::readData(uint8_t regAddr)
     DataReverseUnion dataReverseUnion{};
     DataReverse dataReverse{};
 
-    HAL_HalfDuplex_EnableTransmitter(uartPeripherie);
-    HAL_UART_Transmit(uartPeripherie, reinterpret_cast<uint8_t *>(&rdReqData), sizeof(rdReqData),
-                      1000);
-    HAL_HalfDuplex_EnableReceiver(uartPeripherie);
-    HAL_UART_Receive(uartPeripherie, reinterpret_cast<uint8_t *>(&readReqReply),
-                     sizeof(readReqReply), 2000);
+    uartAccessor.beginTransaction();
+    uartAccessor.halfDuplexSwitchToTx();
+
+    if (!uartAccessor.transmit(reinterpret_cast<uint8_t *>(&rdReqData), sizeof(rdReqData)))
+    {
+        uartAccessor.endTransaction();
+        commOk = false;
+        return dataReverseUnion.data;
+    }
+
+    uartAccessor.halfDuplexSwitchToRx();
+    if (!uartAccessor.receive(reinterpret_cast<uint8_t *>(&readReqReply), sizeof(readReqReply)))
+    {
+        uartAccessor.endTransaction();
+        commOk = false;
+        return dataReverseUnion.data;
+    }
+    uartAccessor.endTransaction();
+
+    commOk = true;
 
     ReadReply readReply1{};
     readReply1 = readReqReply.readReply;
@@ -61,13 +75,22 @@ bool TMC2209::writeData(uint8_t regAddr, uint32_t data)
 
     calcCRC(reinterpret_cast<uint8_t *>(&writeAccess), sizeof(writeAccess));
     initialCount = getTransmissionCount();
-    HAL_HalfDuplex_EnableTransmitter(uartPeripherie);
-    HAL_UART_Transmit(uartPeripherie, reinterpret_cast<uint8_t *>(&writeAccess),
-                      sizeof(writeAccess), 1000);
+
+    uartAccessor.beginTransaction();
+    uartAccessor.halfDuplexSwitchToTx();
+
+    if (!uartAccessor.transmit(reinterpret_cast<uint8_t *>(&writeAccess), sizeof(writeAccess)))
+    {
+        uartAccessor.endTransaction();
+        commOk = false;
+        return false;
+    }
+    uartAccessor.endTransaction();
+
     finalCount = getTransmissionCount();
 
     bool writeSuccessful = initialCount != finalCount;
-    commOk = writeSuccessful && commOk;
+    commOk = writeSuccessful;
     return writeSuccessful;
     /* Checking the Transmission count value before and after write operation to check if Write
      * Access was successful. When the write access is successful, the Transmission count

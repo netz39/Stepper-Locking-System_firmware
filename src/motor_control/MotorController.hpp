@@ -24,22 +24,25 @@ class MotorController : public TaskWithMemberFunctionBase, SettingsUser
 {
 public:
     static constexpr auto DebugUartPeripherie = &huart1;
-    static constexpr auto TmcUartPeripherie = &huart2;
 
     enum class FailureType
     {
         None,
         ExcessiveStepLosses,
         CalibrationFailed,
-        MotorMovedExternally
+        MotorMovedExternally,
+        StepperDriverNoAnswer,
+        HallEncoderNoAnswer,
+        HallEncoderReconnected
     };
 
     MotorController(firmwareSettings::Container &settingsContainer, Temperature &motorTemperature,
-                    HallEncoder &hallEncoder)
+                    HallEncoder &hallEncoder, UartAccessor &uartAccessorTmc)
         : TaskWithMemberFunctionBase("motorControllerTask", 128, osPriorityAboveNormal3), //
           settingsContainer(settingsContainer),                                           //
           motorTemperature(motorTemperature),                                             //
-          hallEncoder(hallEncoder)                                                        //
+          hallEncoder(hallEncoder),                                                       //
+          uartAccessorTmc{uartAccessorTmc}                                                //
     {
         stepControl.setCallback(std::bind(&MotorController::invokeFinishedCallback, this));
     }
@@ -107,6 +110,10 @@ public:
         finishedCallback = newCallback;
     }
 
+    void notifyUartTxComplete();
+
+    void notifyUartRxComplete();
+
     static constexpr auto MicrostepsPerFullStep = 8;
     static constexpr auto NumberOfFullSteps = 200;
     static constexpr auto MicrostepsPerRevolution = MicrostepsPerFullStep * NumberOfFullSteps;
@@ -116,8 +123,9 @@ public:
         NeededRevolutions * MicrostepsPerRevolution * GearReduction;
 
     static constexpr auto MicrostepLossThreshold = 64;
-    static constexpr auto StepLossEventCounterThreshold = 256;
+    static constexpr auto StepLossEventCounterThreshold = 64;
     static constexpr auto StepLossEventAtCalibrationCounterThreshold = 16;
+    static constexpr auto ExternalMotorMoveEventCounterThreshold = 4;
 
     static constexpr auto WarningMotorTemp = 70.0_degC;
     static constexpr auto CriticalMotorTemp = 85.0_degC;
@@ -149,8 +157,13 @@ private:
 
     StepControl stepControl{};
     Stepper stepperMotor{StepperStepPin, StepperDirectionPin};
-    TMC2209 tmc2209{0, TmcUartPeripherie};
     util::Gpio stepperEnable{StepperEnable_GPIO_Port, StepperEnable_Pin};
+
+    UartAccessor &uartAccessorTmc;
+    TMC2209 tmc2209{0, uartAccessorTmc};
+
+    bool hadTmcFailure = false;
+    bool hadHallEncoderFailure = false;
 
     Callback finishedCallback = nullptr;
 
@@ -160,7 +173,7 @@ private:
     uint32_t calibrationSpeed = 0;
     uint32_t calibrationAcc = 0;
 
-    uint32_t stepLossEventCounter = 0;
+    uint32_t eventCounter = 0;
 
     /// Moves the motor asynchronously.
     /// @param microSteps moves the motor the given microSteps.
@@ -202,4 +215,10 @@ private:
     void signalFailure(FailureType failureType);
 
     bool checkForStepLosses();
+
+    void setOpeningState();
+
+    void setClosingState();
+
+    void resetOpeningClosingState();
 };

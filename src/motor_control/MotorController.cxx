@@ -14,6 +14,36 @@ void MotorController::taskMain()
 
     while (true)
     {
+        vTaskDelayUntil(&lastWakeTime, toOsTicks(100.0_Hz));
+
+        const auto MotorLoad = tmc2209.getSGResult().sgResultValue;
+        if (tmc2209.isCommFailure())
+        {
+            hadTmcFailure = true;
+            signalFailure(FailureType::StepperDriverNoAnswer);
+            continue;
+        }
+
+        if (hadTmcFailure)
+        {
+            // TMC is reachable again, send sucess signal
+            hadTmcFailure = false;
+            signalSuccess();
+        }
+
+        if (!hallEncoder.isOkay())
+        {
+            // send warning, but door can open/close normally
+            hadHallEncoderFailure = true;
+            signalFailure(FailureType::HallEncoderNoAnswer);
+        }
+        else if (hadHallEncoderFailure)
+        {
+            // send signal for recalibrating
+            hadHallEncoderFailure = false;
+            signalFailure(FailureType::HallEncoderReconnected);
+        }
+
         if (isCalibrating)
         {
             // check if there is no calibration movement anymore
@@ -29,12 +59,12 @@ void MotorController::taskMain()
             if (checkForStepLosses())
             {
                 // step losses occured, count it
-                if (stepLossEventCounter++ >= StepLossEventAtCalibrationCounterThreshold)
+                if (eventCounter++ >= StepLossEventAtCalibrationCounterThreshold)
                 {
                     isCalibrating = false;
                     stopMovementImmediately();
                     signalFailure(FailureType::CalibrationFailed);
-                    stepLossEventCounter = 0;
+                    eventCounter = 0;
                 }
             }
         }
@@ -49,17 +79,21 @@ void MotorController::taskMain()
 
                 if (stepControl.isRunning())
                 {
-                    if (stepLossEventCounter++ >= StepLossEventCounterThreshold)
+                    if (eventCounter++ >= StepLossEventCounterThreshold)
                     {
                         stopMovementImmediately();
                         signalFailure(FailureType::ExcessiveStepLosses);
-                        stepLossEventCounter = 0;
+                        eventCounter = 0;
                     }
                 }
                 else
                 {
-                    // motor is moving externally
-                    signalFailure(FailureType::MotorMovedExternally);
+                    if (eventCounter++ >= ExternalMotorMoveEventCounterThreshold)
+                    {
+                        // motor is moving externally
+                        signalFailure(FailureType::MotorMovedExternally);
+                        eventCounter = 0;
+                    }
                 }
             }
         }
@@ -73,8 +107,6 @@ void MotorController::taskMain()
         }
 
         checkMotorTemperature();
-
-        vTaskDelayUntil(&lastWakeTime, toOsTicks(100.0_Hz));
     }
 }
 
@@ -101,9 +133,8 @@ void MotorController::onSettingsUpdate()
 //--------------------------------------------------------------------------------------------------
 void MotorController::invokeFinishedCallback()
 {
-    stepLossEventCounter = 0;
-    isOpening = false;
-    isClosing = false;
+    eventCounter = 0;
+    resetOpeningClosingState();
 
     if (!ignoreFinishedEvent)
     {
@@ -153,16 +184,14 @@ void MotorController::moveRelative(int32_t microSteps)
 //--------------------------------------------------------------------------------------------------
 void MotorController::openDoor()
 {
-    isClosing = false;
-    isOpening = true;
+    setOpeningState();
     moveAbsolute(NumberOfMicrostepsForOperation);
 }
 
 //--------------------------------------------------------------------------------------------------
 void MotorController::closeDoor()
 {
-    isClosing = true;
-    isOpening = false;
+    setClosingState();
     moveAbsolute(0);
 }
 
@@ -204,7 +233,7 @@ void MotorController::doCalibration(bool forceInverted)
     // only do it to get comparable values to detect step losses reliable
     stepperMotor.setPosition(0);
     hallEncoder.saveHomePosition();
-    stepLossEventCounter = 0;
+    eventCounter = 0;
 
     const auto NeededSteps = static_cast<int32_t>((forceInverted ? 1.0f : -1.0f) *
                                                   NumberOfMicrostepsForOperation * 1.25f);
@@ -232,11 +261,6 @@ void MotorController::calibrationIsDone()
 
     if (hallEncoder.saveHomePosition())
         isCalibrated = true;
-
-    else
-    {
-        // ToDo: error handling
-    }
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -350,6 +374,7 @@ bool MotorController::checkForStepLosses()
 //--------------------------------------------------------------------------------------------------
 void MotorController::revertOpening()
 {
+    setClosingState();
     ignoreFinishedEvent = true;
     stopMovement();
     closeDoor();
@@ -359,6 +384,7 @@ void MotorController::revertOpening()
 //--------------------------------------------------------------------------------------------------
 void MotorController::revertClosing()
 {
+    setOpeningState();
     ignoreFinishedEvent = true;
     stopMovement();
     openDoor();
@@ -389,4 +415,41 @@ uint8_t MotorController::getProgress()
     const uint8_t Percentage =
         ((NumberOfMicrostepsForOperation - Diff) * 100) / NumberOfMicrostepsForOperation;
     return std::clamp<uint8_t>(Percentage, 0, 100);
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::setOpeningState()
+{
+    isOpening = true;
+    isClosing = false;
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::setClosingState()
+{
+    isOpening = false;
+    isClosing = true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::resetOpeningClosingState()
+{
+    isOpening = false;
+    isClosing = false;
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::notifyUartTxComplete()
+{
+    auto higherPriorityTaskWoken = pdFALSE;
+    notifyFromISR(1, eSetBits, &higherPriorityTaskWoken);
+    portYIELD_FROM_ISR(higherPriorityTaskWoken);
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::notifyUartRxComplete()
+{
+    auto higherPriorityTaskWoken = pdFALSE;
+    notifyFromISR(1, eSetBits, &higherPriorityTaskWoken);
+    portYIELD_FROM_ISR(higherPriorityTaskWoken);
 }

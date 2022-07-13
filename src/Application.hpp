@@ -25,6 +25,9 @@ public:
     i2c::RtosAccessor eepromBusAccessor{EepromBus}; // also for hall encoder
     Eeprom24LC64 eeprom{eepromBusAccessor, 0b000};
 
+    static constexpr auto TmcUartPeripherie = &huart2;
+    UartAccessor uartAccessorTmc{TmcUartPeripherie};
+
     // private:
     firmwareSettings::Container settingsContainer{};
     firmwareSettings::IO settingsIo{eeprom, settingsContainer};
@@ -38,14 +41,16 @@ public:
     HallEncoder hallEncoder{settingsContainer, eepromBusAccessor};
 
     TactileSwitches tactileSwitches;
-    MotorController motorController{settingsContainer, motorTemperature, hallEncoder};
+    MotorController motorController{settingsContainer, motorTemperature, hallEncoder,
+                                    uartAccessorTmc};
     StateMachine stateMachine{tactileSwitches, motorController};
 
     LightController lightController{settingsContainer, stateMachine, motorController};
 
     static void adcConversionCompleteCallback(ADC_HandleTypeDef *);
     static void ledSpiCallback(SPI_HandleTypeDef *);
-    static void i2cMasterTxCallback(I2C_HandleTypeDef *);
-    static void i2cMasterRxCallback(I2C_HandleTypeDef *);
+    static void i2cMasterCmpltCallback(I2C_HandleTypeDef *);
     static void i2cErrorCallback(I2C_HandleTypeDef *);
+    static void uartTmcCmpltCallback(UART_HandleTypeDef *);
+    static void uartTmcErrorCallback(UART_HandleTypeDef *);
 };

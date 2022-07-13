@@ -5,16 +5,19 @@
 class WhirlingAnimation : public LedAnimationBase
 {
 public:
+    enum class WhirlingMode
+    {
+        Opening,
+        Closing,
+        ManualOpening,
+        ManualClosing
+    };
+
     explicit WhirlingAnimation(LedSegmentArray &ledData) : ledData(ledData){};
 
-    void setOpening()
+    void setWhirlingMode(WhirlingMode newMode)
     {
-        isOpening = true;
-    }
-
-    void setClosing()
-    {
-        isOpening = false;
+        mode = newMode;
     }
 
     void setClockwiseWhirling()
@@ -37,26 +40,34 @@ public:
         for (size_t i = 0; i < NumberOfLedsPerRing; i++)
             ledData[i] = ColorOff;
 
-        const uint8_t ProgessLedEnd = progress * NumberOfLedsInRing / 100;
-        constexpr auto ProgessColor = Blue * 0.25;
+        // progess bar only at normal opening and closing modes
+        if (mode == WhirlingMode::Opening || mode == WhirlingMode::Closing)
+        {
+            const uint8_t ProgessLedEnd = progress * NumberOfLedsInRing / 100;
+            constexpr auto ProgessColor = Blue * 0.25;
 
-        if (isClockwiseWhirling)
-            for (uint8_t i = 0; i < ProgessLedEnd; i++)
-                ledData[NumberOfLedsInRing - 1 - i] = ProgessColor;
-        else
-            for (uint8_t i = 0; i < ProgessLedEnd; i++)
-                ledData[i] = ProgessColor;
+            if (isClockwiseWhirling)
+                for (uint8_t i = 0; i < ProgessLedEnd; i++)
+                    ledData[NumberOfLedsInRing - 1 - i] = ProgessColor;
+            else
+                for (uint8_t i = 0; i < ProgessLedEnd; i++)
+                    ledData[i] = ProgessColor;
+        }
+
+        const bool IsOpening = mode == WhirlingMode::Opening || mode == WhirlingMode::ManualOpening;
+        const bool IsNormalMode = mode == WhirlingMode::Opening || mode == WhirlingMode::Closing;
+        const auto WhirlingColor = (IsOpening ? Green : Red) * 0.75;
+        const auto WarningColor = Yellow * 0.6f;
 
         const auto LedIndex1 = whirlIndex % NumberOfLedsInRing;
         const auto LedIndex2 = (whirlIndex + 1) % NumberOfLedsInRing;
         const auto LedIndex3 = (NumberOfLedsInRing / 2 + LedIndex1) % NumberOfLedsInRing;
         const auto LedIndex4 = (NumberOfLedsInRing / 2 + LedIndex2) % NumberOfLedsInRing;
 
-        const auto WhirlingColor = (isOpening ? Green : Red) * 0.75;
         ledData[LedIndex1] = WhirlingColor;
         ledData[LedIndex2] = WhirlingColor;
-        ledData[LedIndex3] = WhirlingColor;
-        ledData[LedIndex4] = WhirlingColor;
+        ledData[LedIndex3] = IsNormalMode ? WhirlingColor : WarningColor;
+        ledData[LedIndex4] = IsNormalMode ? WhirlingColor : WarningColor;
 
         isClockwiseWhirling ? whirlIndex-- : whirlIndex++;
 
@@ -76,6 +87,6 @@ private:
     size_t progress = 0;
     size_t whirlIndex = 0;
 
-    bool isOpening = true;
+    WhirlingMode mode = WhirlingMode::Opening;
     bool isClockwiseWhirling = true;
 };
