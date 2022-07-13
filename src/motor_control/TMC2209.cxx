@@ -20,10 +20,24 @@ uint32_t TMC2209::readData(uint8_t regAddr)
 
     uartAccessor.beginTransaction();
     uartAccessor.halfDuplexSwitchToTx();
-    uartAccessor.transmit(reinterpret_cast<uint8_t *>(&rdReqData), sizeof(rdReqData));
+
+    if (!uartAccessor.transmit(reinterpret_cast<uint8_t *>(&rdReqData), sizeof(rdReqData)))
+    {
+        uartAccessor.endTransaction();
+        commOk = false;
+        return dataReverseUnion.data;
+    }
+
     uartAccessor.halfDuplexSwitchToRx();
-    uartAccessor.receive(reinterpret_cast<uint8_t *>(&readReqReply), sizeof(readReqReply));
+    if (!uartAccessor.receive(reinterpret_cast<uint8_t *>(&readReqReply), sizeof(readReqReply)))
+    {
+        uartAccessor.endTransaction();
+        commOk = false;
+        return dataReverseUnion.data;
+    }
     uartAccessor.endTransaction();
+
+    commOk = true;
 
     ReadReply readReply1{};
     readReply1 = readReqReply.readReply;
@@ -64,13 +78,19 @@ bool TMC2209::writeData(uint8_t regAddr, uint32_t data)
 
     uartAccessor.beginTransaction();
     uartAccessor.halfDuplexSwitchToTx();
-    uartAccessor.transmit(reinterpret_cast<uint8_t *>(&writeAccess), sizeof(writeAccess));
+
+    if (!uartAccessor.transmit(reinterpret_cast<uint8_t *>(&writeAccess), sizeof(writeAccess)))
+    {
+        uartAccessor.endTransaction();
+        commOk = false;
+        return false;
+    }
     uartAccessor.endTransaction();
 
     finalCount = getTransmissionCount();
 
     bool writeSuccessful = initialCount != finalCount;
-    commOk = writeSuccessful && commOk;
+    commOk = writeSuccessful;
     return writeSuccessful;
     /* Checking the Transmission count value before and after write operation to check if Write
      * Access was successful. When the write access is successful, the Transmission count

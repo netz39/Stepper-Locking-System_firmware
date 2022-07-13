@@ -16,7 +16,6 @@ void MotorController::taskMain()
     {
         vTaskDelayUntil(&lastWakeTime, toOsTicks(100.0_Hz));
 
-        /*
         const auto MotorLoad = tmc2209.getSGResult().sgResultValue;
         if (tmc2209.isCommFailure())
         {
@@ -31,7 +30,6 @@ void MotorController::taskMain()
             hadTmcFailure = false;
             signalSuccess();
         }
-        */
 
         if (!hallEncoder.isOkay())
         {

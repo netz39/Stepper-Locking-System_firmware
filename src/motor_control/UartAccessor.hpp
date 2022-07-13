@@ -27,7 +27,7 @@ public:
     void signalTransferCompleteFromIsr(BaseType_t *higherPrioTaskWoken = nullptr);
     void signalErrorFromIsr(BaseType_t *higherPrioTaskWoken = nullptr);
 
-    static constexpr units::si::Time Timeout = 1.0_s;
+    static constexpr units::si::Time Timeout = 500.0_ms;
 
 private:
     UART_HandleTypeDef *uartHandle = nullptr;
