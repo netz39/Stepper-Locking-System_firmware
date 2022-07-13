@@ -3,12 +3,6 @@
 import drawSvg as draw
 import math
 
-def getPointX(angleInDegrees, radius):
-    return (radius * math.cos(math.radians(angleInDegrees)))
-
-def getPointY(angleInDegrees, radius):
-    return (radius * math.sin(math.radians(angleInDegrees)))
-
 NUMBER_OF_LEDS_IN_CIRCLE = 32
 NUMBER_OF_LEDS_IN_BAR = 10
 RADIUS = 45
@@ -21,10 +15,10 @@ RECTANGLE_SIZE = 5
 
 colorDict = {}
 
-for i in range(0,32):
-        colorDict[i] = "lime"
-
-colorDict[38] = "red"
+colorDict[0] = "yellow"
+colorDict[14] = "yellow"
+colorDict[16] = "yellow"
+colorDict[30] = "yellow"
 
 d = draw.Drawing(RING_OUTER_DIAMETER, RING_OUTER_DIAMETER, origin='center', displayInline=False)
 
@@ -40,16 +34,22 @@ d.append(draw.Rectangle(-RING_INNER_DIAMETER/2,-4.5,RING_INNER_DIAMETER,9,fill='
 
 for index in range(NUMBER_OF_LEDS_IN_CIRCLE):
         angle = -ANGLE * (index+1)
-        valueX = getPointX(angle, RADIUS)
-        valueY = getPointY(angle, RADIUS)
         transformArg= "rotate("+ str(angle) + ")"
 
         colorArg='slategrey'
         if index in colorDict.keys():
                 colorArg = colorDict[index]
 
-        d.append(draw.Rectangle(RADIUS -RECTANGLE_SIZE/2, -RECTANGLE_SIZE/2, 
-        RECTANGLE_SIZE, RECTANGLE_SIZE, origin='center', fill=colorArg, transform=transformArg))
+        rect = draw.Rectangle(RADIUS -RECTANGLE_SIZE/2, -RECTANGLE_SIZE/2, 
+        RECTANGLE_SIZE, RECTANGLE_SIZE, origin='center', fill=colorArg, transform=transformArg)
+
+        if(index == 0 or index == 14 or index == 16 or index == 30):
+               rect.appendAnim(draw.Animate('fill', '0.3s', 'yellow;slategrey', calcMode='discrete', repeatCount='indefinite'))
+
+        if(index == 1 or index == 15 or index == 17 or index == 31):
+                rect.appendAnim(draw.Animate('fill', '0.3s', 'slategrey;yellow', calcMode='discrete', repeatCount='indefinite'))
+
+        d.append(rect)
         #print(text.format(index + 1, valueX, valueY, (STARTANGLE - angle) % 360))
 
 for index in range(NUMBER_OF_LEDS_IN_BAR):
@@ -60,8 +60,9 @@ for index in range(NUMBER_OF_LEDS_IN_BAR):
         if colorIndex in colorDict.keys():
                 colorArg = colorDict[colorIndex]
 
-        d.append(draw.Rectangle(valueX - RECTANGLE_SIZE / 2, -RECTANGLE_SIZE/2,
-        RECTANGLE_SIZE, RECTANGLE_SIZE, origin='center', fill=colorArg)) 
+        rect = draw.Rectangle(valueX - RECTANGLE_SIZE / 2, -RECTANGLE_SIZE/2,
+        RECTANGLE_SIZE, RECTANGLE_SIZE, origin='center', fill=colorArg)
+        d.append(rect) 
 
 d.setPixelScale(5)
 d.saveSvg('example.svg')

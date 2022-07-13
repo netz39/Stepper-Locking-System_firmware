@@ -7,38 +7,54 @@
 <circle cx="0" cy="0" r="49.5" fill="black" />
 <circle cx="0" cy="0" r="40.5" fill="#282828" />
 <rect x="-40.5" y="-4.5" width="81" height="9" fill="black" />
-<rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="Yellow" transform="rotate(-11.25)" />
-<rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-22.5)" />
+<rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="yellow" transform="rotate(-11.25)">
+<animate calcMode="discrete" repeatCount="indefinite" attributeName="fill" dur="0.3s" values="yellow;slategrey" />
+</rect>
+<rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-22.5)">
+<animate calcMode="discrete" repeatCount="indefinite" attributeName="fill" dur="0.3s" values="slategrey;yellow" />
+</rect>
 <rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-33.75)" />
 <rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-45.0)" />
-<rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="Yellow" transform="rotate(-56.25)" />
+<rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-56.25)" />
 <rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-67.5)" />
 <rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-78.75)" />
 <rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-90.0)" />
-<rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="Yellow" transform="rotate(-101.25)" />
+<rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-101.25)" />
 <rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-112.5)" />
 <rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-123.75)" />
 <rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-135.0)" />
-<rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="Yellow" transform="rotate(-146.25)" />
+<rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-146.25)" />
 <rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-157.5)" />
-<rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-168.75)" />
-<rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-180.0)" />
-<rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="Yellow" transform="rotate(-191.25)" />
-<rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-202.5)" />
+<rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="yellow" transform="rotate(-168.75)">
+<animate calcMode="discrete" repeatCount="indefinite" attributeName="fill" dur="0.3s" values="yellow;slategrey" />
+</rect>
+<rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-180.0)">
+<animate calcMode="discrete" repeatCount="indefinite" attributeName="fill" dur="0.3s" values="slategrey;yellow" />
+</rect>
+<rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="yellow" transform="rotate(-191.25)">
+<animate calcMode="discrete" repeatCount="indefinite" attributeName="fill" dur="0.3s" values="yellow;slategrey" />
+</rect>
+<rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-202.5)">
+<animate calcMode="discrete" repeatCount="indefinite" attributeName="fill" dur="0.3s" values="slategrey;yellow" />
+</rect>
 <rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-213.75)" />
 <rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-225.0)" />
-<rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="Yellow" transform="rotate(-236.25)" />
+<rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-236.25)" />
 <rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-247.5)" />
 <rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-258.75)" />
 <rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-270.0)" />
-<rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="Yellow" transform="rotate(-281.25)" />
+<rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-281.25)" />
 <rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-292.5)" />
 <rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-303.75)" />
 <rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-315.0)" />
-<rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="Yellow" transform="rotate(-326.25)" />
+<rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-326.25)" />
 <rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-337.5)" />
-<rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-348.75)" />
-<rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-360.0)" />
+<rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="yellow" transform="rotate(-348.75)">
+<animate calcMode="discrete" repeatCount="indefinite" attributeName="fill" dur="0.3s" values="yellow;slategrey" />
+</rect>
+<rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-360.0)">
+<animate calcMode="discrete" repeatCount="indefinite" attributeName="fill" dur="0.3s" values="slategrey;yellow" />
+</rect>
 <rect x="34.318" y="-2.5" width="5" height="5" origin="center" fill="slategrey" />
 <rect x="26.137" y="-2.5" width="5" height="5" origin="center" fill="slategrey" />
 <rect x="17.956" y="-2.5" width="5" height="5" origin="center" fill="slategrey" />
