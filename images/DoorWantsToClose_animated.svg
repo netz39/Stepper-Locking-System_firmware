@@ -59,7 +59,7 @@ slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;
 </rect>
 <rect x="17.956" y="-2.5" width="5" height="5" origin="center" fill="slategrey">
 <animate calcMode="discrete" repeatCount="indefinite" attributeName="fill" dur="1.32s" 
-values="slategrey;slategrey;slategrey;red;rslategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;
+values="slategrey;slategrey;slategrey;red;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;
 slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;red;slategrey;slategrey;slategrey" />
 </rect>
 <rect x="9.774999999999999" y="-2.5" width="5" height="5" origin="center" fill="slategrey">

@@ -60,7 +60,7 @@ slategrey;slategrey;yellow;yellow;slategrey;slategrey;slategrey;slategrey;slateg
 <rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-123.75)">
 <animate calcMode="discrete" repeatCount="indefinite" attributeName="fill" dur="1.5s" 
 values="slategrey;lime;lime;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;
-slategrey;yellow;yellow;slategreyslategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;" />
+slategrey;yellow;yellow;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;" />
 </rect>
 <rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-135.0)">
 <animate calcMode="discrete" repeatCount="indefinite" attributeName="fill" dur="1.5s" 
@@ -164,7 +164,7 @@ slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;
 </rect>
 <rect x="42.5" y="-2.5" width="5" height="5" origin="center" fill="slategrey" transform="rotate(-360.0)">
 <animate calcMode="discrete" repeatCount="indefinite" attributeName="fill" dur="1.5s" 
-values="slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slime;lime;lategrey;slategrey;
+values="slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;lime;lime;slategrey;slategrey;
 slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;slategrey;yellow;yellow;slategrey;slategrey" />
 </rect>
 <rect x="34.318" y="-2.5" width="5" height="5" origin="center" fill="slategrey" />
