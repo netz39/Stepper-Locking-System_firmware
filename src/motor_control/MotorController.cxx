@@ -14,15 +14,21 @@ void MotorController::taskMain()
 
     while (true)
     {
-        vTaskDelayUntil(&lastWakeTime, toOsTicks(100.0_Hz));
+        vTaskDelayUntil(&lastWakeTime, toOsTicks(50.0_Hz));
 
         const auto MotorLoad = tmc2209.getSGResult().sgResultValue;
         if (tmc2209.isCommFailure())
         {
-            hadTmcFailure = true;
-            signalFailure(FailureType::StepperDriverNoAnswer);
-            continue;
+            if (uartCommunicationLossCounter++ >= 4)
+            {
+                uartCommunicationLossCounter = 0;
+                hadTmcFailure = true;
+                signalFailure(FailureType::StepperDriverNoAnswer);
+                continue;
+            }
         }
+        else
+            uartCommunicationLossCounter = 0;
 
         if (hadTmcFailure)
         {

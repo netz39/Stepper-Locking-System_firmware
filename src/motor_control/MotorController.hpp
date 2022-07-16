@@ -174,6 +174,7 @@ private:
     uint32_t calibrationAcc = 0;
 
     uint32_t eventCounter = 0;
+    uint32_t uartCommunicationLossCounter = 0;
 
     /// Moves the motor asynchronously.
     /// @param microSteps moves the motor the given microSteps.
