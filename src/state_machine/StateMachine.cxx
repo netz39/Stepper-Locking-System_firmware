@@ -4,8 +4,10 @@
 #include <climits>
 
 using util::Button;
+using util::wrappers::NotifyAction;
 
-void StateMachine::taskMain()
+// todo too complex, simplify by putting each state into its own function
+[[noreturn]] void StateMachine::taskMain()
 {
     // wait some time to get steady switches states
     vTaskDelay(toOsTicks(550.0_ms));
@@ -239,7 +241,7 @@ void StateMachine::openButtonCallback(util::Button::Action action)
 
     case Button::Action::LongPress:
         if (currentState == State::Closed)
-            notify(OpenCommandBit, eSetBits);
+            notify(OpenCommandBit, NotifyAction::SetBits);
 
         else if (currentState == State::Warning)
         {
@@ -249,13 +251,13 @@ void StateMachine::openButtonCallback(util::Button::Action action)
         else if (currentState == State::Closing)
         {
             currentState = State::Opening;
-            notify(ErrorBit, eSetBits);
+            notify(ErrorBit, NotifyAction::SetBits);
             motorController.revertClosing();
         }
         else if (currentState == State::WantToClose)
         {
             currentState = State::Opened;
-            notify(ErrorBit, eSetBits);
+            notify(ErrorBit, NotifyAction::SetBits);
         }
         break;
 
@@ -293,7 +295,7 @@ void StateMachine::closeButtonCallback(util::Button::Action action)
 
     case Button::Action::LongPress:
         if (currentState == State::Opened)
-            notify(CloseCommandBit, eSetBits);
+            notify(CloseCommandBit, NotifyAction::SetBits);
 
         else if (currentState == State::Warning)
         {
@@ -310,7 +312,7 @@ void StateMachine::closeButtonCallback(util::Button::Action action)
         else if (currentState == State::Opening)
         {
             currentState = State::Closing;
-            notify(ErrorBit, eSetBits);
+            notify(ErrorBit, NotifyAction::SetBits);
             motorController.revertOpening();
         }
 
@@ -343,14 +345,14 @@ void StateMachine::doorSwitchCallback(util::Button::Action action)
     if (action == Button::Action::LongPress)
     {
         if (currentState == State::WantToClose)
-            notify(DoorStateTriggerBit, eSetBits);
+            notify(DoorStateTriggerBit, NotifyAction::SetBits);
     }
     else if (action == Button::Action::StopLongPress && currentState == State::Closing)
     { // door wing is opening while closing the lock
 
         // revert closing and retry the close procedure later
         currentState = State::RetryToClose;
-        notify(ErrorBit, eSetBits);
+        notify(ErrorBit, NotifyAction::SetBits);
         motorController.revertClosing();
     }
 }
@@ -362,7 +364,7 @@ void StateMachine::lockSwitchCallback(util::Button::Action action)
     { // lock switch is triggered
 
         if (currentState == State::Calibrating)
-            notify(LockStateTriggerBit, eSetBits);
+            notify(LockStateTriggerBit, NotifyAction::SetBits);
 
         else if (currentState == State::Closing)
         {
@@ -375,7 +377,7 @@ void StateMachine::lockSwitchCallback(util::Button::Action action)
     { // lock switch is released
 
         if (currentState == State::Calibrating)
-            notify(LockStateReleaseBit, eSetBits);
+            notify(LockStateReleaseBit, NotifyAction::SetBits);
     }
 }
 
@@ -390,7 +392,7 @@ void StateMachine::motorControllerFinishedCallback(MotorController::FailureType 
             currentState == State::Closing || //
             currentState == State::RetryToClose)
         {
-            notify(FinishedEvent, eSetBits);
+            notify(FinishedEvent, NotifyAction::SetBits);
         }
         else if (currentState == State::FatalError)
         {
@@ -403,7 +405,7 @@ void StateMachine::motorControllerFinishedCallback(MotorController::FailureType 
         // notify failure, revoke calibration
         motorController.revokeCalibration();
         currentState = State::FatalError;
-        notify(ErrorBit, eSetBits);
+        notify(ErrorBit, NotifyAction::SetBits);
         break;
 
     case MotorController::FailureType::HallEncoderNoAnswer:
@@ -416,13 +418,13 @@ void StateMachine::motorControllerFinishedCallback(MotorController::FailureType 
     case MotorController::FailureType::MotorMovedExternally:
         // switch to warning, but do not revoke calibration
         currentState = State::Warning;
-        notify(ErrorBit, eSetBits);
+        notify(ErrorBit, NotifyAction::SetBits);
         break;
 
     case MotorController::FailureType::HallEncoderReconnected:
         // do re-calibration
         currentState = State::Initializing;
-        notify(ErrorBit, eSetBits);
+        notify(ErrorBit, NotifyAction::SetBits);
         break;
     }
 }

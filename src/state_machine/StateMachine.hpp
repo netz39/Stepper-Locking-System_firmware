@@ -61,7 +61,7 @@ public:
     State currentState = State::Initializing;
 
 protected:
-    void taskMain() override;
+    [[noreturn]] void taskMain() override;
 
 private:
     TactileSwitches &tactileSwitches;

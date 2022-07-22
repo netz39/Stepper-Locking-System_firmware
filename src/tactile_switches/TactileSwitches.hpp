@@ -28,5 +28,5 @@ public:
     util::Button lockSwitch{{LockState_GPIO_Port, LockState_Pin}, 30.0_ms, true};
 
 protected:
-    void taskMain() override;
+    [[noreturn]] void taskMain() override;
 };
