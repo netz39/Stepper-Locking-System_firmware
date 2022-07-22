@@ -33,15 +33,14 @@ public:
     firmwareSettings::IO settingsIo{eeprom, settingsContainer};
     Settings settings{settingsIo};
 
-    Temperature motorTemperature{};
     uint32_t overheatedCounter = 0;
     uint32_t warningTempCounter = 0;
 
-    AnalogDigital analogDigital{motorTemperature};
+    AnalogDigital analogDigital;
     HallEncoder hallEncoder{settingsContainer, eepromBusAccessor};
 
     TactileSwitches tactileSwitches;
-    MotorController motorController{settingsContainer, motorTemperature, hallEncoder,
+    MotorController motorController{settingsContainer, analogDigital, hallEncoder,
                                     uartAccessorTmc};
     StateMachine stateMachine{tactileSwitches, motorController};
 

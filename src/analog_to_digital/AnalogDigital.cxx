@@ -6,6 +6,7 @@
 #include "helpers/freertos.hpp"
 
 using util::wrappers::NotifyAction;
+using namespace units::si;
 
 [[noreturn]] void AnalogDigital::taskMain()
 {

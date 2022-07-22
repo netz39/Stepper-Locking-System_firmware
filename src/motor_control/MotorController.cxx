@@ -341,7 +341,7 @@ void MotorController::disableMotorTorque()
 //--------------------------------------------------------------------------------------------------
 void MotorController::checkMotorTemperature()
 {
-    if (motorTemperature >= CriticalMotorTemp)
+    if (adc.getMotorTemperature() >= CriticalMotorTemp)
     {
         if (!isOverheated)
             overheatedCounter++;
@@ -349,7 +349,7 @@ void MotorController::checkMotorTemperature()
         isOverheated = true;
         hasWarningTemp = false;
     }
-    else if (motorTemperature >= WarningMotorTemp)
+    else if (adc.getMotorTemperature() >= WarningMotorTemp)
     {
         if (!hasWarningTemp && !isOverheated)
             warningTempCounter++;

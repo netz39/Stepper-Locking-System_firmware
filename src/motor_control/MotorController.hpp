@@ -13,6 +13,7 @@
 
 #include "TMC2209.hpp"
 #include "TeensyStep.h"
+#include "analog_to_digital/AnalogDigital.hpp"
 
 using units::si::Temperature;
 using util::wrappers::TaskWithMemberFunctionBase;
@@ -36,11 +37,11 @@ public:
         HallEncoderReconnected
     };
 
-    MotorController(firmwareSettings::Container &settingsContainer, Temperature &motorTemperature,
+    MotorController(firmwareSettings::Container &settingsContainer, const AnalogDigital &adc,
                     HallEncoder &hallEncoder, UartAccessor &uartAccessorTmc)
         : TaskWithMemberFunctionBase("motorControllerTask", 128, osPriorityAboveNormal3), //
           settingsContainer(settingsContainer),                                           //
-          motorTemperature(motorTemperature),                                             //
+          adc(adc),                                             //
           hallEncoder(hallEncoder),                                                       //
           uartAccessorTmc{uartAccessorTmc}                                                //
     {
@@ -137,7 +138,7 @@ protected:
 
 private:
     firmwareSettings::Container &settingsContainer;
-    Temperature &motorTemperature;
+    const AnalogDigital &adc;
     HallEncoder &hallEncoder;
 
     bool isOverheated = false;
