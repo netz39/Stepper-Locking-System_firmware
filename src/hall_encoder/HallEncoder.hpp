@@ -19,6 +19,7 @@ public:
           busAccessor(busAccessor)                                               //
     {
     }
+    ~HallEncoder() override = default;
 
     static constexpr auto EncoderResolution = 1 << 12;
 

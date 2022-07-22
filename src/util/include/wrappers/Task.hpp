@@ -70,6 +70,7 @@ class TaskWithMemberFunctionBase : public Task, public ITaskWithMemberFunction
 public:
     TaskWithMemberFunctionBase(const char *name, uint16_t stackDepth, UBaseType_t priority)
         : Task(&runTaskStub, name, stackDepth, this, priority){};
+    ~TaskWithMemberFunctionBase() override = default;
 
     [[noreturn]] void taskMain() override = 0;
     static void runTaskStub(void *parameters)

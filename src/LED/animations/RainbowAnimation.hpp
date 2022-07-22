@@ -7,6 +7,7 @@ class RainbowAnimation : public LedAnimationBase
 public:
     explicit RainbowAnimation(LedSegmentArray &ledData)
         : ledData(ledData){};
+    ~RainbowAnimation() override = default;
 
     void doAnimationStep() override
     {

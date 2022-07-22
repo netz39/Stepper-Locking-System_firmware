@@ -30,6 +30,7 @@ public:
         motorController.setFinishedCallback(
             std::bind(&StateMachine::motorControllerFinishedCallback, this, std::placeholders::_1));
     };
+    ~StateMachine() override = default;
 
     enum class State
     {

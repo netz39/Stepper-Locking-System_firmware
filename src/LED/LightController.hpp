@@ -30,6 +30,7 @@ public:
     {
         endFrames.fill(0xFF);
     }
+    ~LightController() override = default;
 
     static constexpr util::PwmOutput8Bit RedChannel{&htim2, TIM_CHANNEL_1}; // todo handle should be given via constructor
     static constexpr util::PwmOutput8Bit GreenChannel{&htim3, TIM_CHANNEL_1}; // todo handle should be given via constructor

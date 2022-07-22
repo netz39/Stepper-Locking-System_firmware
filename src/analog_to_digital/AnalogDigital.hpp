@@ -18,6 +18,7 @@ class AnalogDigital : public util::wrappers::TaskWithMemberFunctionBase
 public:
     AnalogDigital()
         : TaskWithMemberFunctionBase("adcTask", 1024, osPriorityLow6){};
+    ~AnalogDigital() override = default;
 
     static constexpr auto AdcPeripherie = &hadc1; // todo handles should be inserted via constructor to make class testable
     static constexpr auto TotalChannelCount = 4;

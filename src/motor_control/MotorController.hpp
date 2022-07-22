@@ -45,6 +45,7 @@ public:
     {
         stepControl.setCallback(std::bind(&MotorController::invokeFinishedCallback, this));
     }
+    ~MotorController() override = default;
 
     void openDoor();
 

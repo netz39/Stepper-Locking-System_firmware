@@ -13,6 +13,7 @@ class TactileSwitches : public util::wrappers::TaskWithMemberFunctionBase
 public:
     TactileSwitches()
         : TaskWithMemberFunctionBase("switchesPollingTask", 128, osPriorityBelowNormal3){};
+    ~TactileSwitches() override = default;
 
     /// press event when triggering button
     util::Button openButton{{OpenButton_GPIO_Port, OpenButton_Pin}, 250.0_ms, true};
