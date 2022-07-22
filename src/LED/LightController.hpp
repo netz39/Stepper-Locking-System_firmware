@@ -20,11 +20,11 @@
 class LightController : public util::wrappers::TaskWithMemberFunctionBase, SettingsUser
 {
 public:
-    LightController(const firmwareSettings::Container &settingsContainer, const StateMachine &stateMaschine,
+    LightController(const firmwareSettings::Container &settingsContainer, const StateMachine &stateMachine,
                     const MotorController &motorController)
         : TaskWithMemberFunctionBase("lightControllerTask", 512, osPriorityLow4), //
           settingsContainer(settingsContainer),                                   //
-          stateMaschine(stateMaschine),                                           //
+          stateMachine(stateMachine),                                           //
           motorController(motorController)
 
     {
@@ -76,7 +76,7 @@ private:
     void updateLightState();
 
     const firmwareSettings::Container &settingsContainer;
-    const StateMachine &stateMaschine;
+    const StateMachine &stateMachine;
     StateMachine::State prevState = StateMachine::State::Initializing;
 
     const MotorController &motorController;

@@ -89,7 +89,7 @@ void LightController::notifySpiIsFinished()
 //--------------------------------------------------------------------------------------------------
 void LightController::updateLightState()
 {
-    switch (stateMaschine.getCurrentState())
+    switch (stateMachine.getCurrentState())
     {
     case StateMachine::State::Opened:
         statusLed.setColor(DualLedColor::DarkGreen);
@@ -157,15 +157,15 @@ void LightController::updateLightState()
         break;
     }
 
-    if (prevState != stateMaschine.getCurrentState())
+    if (prevState != stateMachine.getCurrentState())
     {
         // prevent interruption of animation when switching from RetryToClose to WantToClose
         if (prevState != StateMachine::State::RetryToClose ||
-            stateMaschine.getCurrentState() != StateMachine::State::WantToClose)
+            stateMachine.getCurrentState() != StateMachine::State::WantToClose)
         {
             targetAnimation->resetAnimation();
         }
 
-        prevState = stateMaschine.getCurrentState();
+        prevState = stateMachine.getCurrentState();
     }
 }
