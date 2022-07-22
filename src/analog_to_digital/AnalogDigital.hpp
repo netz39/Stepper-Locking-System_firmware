@@ -19,7 +19,7 @@ using util::wrappers::TaskWithMemberFunctionBase;
 class AnalogDigital : public TaskWithMemberFunctionBase
 {
 public:
-    AnalogDigital(Temperature &motorTemperature)
+    explicit AnalogDigital(Temperature &motorTemperature)
         : TaskWithMemberFunctionBase("adcTask", 1024, osPriorityLow6),
           motorTemperature(motorTemperature){};
 
@@ -43,7 +43,7 @@ public:
     void conversionCompleteCallback();
 
 protected:
-    void taskMain() override;
+    [[noreturn]] void taskMain() override;
 
 private:
     static constexpr auto NtcBetaValue = 3380.0f;
@@ -59,7 +59,7 @@ private:
     void startConversion();
     void calculateReferenceVoltage();
 
-    Temperature calculateNtcTemperature(const Voltage dropVoltage);
+    Temperature calculateNtcTemperature(Voltage dropVoltage);
 
     template <class T>
     constexpr auto physicalQuantityFromAdcResult(const AdcResultType adcResult, const T multiplier)
