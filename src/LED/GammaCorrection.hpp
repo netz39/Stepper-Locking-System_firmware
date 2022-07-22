@@ -7,8 +7,8 @@
 
 constexpr auto PwmResolutionInBit = 8;
 
-constexpr auto StartOffset = 1;
-constexpr auto GammaFactor = 2.2;
+constexpr auto StartOffset = 1.0f;
+constexpr auto GammaFactor = 2.2f;
 constexpr auto MaximumIn = (1 << PwmResolutionInBit) - 1;
 constexpr auto MaximumOut = (1 << PwmResolutionInBit) - 1;
 
