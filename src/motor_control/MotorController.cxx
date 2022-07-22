@@ -407,7 +407,7 @@ void MotorController::unfreezeMotor()
 }
 
 //--------------------------------------------------------------------------------------------------
-uint8_t MotorController::getProgress()
+uint8_t MotorController::getProgress() const
 {
     if (!isOpening && !isClosing)
         return 0;

@@ -15,13 +15,11 @@
 #include "TeensyStep.h"
 #include "analog_to_digital/AnalogDigital.hpp"
 
-using units::si::Temperature;
-using util::wrappers::TaskWithMemberFunctionBase;
 
 /// This class is used to control the stepper motor.
 /// It contains a wrapper of the needed functions of the stepper library as well as additional
 /// functions to monitor the stepper´s state.
-class MotorController : public TaskWithMemberFunctionBase, SettingsUser
+class MotorController : public util::wrappers::TaskWithMemberFunctionBase, SettingsUser
 {
 public:
     static constexpr auto DebugUartPeripherie = &huart1;
@@ -37,7 +35,7 @@ public:
         HallEncoderReconnected
     };
 
-    MotorController(firmwareSettings::Container &settingsContainer, const AnalogDigital &adc,
+    MotorController(const firmwareSettings::Container &settingsContainer, const AnalogDigital &adc,
                     HallEncoder &hallEncoder, UartAccessor &uartAccessorTmc)
         : TaskWithMemberFunctionBase("motorControllerTask", 128, osPriorityAboveNormal3), //
           settingsContainer(settingsContainer),                                           //
@@ -101,7 +99,7 @@ public:
     void revokeCalibration();
 
     /// Return the progess of opening/closing actions in percentage.
-    uint8_t getProgress();
+    [[nodiscard]] uint8_t getProgress() const;
 
     using Callback = std::function<void(FailureType failureType)>;
 
@@ -137,14 +135,14 @@ protected:
     void onSettingsUpdate() override;
 
 private:
-    firmwareSettings::Container &settingsContainer;
+    const firmwareSettings::Container &settingsContainer;
     const AnalogDigital &adc;
     HallEncoder &hallEncoder;
 
     bool isOverheated = false;
-    uint32_t overheatedCounter;
+    uint32_t overheatedCounter{};
     bool hasWarningTemp = false;
-    uint32_t warningTempCounter;
+    uint32_t warningTempCounter{};
 
     bool isInCalibrationMode = false;
     bool isCalibrating = false;
