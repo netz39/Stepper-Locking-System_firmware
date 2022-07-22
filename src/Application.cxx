@@ -18,21 +18,21 @@ Application::Application()
     instance = this;
 
     HAL_ADC_RegisterCallback(AnalogDigital::AdcPeripherie, HAL_ADC_CONVERSION_COMPLETE_CB_ID,
-                             &adcConversionCompleteCallback);
+                             &adcConversionCompleteCallback);     // todo check hal errors
 
     // SPI callback for addressable LEDs
     HAL_SPI_RegisterCallback(&lightController.getSPIPeripheral(), HAL_SPI_TX_COMPLETE_CB_ID,
-                             &ledSpiCallback);
+                             &ledSpiCallback); // todo check hal errors
 
     // EEPROM callbacks
-    HAL_I2C_RegisterCallback(EepromBus, HAL_I2C_MASTER_TX_COMPLETE_CB_ID, &i2cMasterCmpltCallback);
-    HAL_I2C_RegisterCallback(EepromBus, HAL_I2C_MASTER_RX_COMPLETE_CB_ID, &i2cMasterCmpltCallback);
-    HAL_I2C_RegisterCallback(EepromBus, HAL_I2C_ERROR_CB_ID, &i2cErrorCallback);
+    HAL_I2C_RegisterCallback(EepromBus, HAL_I2C_MASTER_TX_COMPLETE_CB_ID, &i2cMasterCmpltCallback); // todo check hal errors
+    HAL_I2C_RegisterCallback(EepromBus, HAL_I2C_MASTER_RX_COMPLETE_CB_ID, &i2cMasterCmpltCallback); // todo check hal errors
+    HAL_I2C_RegisterCallback(EepromBus, HAL_I2C_ERROR_CB_ID, &i2cErrorCallback); // todo check hal errors
 
     // TMC UART callbacks
-    HAL_UART_RegisterCallback(TmcUartPeripherie, HAL_UART_TX_COMPLETE_CB_ID, &uartTmcCmpltCallback);
-    HAL_UART_RegisterCallback(TmcUartPeripherie, HAL_UART_RX_COMPLETE_CB_ID, &uartTmcCmpltCallback);
-    HAL_UART_RegisterCallback(TmcUartPeripherie, HAL_UART_ERROR_CB_ID, &uartTmcErrorCallback);
+    HAL_UART_RegisterCallback(TmcUartPeripherie, HAL_UART_TX_COMPLETE_CB_ID, &uartTmcCmpltCallback); // todo check hal errors
+    HAL_UART_RegisterCallback(TmcUartPeripherie, HAL_UART_RX_COMPLETE_CB_ID, &uartTmcCmpltCallback); // todo check hal errors
+    HAL_UART_RegisterCallback(TmcUartPeripherie, HAL_UART_ERROR_CB_ID, &uartTmcErrorCallback); // todo check hal errors
 }
 
 //--------------------------------------------------------------------------------------------------

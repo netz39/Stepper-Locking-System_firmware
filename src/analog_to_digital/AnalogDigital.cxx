@@ -48,7 +48,7 @@ void AnalogDigital::conversionCompleteCallback()
 //----------------------------------------------------------------------------------------------
 void AnalogDigital::waitUntilConversionFinished()
 {
-    Task::notifyTake(portMAX_DELAY);
+    Task::notifyTake(portMAX_DELAY); //todo reasonable timeout instead of max_delay
 }
 
 //----------------------------------------------------------------------------------------------
@@ -62,7 +62,7 @@ void AnalogDigital::calibrateAdc()
 void AnalogDigital::startConversion()
 {
     HAL_ADC_Start_DMA(AdcPeripherie, reinterpret_cast<uint32_t *>(adcResults.data()),
-                      TotalChannelCount);
+                      TotalChannelCount); // todo check hal errors
 }
 
 //----------------------------------------------------------------------------------------------

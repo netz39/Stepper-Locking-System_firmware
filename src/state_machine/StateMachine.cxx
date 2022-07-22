@@ -187,13 +187,13 @@ bool StateMachine::waitForCommand(const uint32_t eventBit, const TickType_t xTic
 //--------------------------------------------------------------------------------------------------
 bool StateMachine::waitForOpenCommand()
 {
-    return waitForCommand(OpenCommandBit, portMAX_DELAY);
+    return waitForCommand(OpenCommandBit, portMAX_DELAY); //todo reasonable timeout instead of max_delay
 }
 
 //--------------------------------------------------------------------------------------------------
 bool StateMachine::waitForCloseCommand()
 {
-    return waitForCommand(CloseCommandBit, portMAX_DELAY);
+    return waitForCommand(CloseCommandBit, portMAX_DELAY); //todo reasonable timeout instead of max_delay
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -202,7 +202,7 @@ bool StateMachine::waitForDoorStateTriggered()
     if (tactileSwitches.doorSwitch.isPressing())
         return true;
 
-    return waitForCommand(DoorStateTriggerBit, portMAX_DELAY);
+    return waitForCommand(DoorStateTriggerBit, portMAX_DELAY); //todo reasonable timeout instead of max_delay
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -211,7 +211,7 @@ bool StateMachine::waitForLockStateTriggered()
     if (!tactileSwitches.lockSwitch.isPressing())
         return true;
 
-    return waitForCommand(LockStateTriggerBit, portMAX_DELAY);
+    return waitForCommand(LockStateTriggerBit, portMAX_DELAY); //todo reasonable timeout instead of max_delay
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -220,13 +220,13 @@ bool StateMachine::waitForLockStateReleased()
     if (tactileSwitches.lockSwitch.isPressing())
         return true;
 
-    return waitForCommand(LockStateReleaseBit, portMAX_DELAY);
+    return waitForCommand(LockStateReleaseBit, portMAX_DELAY); //todo reasonable timeout instead of max_delay
 }
 
 //--------------------------------------------------------------------------------------------------
 bool StateMachine::waitForFinishedEvent()
 {
-    return waitForCommand(FinishedEvent, portMAX_DELAY);
+    return waitForCommand(FinishedEvent, portMAX_DELAY); //todo reasonable timeout instead of max_delay
 }
 
 //--------------------------------------------------------------------------------------------------

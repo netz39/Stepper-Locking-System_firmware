@@ -105,7 +105,7 @@ using util::wrappers::NotifyAction;
             snprintf(buffer, BufferSize, "%ld, %ld, %d\n", stepperMotor.getPosition(),
                      hallEncoder.getPosition(), hallEncoder.getRawPosition());
             HAL_UART_Transmit(DebugUartPeripherie, reinterpret_cast<uint8_t *>(buffer),
-                              strlen(buffer), 1000);
+                              strlen(buffer), 1000); // todo check hal errors
         }
 
         checkMotorTemperature();

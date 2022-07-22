@@ -18,7 +18,7 @@ bool UartAccessor::receive(uint8_t *buffer, uint16_t length)
     errorCondition = false;
 
     portENTER_CRITICAL();
-    HAL_UART_Receive_DMA(uartHandle, buffer, length);
+    HAL_UART_Receive_DMA(uartHandle, buffer, length); // todo check hal errors
     portEXIT_CRITICAL();
     errorCondition = (binary.take(toOsTicks(Timeout)) == pdFALSE);
 
@@ -33,7 +33,7 @@ bool UartAccessor::transmit(const uint8_t *data, uint16_t length)
     errorCondition = false;
 
     portENTER_CRITICAL();
-    HAL_UART_Transmit_DMA(uartHandle, const_cast<uint8_t *>(data), length);
+    HAL_UART_Transmit_DMA(uartHandle, const_cast<uint8_t *>(data), length); // todo check hal errors
     portEXIT_CRITICAL();
     errorCondition = (binary.take(toOsTicks(Timeout)) == pdFALSE);
 
@@ -60,7 +60,7 @@ void UartAccessor::signalErrorFromIsr(BaseType_t *higherPrioTaskWoken)
 void UartAccessor::halfDuplexSwitchToRx()
 {
     portENTER_CRITICAL();
-    HAL_HalfDuplex_EnableReceiver(uartHandle);
+    HAL_HalfDuplex_EnableReceiver(uartHandle); // todo check hal errors
     portEXIT_CRITICAL();
 }
 
@@ -68,6 +68,6 @@ void UartAccessor::halfDuplexSwitchToRx()
 void UartAccessor::halfDuplexSwitchToTx()
 {
     portENTER_CRITICAL();
-    HAL_HalfDuplex_EnableTransmitter(uartHandle);
+    HAL_HalfDuplex_EnableTransmitter(uartHandle); // todo check hal errors
     portEXIT_CRITICAL();
 }
