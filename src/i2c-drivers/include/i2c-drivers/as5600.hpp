@@ -209,10 +209,10 @@ private:
     bool reconnecting = false;
     bool initialized = false;
 
-    PowerMode pwrMode_{PowerMode::Normal};
-    HysteresisMode hystMode_{HysteresisMode::Off};
-    SlowFilterMode sfMode_{SlowFilterMode::x2};
-    FastFilterThreshold ffth_{FastFilterThreshold::slowFilter};
+    PowerMode pwrMode{PowerMode::Normal};
+    HysteresisMode hystMode{HysteresisMode::Off};
+    SlowFilterMode sfMode{SlowFilterMode::x2};
+    FastFilterThreshold ffth{FastFilterThreshold::slowFilter};
     bool watchdog = true;
 
     float magnetStatus = 0.5;
