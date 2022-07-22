@@ -7,14 +7,13 @@
 
 #include <array>
 
-using util::wrappers::TaskWithMemberFunctionBase;
 
 /// Read the hall encoder periodically and calc the current motor position
-class HallEncoder : public TaskWithMemberFunctionBase, SettingsUser
+class HallEncoder : public util::wrappers::TaskWithMemberFunctionBase, SettingsUser
 {
 
 public:
-    HallEncoder(firmwareSettings::Container &settingsContainer, i2c::RtosAccessor &busAccessor)
+    HallEncoder(const firmwareSettings::Container &settingsContainer, i2c::RtosAccessor &busAccessor)
         : TaskWithMemberFunctionBase("hallEncoderTask", 256, osPriorityNormal3), //
           settingsContainer(settingsContainer),                                  //
           busAccessor(busAccessor)                                               //
@@ -43,7 +42,7 @@ protected:
     void onSettingsUpdate() override;
 
 private:
-    firmwareSettings::Container &settingsContainer;
+    const firmwareSettings::Container &settingsContainer;
     i2c::RtosAccessor &busAccessor;
 
     AS5600::AS5600 device{busAccessor, AS5600::AS5600::Voltage::ThreePointThree,
