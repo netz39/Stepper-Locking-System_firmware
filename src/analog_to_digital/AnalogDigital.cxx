@@ -47,7 +47,7 @@ void AnalogDigital::conversionCompleteCallback()
 //----------------------------------------------------------------------------------------------
 void AnalogDigital::waitUntilConversionFinished()
 {
-    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    Task::notifyTake(portMAX_DELAY);
 }
 
 //----------------------------------------------------------------------------------------------
