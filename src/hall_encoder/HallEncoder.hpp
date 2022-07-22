@@ -23,14 +23,14 @@ public:
     static constexpr auto EncoderResolution = 1 << 12;
 
     /// @return true if values are valid for further processings
-    bool isOkay();
+    [[nodiscard]] bool isOkay() const;
 
     /// get accumulated position in microsteps,
     /// crossovers (360° - 0° and vice versa ) are considered
-    int32_t getPosition();
+    [[nodiscard]] int32_t getPosition() const;
 
     /// get hall encoders raw position, value will be between 0 and 4095
-    uint16_t getRawPosition();
+    [[nodiscard]] uint16_t getRawPosition() const;
 
     /// save the current position at home point, use it after successful homing
     /// @return true if current position can be readed and saved successfully

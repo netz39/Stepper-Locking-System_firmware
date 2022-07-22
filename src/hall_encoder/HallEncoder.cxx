@@ -92,19 +92,19 @@ void HallEncoder::detectCrossovers()
 }
 
 //--------------------------------------------------------------------------------------------------
-bool HallEncoder::isOkay()
+bool HallEncoder::isOkay() const
 {
     return device.isOK();
 }
 
 //--------------------------------------------------------------------------------------------------
-int32_t HallEncoder::getPosition()
+int32_t HallEncoder::getPosition() const
 {
     return currentPosition;
 }
 
 //--------------------------------------------------------------------------------------------------
-uint16_t HallEncoder::getRawPosition()
+uint16_t HallEncoder::getRawPosition() const
 {
     // start and stop pos are not set, so we can use the "scaled" angle like raw angle
     return device.getAngleScaled();
