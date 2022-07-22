@@ -13,6 +13,10 @@
 
 Application::Application()
 {
+    // Delegated Singleton, see getApplicationInstance() for further explanations
+    SafeAssert(instance == nullptr);
+    instance = this;
+
     HAL_ADC_RegisterCallback(AnalogDigital::AdcPeripherie, HAL_ADC_CONVERSION_COMPLETE_CB_ID,
                              &adcConversionCompleteCallback);
 
@@ -32,7 +36,7 @@ Application::Application()
 }
 
 //--------------------------------------------------------------------------------------------------
-void Application::run()
+[[noreturn]] void Application::run()
 {
     util::wrappers::Task::applicationIsReadyStartAllTasks();
     while (true)
@@ -44,8 +48,9 @@ void Application::run()
 //--------------------------------------------------------------------------------------------------
 Application &Application::getApplicationInstance()
 {
-    static auto app = std::make_unique<Application>();
-    return *app;
+    // Not constructing Application in this singleton, to avoid bugs where something tries to
+    // access this function, while application constructs which will cause infinite recursion
+    return *instance;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -95,8 +100,8 @@ void Application::uartTmcErrorCallback(UART_HandleTypeDef *)
 //--------------------------------------------------------------------------------------------------
 extern "C" void StartDefaultTask(void *) // NOLINT
 {
-    auto &app = Application::getApplicationInstance();
-    app.run();
+    static auto app = std::make_unique<Application>();
+    app->run();
 
     __asm("bkpt"); // this line should be never reached
 }
