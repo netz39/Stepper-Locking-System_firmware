@@ -165,11 +165,11 @@ using util::wrappers::NotifyAction;
 }
 
 //--------------------------------------------------------------------------------------------------
-bool StateMachine::waitForCommand(uint32_t eventBit, TickType_t xTicksToWait)
+bool StateMachine::waitForCommand(const uint32_t eventBit, const TickType_t xTicksToWait)
 {
     while (true)
     {
-        uint32_t notifiedValue;
+        uint32_t notifiedValue{};
         if (notifyWait(ULONG_MAX, ULONG_MAX, &notifiedValue, xTicksToWait))
         {
             if ((notifiedValue & ErrorBit) != 0)
@@ -230,7 +230,7 @@ bool StateMachine::waitForFinishedEvent()
 }
 
 //--------------------------------------------------------------------------------------------------
-void StateMachine::openButtonCallback(util::Button::Action action)
+void StateMachine::openButtonCallback(const util::Button::Action action)
 {
     switch (action)
     {
@@ -284,7 +284,7 @@ void StateMachine::openButtonCallback(util::Button::Action action)
 }
 
 //--------------------------------------------------------------------------------------------------
-void StateMachine::closeButtonCallback(util::Button::Action action)
+void StateMachine::closeButtonCallback(const util::Button::Action action)
 {
     switch (action)
     {
@@ -341,7 +341,7 @@ void StateMachine::closeButtonCallback(util::Button::Action action)
 }
 
 //--------------------------------------------------------------------------------------------------
-void StateMachine::doorSwitchCallback(util::Button::Action action)
+void StateMachine::doorSwitchCallback(const util::Button::Action action)
 {
     if (action == Button::Action::LongPress)
     {
@@ -359,7 +359,7 @@ void StateMachine::doorSwitchCallback(util::Button::Action action)
 }
 
 //--------------------------------------------------------------------------------------------------
-void StateMachine::lockSwitchCallback(util::Button::Action action)
+void StateMachine::lockSwitchCallback(const util::Button::Action action)
 {
     if (action == Button::Action::StopLongPress)
     { // lock switch is triggered
@@ -383,7 +383,7 @@ void StateMachine::lockSwitchCallback(util::Button::Action action)
 }
 
 //--------------------------------------------------------------------------------------------------
-void StateMachine::motorControllerFinishedCallback(MotorController::FailureType failureType)
+void StateMachine::motorControllerFinishedCallback(const MotorController::FailureType failureType)
 {
     switch (failureType)
     {
