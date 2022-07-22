@@ -1,6 +1,6 @@
 #pragma once
 
-#include "adc.h"
+#include "adc.h" // todo handles should be inserted via constructor to make class testable
 
 #include "units/si/current.hpp"
 #include "units/si/frequency.hpp"
@@ -19,7 +19,7 @@ public:
     AnalogDigital()
         : TaskWithMemberFunctionBase("adcTask", 1024, osPriorityLow6){};
 
-    static constexpr auto AdcPeripherie = &hadc1;
+    static constexpr auto AdcPeripherie = &hadc1; // todo handles should be inserted via constructor to make class testable
     static constexpr auto TotalChannelCount = 4;
     static constexpr auto SampleCount = 16;
 
