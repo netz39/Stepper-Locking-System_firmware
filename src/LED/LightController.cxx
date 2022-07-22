@@ -101,7 +101,7 @@ void LightController::updateLightState()
         targetAnimation = &whirlingAnimation;
         whirlingAnimation.setWhirlingMode(WhirlingAnimation::WhirlingMode::Opening,
                                           invertRotationDirection);
-        whirlingAnimation.setProgess(motorController.getProgress());
+        whirlingAnimation.setProgress(motorController.getProgress());
         break;
 
     case StateMachine::State::ManualOpening:
@@ -121,7 +121,7 @@ void LightController::updateLightState()
         targetAnimation = &whirlingAnimation;
         whirlingAnimation.setWhirlingMode(WhirlingAnimation::WhirlingMode::Closing,
                                           invertRotationDirection);
-        whirlingAnimation.setProgess(motorController.getProgress());
+        whirlingAnimation.setProgress(motorController.getProgress());
         break;
 
     case StateMachine::State::ManualClosing:
