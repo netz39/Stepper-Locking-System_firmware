@@ -9,8 +9,9 @@
 #include <climits>
 
 using util::pwm_led::DualLedColor;
+using util::wrappers::NotifyAction;
 
-void LightController::taskMain()
+[[noreturn]] void LightController::taskMain()
 {
     RedChannel.startPwmTimer();
     GreenChannel.startPwmTimer();
@@ -33,7 +34,7 @@ void LightController::taskMain()
 void LightController::onSettingsUpdate()
 {
     invertRotationDirection =
-        settingsContainer.getValue<firmwareSettings::InvertRotationDirection>();
+        settingsContainer.getValue<firmwareSettings::InvertRotationDirection, bool>();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -81,7 +82,7 @@ void LightController::sendBuffer()
 void LightController::notifySpiIsFinished()
 {
     auto higherPriorityTaskWoken = pdFALSE;
-    notifyFromISR(1, eSetBits, &higherPriorityTaskWoken);
+    notifyFromISR(1, NotifyAction::SetBits, &higherPriorityTaskWoken);
     portYIELD_FROM_ISR(higherPriorityTaskWoken);
 }
 

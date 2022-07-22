@@ -41,7 +41,7 @@ public:
     void notifySpiIsFinished();
 
 protected:
-    void taskMain() override;
+    [[noreturn]] void taskMain() override;
     void onSettingsUpdate() override;
 
 private:
@@ -53,7 +53,7 @@ private:
     LedSpiDataArray ledSpiData1;
     LedSegmentArray ledSegments2;
     LedSpiDataArray ledSpiData2;
-    std::array<uint8_t, NumberOfEndFrames> endFrames;
+    std::array<uint8_t, NumberOfEndFrames> endFrames{};
 
     DualAnimations<DoorIsOpenAnimation> doorIsOpenAnimation{ledSegments1, ledSegments2};
     DualAnimations<DoorIsClosedAnimation> doorIsClosedAnimation{ledSegments1, ledSegments2};
