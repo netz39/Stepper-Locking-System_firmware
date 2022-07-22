@@ -14,12 +14,10 @@
 
 #include <array>
 
-using util::PwmOutput8Bit;
-using util::pwm_led::DualLed;
-using util::wrappers::TaskWithMemberFunctionBase;
+// todo split class into driver and control
 
 /// Controls the status LED and the addressable LED rings
-class LightController : public TaskWithMemberFunctionBase, SettingsUser
+class LightController : public util::wrappers::TaskWithMemberFunctionBase, SettingsUser
 {
 public:
     LightController(const firmwareSettings::Container &settingsContainer, const StateMachine &stateMaschine,
@@ -33,19 +31,22 @@ public:
         endFrames.fill(0xFF);
     }
 
-    static constexpr PwmOutput8Bit RedChannel{&htim2, TIM_CHANNEL_1};
-    static constexpr PwmOutput8Bit GreenChannel{&htim3, TIM_CHANNEL_1};
-
-    inline static const auto & SpiDevice = hspi1; // todo handle should be given via constructor
+    static constexpr util::PwmOutput8Bit RedChannel{&htim2, TIM_CHANNEL_1}; // todo handle should be given via constructor
+    static constexpr util::PwmOutput8Bit GreenChannel{&htim3, TIM_CHANNEL_1}; // todo handle should be given via constructor
 
     void notifySpiIsFinished();
+
+    [[nodiscard]] SPI_HandleTypeDef & getSPIPeripheral() noexcept {
+        return SpiDevice;
+    }
 
 protected:
     [[noreturn]] void taskMain() override;
     void onSettingsUpdate() override;
 
 private:
-    DualLed<uint8_t> statusLed{RedChannel, GreenChannel};
+    util::pwm_led::DualLed<uint8_t> statusLed{RedChannel, GreenChannel};
+    SPI_HandleTypeDef & SpiDevice = hspi1; // todo handle should be given via constructor
 
     static constexpr auto NumberOfEndFrames = (NumberOfRings * NumberOfLedsPerRing + 15) / 16;
 

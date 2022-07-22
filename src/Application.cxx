@@ -21,7 +21,7 @@ Application::Application()
                              &adcConversionCompleteCallback);
 
     // SPI callback for addressable LEDs
-    HAL_SPI_RegisterCallback(LightController::SpiDevice, HAL_SPI_TX_COMPLETE_CB_ID,
+    HAL_SPI_RegisterCallback(&lightController.getSPIPeripheral(), HAL_SPI_TX_COMPLETE_CB_ID,
                              &ledSpiCallback);
 
     // EEPROM callbacks

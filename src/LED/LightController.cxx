@@ -42,7 +42,7 @@ inline void LightController::sendStartFrame()
 {
     uint32_t startFrame = 0;
 
-    HAL_SPI_Transmit_DMA(SpiDevice, reinterpret_cast<uint8_t *>(&startFrame), sizeof(startFrame));
+    HAL_SPI_Transmit_DMA(&SpiDevice, reinterpret_cast<uint8_t *>(&startFrame), sizeof(startFrame));
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 }
 
@@ -66,15 +66,15 @@ void LightController::sendBuffer()
 
     sendStartFrame();
 
-    HAL_SPI_Transmit_DMA(SpiDevice, reinterpret_cast<uint8_t *>(ledSpiData1.data()),
+    HAL_SPI_Transmit_DMA(&SpiDevice, reinterpret_cast<uint8_t *>(ledSpiData1.data()),
                          ledSpiData1.size() * sizeof(LedSpiData));
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
-    HAL_SPI_Transmit_DMA(SpiDevice, reinterpret_cast<uint8_t *>(ledSpiData2.data()),
+    HAL_SPI_Transmit_DMA(&SpiDevice, reinterpret_cast<uint8_t *>(ledSpiData2.data()),
                          ledSpiData2.size() * sizeof(LedSpiData));
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
-    HAL_SPI_Transmit_DMA(SpiDevice, endFrames.data(), NumberOfEndFrames);
+    HAL_SPI_Transmit_DMA(&SpiDevice, endFrames.data(), NumberOfEndFrames);
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 }
 
