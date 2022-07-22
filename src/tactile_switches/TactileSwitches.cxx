@@ -1,7 +1,5 @@
 #include "TactileSwitches.hpp"
 
-#include "Application.hpp"
-
 [[noreturn]] void TactileSwitches::taskMain()
 {
     auto lastWakeTime = xTaskGetTickCount();

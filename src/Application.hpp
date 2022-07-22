@@ -1,5 +1,9 @@
 #pragma once
 
+// Do not include this file anywhere except in Application.cpp. You are creating design issue!
+// If you need access to a class contained in Application, just get yourself a reference to it
+// via your classes' constructor.
+
 #include "i2c-drivers/rtos_accessor.hpp"
 #include "i2c.h"
 

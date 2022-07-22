@@ -6,10 +6,9 @@
 #include "util/Button.hpp"
 #include "wrappers/Task.hpp"
 
-using util::wrappers::TaskWithMemberFunctionBase;
 
 /// All switches and button are handled here, incl. deboucing, long press detection etc
-class TactileSwitches : public TaskWithMemberFunctionBase
+class TactileSwitches : public util::wrappers::TaskWithMemberFunctionBase
 {
 public:
     TactileSwitches()
