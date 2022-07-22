@@ -131,7 +131,7 @@ public:
     static constexpr auto CriticalMotorTemp = 85.0_degC;
 
 protected:
-    void taskMain() override;
+    [[noreturn]] void taskMain() override;
 
     void onSettingsUpdate() override;
 

@@ -7,7 +7,9 @@
 constexpr auto BufferSize = 256;
 char buffer[BufferSize];
 
-void MotorController::taskMain()
+using util::wrappers::NotifyAction;
+
+[[noreturn]] void MotorController::taskMain()
 {
     sync::waitForAll(sync::ConfigurationLoaded | sync::StateMachineStarted);
     auto lastWakeTime = xTaskGetTickCount();
@@ -16,7 +18,7 @@ void MotorController::taskMain()
     {
         vTaskDelayUntil(&lastWakeTime, toOsTicks(100.0_Hz));
 
-        const auto MotorLoad = tmc2209.getSGResult().sgResultValue;
+        [[maybe_unused]] const auto MotorLoad = tmc2209.getSGResult().sgResultValue;
         if (tmc2209.isCommFailure())
         {
             hadTmcFailure = true;
@@ -442,7 +444,7 @@ void MotorController::resetOpeningClosingState()
 void MotorController::notifyUartTxComplete()
 {
     auto higherPriorityTaskWoken = pdFALSE;
-    notifyFromISR(1, eSetBits, &higherPriorityTaskWoken);
+    notifyFromISR(1, NotifyAction::SetBits, &higherPriorityTaskWoken);
     portYIELD_FROM_ISR(higherPriorityTaskWoken);
 }
 
@@ -450,6 +452,6 @@ void MotorController::notifyUartTxComplete()
 void MotorController::notifyUartRxComplete()
 {
     auto higherPriorityTaskWoken = pdFALSE;
-    notifyFromISR(1, eSetBits, &higherPriorityTaskWoken);
+    notifyFromISR(1, NotifyAction::SetBits, &higherPriorityTaskWoken);
     portYIELD_FROM_ISR(higherPriorityTaskWoken);
 }
