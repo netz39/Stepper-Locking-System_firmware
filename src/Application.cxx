@@ -1,12 +1,8 @@
 #include "FreeRTOS.h"
 #include "task.h"
-
-#include "gpio.h"
 #include "main.h"
 
 #include "Application.hpp"
-#include "TeensyStep/src/TeensyStep.h"
-#include "motor_control/TMC2209.hpp"
 #include "wrappers/Task.hpp"
 
 #include <memory>
@@ -17,6 +13,8 @@ Application::Application()
     SafeAssert(instance == nullptr);
     instance = this;
 
+    // todo replace all explicit function pointers with capture-less lambdas [](...HandleTypeDef*) {}
+    //  for better code quality
     HAL_ADC_RegisterCallback(AnalogDigital::AdcPeripherie, HAL_ADC_CONVERSION_COMPLETE_CB_ID,
                              &adcConversionCompleteCallback);     // todo check hal errors
 
