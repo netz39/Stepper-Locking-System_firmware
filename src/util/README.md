@@ -18,8 +18,8 @@ util::binary_led::SingleLed testLed(TestLedGpio);
 
 #### PWM LED
 
-For a multicolor LED it make more sense to controll each LED by PWM to get a various color mixings.
-For instance a RGB LED can be represented by `util::pwm_led::TripleLed` with three `util::PwmOutput8Bit` (for 8-Bit PWM timer) as parameter:
+For a multicolor LED it makes more sense to control each LED by PWM to get a various color mixings.
+For instance, an RGB LED can be represented by `util::pwm_led::TripleLed` with three `util::PwmOutput8Bit` (for 8-Bit PWM timer) as parameter:
 
 ```cpp
 #include "util/PwmLed.hpp"
@@ -36,7 +36,7 @@ util::pwm_led::TripleLed rgbLed(RedChannel, GreenChannel, BlueChannel);
 ### How to use
 You can apply modes like blinking, flashing, on/off state to your object and for multicolor LED you can change its color mix of course.
 
-For single color LEDs (regardless of binary of PWM types), we have following functions:
+For single color LEDs (regardless of binary of PWM types), we have the following functions:
 - `turnOn()`
 - `turnOff()`
 - `setBlinking(units::si::Freqency frequency)`
