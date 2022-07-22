@@ -18,7 +18,7 @@ static OutputType mapValue(const InputType fromMin, const InputType fromMax, con
     const auto FromMin = static_cast<float>(fromMin);
     const auto FromMax = static_cast<float>(fromMax);
 
-    const float v{std::min(std::max(static_cast<float>(value), FromMin), FromMax)};
+    const float v{std::clamp(static_cast<float>(value), FromMin, FromMax)};
 
     // https://stackoverflow.com/questions/5731863/mapping-a-numeric-range-onto-another
     return static_cast<OutputType>(ToMin + (ToMax - ToMin) * ((v - FromMin) / (FromMax - FromMin)));
