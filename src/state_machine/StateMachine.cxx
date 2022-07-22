@@ -1,5 +1,6 @@
 #include "StateMachine.hpp"
 #include "sync.hpp"
+#include "main.h"
 
 #include <climits>
 

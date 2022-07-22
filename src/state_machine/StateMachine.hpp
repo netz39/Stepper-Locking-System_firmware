@@ -1,16 +1,13 @@
 #pragma once
 
-#include "main.h"
-
 #include "helpers/freertos.hpp"
 #include "motor_control/MotorController.hpp"
 #include "tactile_switches/TactileSwitches.hpp"
 #include "wrappers/Task.hpp"
 
-using util::wrappers::TaskWithMemberFunctionBase;
 
 /// State machine of locking system. Handle all cases and switches inputs.
-class StateMachine : public TaskWithMemberFunctionBase
+class StateMachine : public util::wrappers::TaskWithMemberFunctionBase
 {
 public:
     StateMachine(TactileSwitches &tactileSwitches, MotorController &motorController)
@@ -58,14 +55,16 @@ public:
     static constexpr uint32_t LockStateReleaseBit = 1 << 6;
     static constexpr uint32_t FinishedEvent = 1 << 7;
 
-    State currentState = State::Initializing;
-
+    [[nodiscard]] State getCurrentState() const noexcept {
+        return currentState;
+    }
 protected:
     [[noreturn]] void taskMain() override;
 
 private:
     TactileSwitches &tactileSwitches;
     MotorController &motorController;
+    State currentState {State::Initializing};
 
     bool isCalibrated = false;
 
