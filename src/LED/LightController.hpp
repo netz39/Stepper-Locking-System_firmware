@@ -1,5 +1,6 @@
 #pragma once
 
+// todo handles should be inserted via constructor to make class testable
 #include "main.h"
 #include "spi.h"
 #include "tim.h"
@@ -34,9 +35,8 @@ public:
 
     static constexpr PwmOutput8Bit RedChannel{&htim2, TIM_CHANNEL_1};
     static constexpr PwmOutput8Bit GreenChannel{&htim3, TIM_CHANNEL_1};
-    DualLed<uint8_t> statusLed{RedChannel, GreenChannel};
 
-    static constexpr auto SpiDevice = &hspi1;
+    inline static const auto & SpiDevice = hspi1; // todo handle should be given via constructor
 
     void notifySpiIsFinished();
 
@@ -45,6 +45,8 @@ protected:
     void onSettingsUpdate() override;
 
 private:
+    DualLed<uint8_t> statusLed{RedChannel, GreenChannel};
+
     static constexpr auto NumberOfEndFrames = (NumberOfRings * NumberOfLedsPerRing + 15) / 16;
 
     bool invertRotationDirection = false;
