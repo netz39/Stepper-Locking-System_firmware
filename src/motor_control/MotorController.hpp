@@ -1,5 +1,8 @@
 #pragma once
 
+#include <utility>
+
+// todo handles should be inserted via constructor to make class testable
 #include "main.h"
 #include "usart.h"
 
@@ -107,7 +110,7 @@ public:
     /// set up callback which will be called when the target is reached
     void setFinishedCallback(Callback newCallback)
     {
-        finishedCallback = newCallback;
+        finishedCallback = std::move(newCallback);
     }
 
     void notifyUartTxComplete();
