@@ -155,14 +155,14 @@ public:
 
     /// Get the start and stop of angular range. Non-blocking
     /// @return std::pair<uint16_t, uint16_t> <start, stop>
-    std::pair<uint16_t, uint16_t> getStartStopPosition() const
+    [[nodiscard]] std::pair<uint16_t, uint16_t> getStartStopPosition() const
     {
         return std::make_pair(startPosition, stopPosition);
     }
 
     /// Get the maximum angular range. Non-blocking
     /// @return maximum in radiants 1/10 Pi - 2Pi
-    float getMaximumAngle() const
+    [[nodiscard]] float getMaximumAngle() const
     {
         return maxAngle;
     }
@@ -178,7 +178,7 @@ public:
     /// This function will block as run() will only retrieve the scaled angle
     /// value. Check isOK() afterwards. Will return 0 if communication failed.
     /// @return 0 - 4095
-    uint16_t getRawAngle();
+    [[nodiscard]] uint16_t getRawAngle();
 
     /// Get the angle scaled from 0 to 2π. Non-blocking
     /// 1. startPosition -> stopPosition is scaled to go from 0 - 2π
@@ -209,10 +209,10 @@ private:
     bool reconnecting = false;
     bool initialized = false;
 
-    PowerMode pwrMode;
-    HysteresisMode hystMode;
-    SlowFilterMode sfMode;
-    FastFilterThreshold ffth;
+    PowerMode pwrMode_{PowerMode::Normal};
+    HysteresisMode hystMode_{HysteresisMode::Off};
+    SlowFilterMode sfMode_{SlowFilterMode::x2};
+    FastFilterThreshold ffth_{FastFilterThreshold::slowFilter};
     bool watchdog = true;
 
     float magnetStatus = 0.5;
