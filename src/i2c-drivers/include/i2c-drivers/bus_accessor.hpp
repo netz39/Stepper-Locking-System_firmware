@@ -17,6 +17,7 @@ enum TransferFlags : int
 class IBusAccessor
 {
 public:
+    virtual ~IBusAccessor() = default;
     virtual void beginTransaction(DeviceAddress address) = 0;
     virtual void endTransaction() = 0;
 
