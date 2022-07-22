@@ -6,7 +6,7 @@
 #include "units/si/frequency.hpp"
 
 //--------------------------------------------------------------------------------------------------
-void HallEncoder::taskMain()
+[[noreturn]] void HallEncoder::taskMain()
 {
     // wait for EEPROM
     sync::waitForAll(sync::ConfigurationLoaded);
@@ -54,7 +54,7 @@ void HallEncoder::onSettingsUpdate()
 
     // hall encoder is incrementing when the magnet rotates clockwise
     isIncrementingAtOpening =
-        !settingsContainer.getValue<firmwareSettings::InvertRotationDirection>();
+        !settingsContainer.getValue<firmwareSettings::InvertRotationDirection, bool>();
 }
 
 //--------------------------------------------------------------------------------------------------
