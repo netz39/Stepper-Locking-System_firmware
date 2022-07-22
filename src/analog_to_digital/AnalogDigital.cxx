@@ -5,7 +5,9 @@
 #include "AnalogDigital.hpp"
 #include "helpers/freertos.hpp"
 
-void AnalogDigital::taskMain()
+using util::wrappers::NotifyAction;
+
+[[noreturn]] void AnalogDigital::taskMain()
 {
     static constexpr auto AdcTaskFrequency = 50.0_Hz;
 
@@ -38,7 +40,7 @@ void AnalogDigital::taskMain()
 void AnalogDigital::conversionCompleteCallback()
 {
     auto higherPriorityTaskWoken = pdFALSE;
-    notifyFromISR(1, eSetBits, &higherPriorityTaskWoken);
+    notifyFromISR(1, NotifyAction::SetBits, &higherPriorityTaskWoken);
     portYIELD_FROM_ISR(higherPriorityTaskWoken);
 }
 
@@ -78,7 +80,7 @@ Temperature AnalogDigital::calculateNtcTemperature(const Voltage dropVoltage)
         (referenceVoltage * NtcSecondResistor - dropVoltage * NtcSecondResistor) / dropVoltage;
 
     const float LogValue =
-        log((NtcResistance / NtcResistanceAtNominalTemperature).getMagnitude<double>());
+        logf((NtcResistance / NtcResistanceAtNominalTemperature).getMagnitude());
 
     return Temperature{
         1 / ((1_ / NtcNominalTemperature).getMagnitude() + (1 / NtcBetaValue) * LogValue)};
