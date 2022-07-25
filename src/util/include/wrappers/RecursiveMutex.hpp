@@ -1,7 +1,7 @@
 #pragma once
+#include "wrappers/IMutex.hpp"
 #include <FreeRTOS.h>
 #include <semphr.h>
-#include "wrappers/IMutex.hpp"
 
 namespace util::wrappers
 {
@@ -12,12 +12,18 @@ class RecursiveMutex : public IMutex
 {
 public:
     RecursiveMutex();
-    virtual ~RecursiveMutex() = default;
+    ~RecursiveMutex() override;
 
-    virtual void lock() override;
-    virtual bool lockWithTimeout(TickType_t timeToWait) override;
-    virtual void unlock() override;
+    RecursiveMutex(const RecursiveMutex &) = delete;
+    RecursiveMutex(RecursiveMutex &&other) noexcept;
+    RecursiveMutex &operator=(const RecursiveMutex &) = delete;
+    RecursiveMutex &operator=(RecursiveMutex &&other) noexcept;
+
+    void lock() override;
+    bool lockWithTimeout(TickType_t timeToWait) override;
+    void unlock() override;
+
 private:
-    SemaphoreHandle_t m_mutex;
+    SemaphoreHandle_t m_mutex{nullptr};
 };
-}
+} // namespace util::wrappers

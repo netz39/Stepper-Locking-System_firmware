@@ -1,34 +1,47 @@
 #include "wrappers/BinarySemaphore.hpp"
 #include <core/SafeAssert.h>
+#include <utility>
 
 namespace util::wrappers
 {
 
-BinarySemaphore::BinarySemaphore() : _handle(xSemaphoreCreateBinary())
+BinarySemaphore::BinarySemaphore() : handle(xSemaphoreCreateBinary())
 {
-    SafeAssert(_handle != nullptr);
+    SafeAssert(handle != nullptr);
 }
 
 BinarySemaphore::~BinarySemaphore()
 {
-    if (_handle != nullptr)
+    if (handle != nullptr)
     {
-        vSemaphoreDelete(_handle);
+        vSemaphoreDelete(handle);
     }
 }
 
-BaseType_t BinarySemaphore::take(TickType_t blocktime) 
+BaseType_t BinarySemaphore::take(const TickType_t blocktime)
 {
-    return xSemaphoreTake(_handle, blocktime);
+    return xSemaphoreTake(handle, blocktime);
 }
 
 BaseType_t BinarySemaphore::giveFromISR(BaseType_t* pxHigherPriorityTaskWoken)
 {
-    return xSemaphoreGiveFromISR(_handle, pxHigherPriorityTaskWoken);
+    return xSemaphoreGiveFromISR(handle, pxHigherPriorityTaskWoken);
 }
+
 BaseType_t BinarySemaphore::give()
 {
-    return xSemaphoreGive(_handle);
+    return xSemaphoreGive(handle);
+}
+
+BinarySemaphore::BinarySemaphore(BinarySemaphore &&other) noexcept
+{
+    (*this) = std::forward<BinarySemaphore>(other);
+}
+
+BinarySemaphore &BinarySemaphore::operator=(BinarySemaphore &&other) noexcept
+{
+    handle = std::exchange(other.handle, nullptr);
+    return *this;
 }
 
 } // namespace drive_controller::wrapper

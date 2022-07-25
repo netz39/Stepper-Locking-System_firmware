@@ -9,13 +9,13 @@ using util::wrappers::TaskWithMemberFunctionBase;
 class Settings : public TaskWithMemberFunctionBase
 {
 public:
-    Settings(firmwareSettings::IO &settingsIO)
+    explicit Settings(firmwareSettings::IO &settingsIO)
         : TaskWithMemberFunctionBase("settingsTask", 512,
                                      osPriorityAboveNormal5), //
           settingsIO(settingsIO){};
 
 protected:
-    void taskMain() override;
+    [[noreturn]] void taskMain() override;
 
 private:
     firmwareSettings::IO &settingsIO;

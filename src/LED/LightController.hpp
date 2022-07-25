@@ -1,5 +1,6 @@
 #pragma once
 
+// todo handles should be inserted via constructor to make class testable
 #include "main.h"
 #include "spi.h"
 #include "tim.h"
@@ -13,38 +14,41 @@
 
 #include <array>
 
-using util::PwmOutput8Bit;
-using util::pwm_led::DualLed;
-using util::wrappers::TaskWithMemberFunctionBase;
+// todo split class into driver and control
 
 /// Controls the status LED and the addressable LED rings
-class LightController : public TaskWithMemberFunctionBase, SettingsUser
+class LightController : public util::wrappers::TaskWithMemberFunctionBase, SettingsUser
 {
 public:
-    LightController(firmwareSettings::Container &settingsContainer, StateMachine &stateMaschine,
-                    MotorController &motorController)
+    LightController(const firmwareSettings::Container &settingsContainer, const StateMachine &stateMachine,
+                    const MotorController &motorController)
         : TaskWithMemberFunctionBase("lightControllerTask", 512, osPriorityLow4), //
           settingsContainer(settingsContainer),                                   //
-          stateMaschine(stateMaschine),                                           //
+          stateMachine(stateMachine),                                           //
           motorController(motorController)
 
     {
         endFrames.fill(0xFF);
     }
+    ~LightController() override = default;
 
-    static constexpr PwmOutput8Bit RedChannel{&htim2, TIM_CHANNEL_1};
-    static constexpr PwmOutput8Bit GreenChannel{&htim3, TIM_CHANNEL_1};
-    DualLed<uint8_t> statusLed{RedChannel, GreenChannel};
-
-    static constexpr auto SpiDevice = &hspi1;
+    static constexpr util::PwmOutput8Bit RedChannel{&htim2, TIM_CHANNEL_1}; // todo handle should be given via constructor
+    static constexpr util::PwmOutput8Bit GreenChannel{&htim3, TIM_CHANNEL_1}; // todo handle should be given via constructor
 
     void notifySpiIsFinished();
 
+    [[nodiscard]] SPI_HandleTypeDef & getSPIPeripheral() noexcept {
+        return SpiDevice;
+    }
+
 protected:
-    void taskMain() override;
+    [[noreturn]] void taskMain() override;
     void onSettingsUpdate() override;
 
 private:
+    util::pwm_led::DualLed<uint8_t> statusLed{RedChannel, GreenChannel};
+    SPI_HandleTypeDef & SpiDevice = hspi1; // todo handle should be given via constructor
+
     static constexpr auto NumberOfEndFrames = (NumberOfRings * NumberOfLedsPerRing + 15) / 16;
 
     bool invertRotationDirection = false;
@@ -53,7 +57,7 @@ private:
     LedSpiDataArray ledSpiData1;
     LedSegmentArray ledSegments2;
     LedSpiDataArray ledSpiData2;
-    std::array<uint8_t, NumberOfEndFrames> endFrames;
+    std::array<uint8_t, NumberOfEndFrames> endFrames{};
 
     DualAnimations<DoorIsOpenAnimation> doorIsOpenAnimation{ledSegments1, ledSegments2};
     DualAnimations<DoorIsClosedAnimation> doorIsClosedAnimation{ledSegments1, ledSegments2};
@@ -71,9 +75,9 @@ private:
     void sendBuffer();
     void updateLightState();
 
-    firmwareSettings::Container &settingsContainer;
-    StateMachine &stateMaschine;
+    const firmwareSettings::Container &settingsContainer;
+    const StateMachine &stateMachine;
     StateMachine::State prevState = StateMachine::State::Initializing;
 
-    MotorController &motorController;
+    const MotorController &motorController;
 };

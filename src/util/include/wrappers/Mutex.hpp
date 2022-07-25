@@ -12,12 +12,17 @@ class Mutex : public IMutex
 {
 public:
     Mutex();
-    virtual ~Mutex() = default;
+    ~Mutex() override;
 
-    virtual void lock() override;
-    virtual bool lockWithTimeout(TickType_t timeToWait) override;
-    virtual void unlock() override;
+    Mutex(const Mutex &) = delete;
+    Mutex(Mutex &&other) noexcept;
+    Mutex &operator=(const Mutex &) = delete;
+    Mutex &operator=(Mutex &&other) noexcept;
+
+    void lock() override;
+    bool lockWithTimeout(TickType_t timeToWait) override;
+    void unlock() override;
 private:
-    SemaphoreHandle_t m_mutex;
+    SemaphoreHandle_t m_mutex{nullptr};
 };
 }

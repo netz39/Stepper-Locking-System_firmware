@@ -8,6 +8,7 @@ class DoorIsOpenAnimation : public LedAnimationBase
 public:
     explicit DoorIsOpenAnimation(LedSegmentArray &ledData)
         : fadingAnimation(ledData), ledData(ledData){};
+    ~DoorIsOpenAnimation() override = default;
 
     void doAnimationStep() override
     {

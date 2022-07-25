@@ -7,6 +7,7 @@ class DoorShouldCloseAnimation : public LedAnimationBase
 {
 public:
     explicit DoorShouldCloseAnimation(LedSegmentArray &ledData) : ledData(ledData){};
+    ~DoorShouldCloseAnimation() override = default;
 
     void doAnimationStep() override
     {

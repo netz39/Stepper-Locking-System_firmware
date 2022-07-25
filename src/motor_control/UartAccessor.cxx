@@ -3,13 +3,13 @@
 
 void UartAccessor::beginTransaction()
 {
-    xSemaphoreTake(mutex, portMAX_DELAY);
+    mutex.lock();
 }
 
 //--------------------------------------------------------------------------------------------------
 void UartAccessor::endTransaction()
 {
-    xSemaphoreGive(mutex);
+    mutex.unlock();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -17,8 +17,10 @@ bool UartAccessor::receive(uint8_t *buffer, uint16_t length)
 {
     errorCondition = false;
 
-    HAL_UART_Receive_DMA(uartHandle, buffer, length);
-    errorCondition = (xSemaphoreTake(binary, toOsTicks(Timeout)) == pdFALSE);
+    portENTER_CRITICAL();
+    HAL_UART_Receive_DMA(uartHandle, buffer, length); // todo check hal errors
+    portEXIT_CRITICAL();
+    errorCondition = (binary.take(toOsTicks(Timeout)) == pdFALSE);
 
     bool returnValue = errorCondition;
     errorCondition = false;
@@ -30,8 +32,10 @@ bool UartAccessor::transmit(const uint8_t *data, uint16_t length)
 {
     errorCondition = false;
 
-    HAL_UART_Transmit_DMA(uartHandle, const_cast<uint8_t *>(data), length);
-    errorCondition = (xSemaphoreTake(binary, toOsTicks(Timeout)) == pdFALSE);
+    portENTER_CRITICAL();
+    HAL_UART_Transmit_DMA(uartHandle, const_cast<uint8_t *>(data), length); // todo check hal errors
+    portEXIT_CRITICAL();
+    errorCondition = (binary.take(toOsTicks(Timeout)) == pdFALSE);
 
     bool returnValue = errorCondition;
     errorCondition = false;
@@ -42,24 +46,28 @@ bool UartAccessor::transmit(const uint8_t *data, uint16_t length)
 void UartAccessor::signalTransferCompleteFromIsr(BaseType_t *higherPrioTaskWoken)
 {
     errorCondition = false;
-    xSemaphoreGiveFromISR(binary, higherPrioTaskWoken);
+    binary.giveFromISR(higherPrioTaskWoken);
 }
 
 //--------------------------------------------------------------------------------------------------
 void UartAccessor::signalErrorFromIsr(BaseType_t *higherPrioTaskWoken)
 {
     errorCondition = true;
-    xSemaphoreGiveFromISR(binary, higherPrioTaskWoken);
+    binary.giveFromISR(higherPrioTaskWoken);
 }
 
 //--------------------------------------------------------------------------------------------------
 void UartAccessor::halfDuplexSwitchToRx()
 {
-    HAL_HalfDuplex_EnableReceiver(uartHandle);
+    portENTER_CRITICAL();
+    HAL_HalfDuplex_EnableReceiver(uartHandle); // todo check hal errors
+    portEXIT_CRITICAL();
 }
 
 //--------------------------------------------------------------------------------------------------
 void UartAccessor::halfDuplexSwitchToTx()
 {
-    HAL_HalfDuplex_EnableTransmitter(uartHandle);
+    portENTER_CRITICAL();
+    HAL_HalfDuplex_EnableTransmitter(uartHandle); // todo check hal errors
+    portEXIT_CRITICAL();
 }

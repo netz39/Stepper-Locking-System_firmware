@@ -10,7 +10,7 @@
 class LedAnimationBase
 {
 public:
-    ~LedAnimationBase() = default;
+    virtual ~LedAnimationBase() = default;
 
     void resetAnimation()
     {

@@ -9,20 +9,18 @@ template <typename SiUnit>
 class Scale
 {
 public:
-    constexpr Scale() : Scale(1.0f)
-    {
-    }
+    constexpr Scale() = default;
 
     constexpr explicit Scale(float factor) : factor{factor}
     {
     }
 
-    constexpr float getScalingFactor() const
+    [[nodiscard]] constexpr float getScalingFactor() const
     {
         return factor;
     }
 
 private:
-    const float factor;
+    const float factor{};
 };
 } // namespace units

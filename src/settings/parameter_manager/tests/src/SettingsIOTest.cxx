@@ -191,7 +191,7 @@ TEST_F(SettingsIOTest, BoundsCheckFailOnLoad)
     // instead of creating a changed duplicate of TestSettings
     // this test will directly modify a value in temporaryContent with aid of
     // the precalculated offsets from loadEepromContentOffsets
-    // also the values hash will be recalculated so we read without causing a
+    // also the values hash will be recalculated, so we read without causing a
     // reset to defaults
 
     // change a setting outside of bounds

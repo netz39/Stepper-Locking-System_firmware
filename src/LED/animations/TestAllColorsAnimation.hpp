@@ -6,6 +6,7 @@ class TestAllColorsAnimation : public LedAnimationBase
 {
 public:
     explicit TestAllColorsAnimation(LedSegmentArray &ledData) : ledData(ledData){};
+    ~TestAllColorsAnimation() override = default;
 
     void doAnimationStep() override
     {

@@ -6,14 +6,14 @@
 #include "util/Button.hpp"
 #include "wrappers/Task.hpp"
 
-using util::wrappers::TaskWithMemberFunctionBase;
 
 /// All switches and button are handled here, incl. deboucing, long press detection etc
-class TactileSwitches : public TaskWithMemberFunctionBase
+class TactileSwitches : public util::wrappers::TaskWithMemberFunctionBase
 {
 public:
     TactileSwitches()
         : TaskWithMemberFunctionBase("switchesPollingTask", 128, osPriorityBelowNormal3){};
+    ~TactileSwitches() override = default;
 
     /// press event when triggering button
     util::Button openButton{{OpenButton_GPIO_Port, OpenButton_Pin}, 250.0_ms, true};
@@ -28,5 +28,5 @@ public:
     util::Button lockSwitch{{LockState_GPIO_Port, LockState_Pin}, 30.0_ms, true};
 
 protected:
-    void taskMain() override;
+    [[noreturn]] void taskMain() override;
 };

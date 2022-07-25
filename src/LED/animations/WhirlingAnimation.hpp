@@ -14,6 +14,7 @@ public:
     };
 
     explicit WhirlingAnimation(LedSegmentArray &ledData) : ledData(ledData){};
+    ~WhirlingAnimation() override = default;
 
     void setWhirlingMode(WhirlingMode newMode)
     {

@@ -1,5 +1,7 @@
 #pragma once
-#include "cmsis_os2.h"
+#include <cmsis_os2.h>
+#include "IFreeRTOSTask.hpp"
+#include "ITaskWithMemberFunction.hpp"
 #include <FreeRTOS.h>
 #include <array>
 #include <event_groups.h>
@@ -10,30 +12,34 @@
 namespace util::wrappers
 {
 
-class Task
+/// todo introduce start method that must be called after the constructor so FreeRTOS doesn't
+///  get a function pointer to a still constructing class. This will cause no issue here as
+///  a new task will only execute after the next scheduler run (where the class will always be
+///  ready) but despite this, its still technical debt.
+class Task : public IFreeRTOSTask
 {
 public:
     Task(TaskFunction_t taskCode, const char *name, uint16_t stackDepth, void *parameter,
          UBaseType_t priority);
 
-    ~Task();
+    ~Task() override;
 
     Task(const Task &) = delete;
-    Task(Task &&) = delete;
+    Task(Task && other) noexcept;
     Task &operator=(const Task &) = delete;
-    Task &operator=(Task &&) = delete;
+    Task &operator=(Task && other) noexcept;
 
     static constexpr uint32_t ClearAllBits = std::numeric_limits<uint32_t>::max();
-    BaseType_t notifyWait(uint32_t ulBitsToClearOnEntry, uint32_t ulBitsToClearOnExit,
-                          uint32_t *pulNotificationValue, TickType_t xTicksToWait);
+    int32_t notifyWait(uint32_t ulBitsToClearOnEntry, uint32_t ulBitsToClearOnExit,
+                       uint32_t *pulNotificationValue, uint32_t xTicksToWait) override;
+    int32_t notify(uint32_t ulValue, NotifyAction eAction) override;
+    int32_t notifyFromISR(uint32_t ulValue, NotifyAction eAction,
+                          int32_t *pxHigherPriorityTaskWoken) override;
+    void notifyGive() override;
+    void notifyTake(uint32_t waittime) override;
+    void delay(units::si::Time time) override;
 
-    BaseType_t notify(uint32_t ulValue, eNotifyAction eAction);
-
-    BaseType_t notifyFromISR(uint32_t ulValue, eNotifyAction eAction,
-                             BaseType_t *pxHigherPriorityTaskWoken);
-
-    void notifyGive();
-    void notifyTake(TickType_t waittime);
+    [[nodiscard]] static constexpr eNotifyAction notifyActionConverter(NotifyAction action);
 
     static constexpr uint8_t MaxTasks = 16;
     static std::array<TaskHandle_t, MaxTasks> &getAllTaskHandles()
@@ -46,8 +52,8 @@ public:
 
 protected:
     TaskHandle_t _handle{nullptr};
-    TaskFunction_t _taskCode;
-    void *_parameter;
+    TaskFunction_t _taskCode{nullptr};
+    void *_parameter{nullptr};
 
     [[noreturn]] static void taskMain(void *);
 
@@ -57,16 +63,16 @@ protected:
     static constexpr EventBits_t AllTasksWaitFlag = 1 << 0;
 };
 
-/// Inherit from this class and implement taskMain() to have your class start a FreeRTOS task,
-/// executing code in taskMain(). This is a shorthand for usage of Task which requires you
-/// to manually create a static function and pass the this-pointer via FreeRTOS.
-class TaskWithMemberFunctionBase : public Task
+/// By inherited from here the child class can start FreeRTOS task in C++ context.
+/// There is the virtual function "taskMain" which should be implemented by the child class.
+class TaskWithMemberFunctionBase : public Task, public ITaskWithMemberFunction
 {
 public:
     TaskWithMemberFunctionBase(const char *name, uint16_t stackDepth, UBaseType_t priority)
         : Task(&runTaskStub, name, stackDepth, this, priority){};
+    ~TaskWithMemberFunctionBase() override = default;
 
-    virtual void taskMain() = 0;
+    [[noreturn]] void taskMain() override = 0;
     static void runTaskStub(void *parameters)
     {
         static_cast<TaskWithMemberFunctionBase *>(parameters)->taskMain();

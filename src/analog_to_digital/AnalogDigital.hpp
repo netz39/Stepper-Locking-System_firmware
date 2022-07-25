@@ -1,6 +1,6 @@
 #pragma once
 
-#include "adc.h"
+#include "adc.h" // todo handles should be inserted via constructor to make class testable
 
 #include "units/si/current.hpp"
 #include "units/si/frequency.hpp"
@@ -11,19 +11,16 @@
 
 #include "wrappers/Task.hpp"
 
-using namespace units::si;
-using util::wrappers::TaskWithMemberFunctionBase;
-
 /// Convert analog values into digital.
 /// Measurement of input current, motor temperature and µC temperature
-class AnalogDigital : public TaskWithMemberFunctionBase
+class AnalogDigital : public util::wrappers::TaskWithMemberFunctionBase
 {
 public:
-    AnalogDigital(Temperature &motorTemperature)
-        : TaskWithMemberFunctionBase("adcTask", 1024, osPriorityLow6),
-          motorTemperature(motorTemperature){};
+    AnalogDigital()
+        : TaskWithMemberFunctionBase("adcTask", 1024, osPriorityLow6){};
+    ~AnalogDigital() override = default;
 
-    static constexpr auto AdcPeripherie = &hadc1;
+    static constexpr auto AdcPeripherie = &hadc1; // todo handles should be inserted via constructor to make class testable
     static constexpr auto TotalChannelCount = 4;
     static constexpr auto SampleCount = 16;
 
@@ -34,22 +31,32 @@ public:
 
     static constexpr auto CurrentMeasurementFactor = 1.0_A / 2.0_V;
 
-    Voltage referenceVoltage{};
-    Current inputCurrent{}; // on 12V rail
-
-    Temperature &motorTemperature;
-    Temperature mcuTemperature{};
 
     void conversionCompleteCallback();
 
+    [[nodiscard]] units::si::Temperature getMotorTemperature() const noexcept
+    {
+        return motorTemperature;
+    }
+    [[nodiscard]] units::si::Temperature getMCUTemperature() const noexcept
+    {
+        return mcuTemperature;
+    }
+
 protected:
-    void taskMain() override;
+    [[noreturn]] void taskMain() override;
 
 private:
     static constexpr auto NtcBetaValue = 3380.0f;
     static constexpr auto NtcNominalTemperature = 25.0_degC;
     static constexpr auto NtcResistanceAtNominalTemperature = 10_kOhm;
     static constexpr auto NtcSecondResistor = 10_kOhm;
+
+
+    units::si::Voltage referenceVoltage{};
+    units::si::Current inputCurrent{}; // on 12V rail
+    units::si::Temperature motorTemperature{};
+    units::si::Temperature mcuTemperature{};
 
     using AdcResultType = uint16_t;
     std::array<AdcResultType, TotalChannelCount> adcResults{};
@@ -59,7 +66,7 @@ private:
     void startConversion();
     void calculateReferenceVoltage();
 
-    Temperature calculateNtcTemperature(const Voltage dropVoltage);
+    units::si::Temperature calculateNtcTemperature(units::si::Voltage dropVoltage);
 
     template <class T>
     constexpr auto physicalQuantityFromAdcResult(const AdcResultType adcResult, const T multiplier)

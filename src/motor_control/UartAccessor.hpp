@@ -1,7 +1,7 @@
 #pragma once
 
-#include "FreeRTOS.h"
-#include "semphr.h"
+#include <wrappers/Mutex.hpp>
+#include <wrappers/BinarySemaphore.hpp>
 
 #include "units/si/time.hpp"
 #include "usart.h"
@@ -10,10 +10,7 @@ class UartAccessor
 {
 public:
     explicit UartAccessor(UART_HandleTypeDef *huart) : uartHandle{huart}
-    {
-        mutex = xSemaphoreCreateMutex();
-        binary = xSemaphoreCreateBinary();
-    }
+    {};
 
     void beginTransaction();
     void endTransaction();
@@ -31,7 +28,7 @@ public:
 
 private:
     UART_HandleTypeDef *uartHandle = nullptr;
-    SemaphoreHandle_t mutex = nullptr;
-    SemaphoreHandle_t binary = nullptr;
+    util::wrappers::Mutex mutex;
+    util::wrappers::BinarySemaphore binary;
     bool errorCondition = false;
 };

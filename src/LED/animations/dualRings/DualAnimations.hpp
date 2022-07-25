@@ -12,11 +12,12 @@ public:
         : firstRing(firstRingSegments), secondRing(secondRingSegments)
     {
     }
+    ~DualAnimations() override = default;
 
     // only for whirling animations, see definitions below this class
     void setWhirlingMode(WhirlingAnimation::WhirlingMode mode,
                          bool invertRotationDirection = false);
-    void setProgess(uint8_t valueInPercent);
+    void setProgress(uint8_t valueInPercent);
 
     // only for warning animations, see definitions below this class
     void showWarning();
@@ -69,7 +70,7 @@ inline void DualAnimations<WhirlingAnimation>::setWhirlingMode(WhirlingAnimation
 }
 
 template <>
-inline void DualAnimations<WhirlingAnimation>::setProgess(uint8_t valueInPercent)
+inline void DualAnimations<WhirlingAnimation>::setProgress(uint8_t valueInPercent)
 {
     firstRing.setProgess(valueInPercent);
     secondRing.setProgess(valueInPercent);

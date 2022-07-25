@@ -873,5 +873,5 @@ public:
      * @return true     failure occurred
      * @return false    everything ok
      */
-    bool isCommFailure() const;
+    [[nodiscard]] bool isCommFailure() const;
 };
