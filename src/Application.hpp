@@ -4,6 +4,7 @@
 // If you need access to a class contained in Application, just get yourself a reference to it
 // via your classes' constructor.
 
+#include "adc.h"
 #include "i2c-drivers/rtos_accessor.hpp"
 #include "i2c.h"
 
@@ -40,12 +41,12 @@ public:
     uint32_t overheatedCounter = 0;
     uint32_t warningTempCounter = 0;
 
-    AnalogDigital analogDigital;
+    static constexpr auto AdcPeripherie = &hadc1;
+    AnalogDigital analogDigital{AdcPeripherie};
     HallEncoder hallEncoder{settingsContainer, eepromBusAccessor};
 
     TactileSwitches tactileSwitches;
-    MotorController motorController{settingsContainer, analogDigital, hallEncoder,
-                                    uartAccessorTmc};
+    MotorController motorController{settingsContainer, analogDigital, hallEncoder, uartAccessorTmc};
     StateMachine stateMachine{tactileSwitches, motorController};
 
     LightController lightController{settingsContainer, stateMachine, motorController};
@@ -58,5 +59,5 @@ public:
     static void uartTmcErrorCallback(UART_HandleTypeDef *);
 
 private:
-    static inline Application* instance{nullptr};
+    static inline Application *instance{nullptr};
 };

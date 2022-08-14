@@ -1,6 +1,6 @@
 #include "FreeRTOS.h"
-#include "task.h"
 #include "main.h"
+#include "task.h"
 
 #include "Application.hpp"
 #include "wrappers/Task.hpp"
@@ -13,10 +13,10 @@ Application::Application()
     SafeAssert(instance == nullptr);
     instance = this;
 
-    // todo replace all explicit function pointers with capture-less lambdas [](...HandleTypeDef*) {}
-    //  for better code quality
-    HAL_ADC_RegisterCallback(AnalogDigital::AdcPeripherie, HAL_ADC_CONVERSION_COMPLETE_CB_ID,
-                             &adcConversionCompleteCallback);     // todo check hal errors
+    // todo replace all explicit function pointers with capture-less
+    // lambdas [](...HandleTypeDef*){} for better code quality
+    HAL_ADC_RegisterCallback(AdcPeripherie, HAL_ADC_CONVERSION_COMPLETE_CB_ID,
+                             &adcConversionCompleteCallback); // todo check hal errors
 
     // SPI callback for addressable LEDs
     HAL_SPI_RegisterCallback(&lightController.getSPIPeripheral(), HAL_SPI_TX_COMPLETE_CB_ID,

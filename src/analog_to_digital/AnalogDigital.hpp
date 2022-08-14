@@ -1,6 +1,6 @@
 #pragma once
 
-#include "adc.h" // todo handles should be inserted via constructor to make class testable
+#include "core/SafeAssert.h"
 
 #include "units/si/current.hpp"
 #include "units/si/frequency.hpp"
@@ -16,11 +16,15 @@
 class AnalogDigital : public util::wrappers::TaskWithMemberFunctionBase
 {
 public:
-    AnalogDigital()
-        : TaskWithMemberFunctionBase("adcTask", 1024, osPriorityLow6){};
+    explicit AnalogDigital(ADC_HandleTypeDef *peripherie)
+        : TaskWithMemberFunctionBase("adcTask", 1024, osPriorityLow6), peripherie(peripherie)
+    {
+        SafeAssert(peripherie != nullptr);
+    };
+    
     ~AnalogDigital() override = default;
 
-    static constexpr auto AdcPeripherie = &hadc1; // todo handles should be inserted via constructor to make class testable
+    ADC_HandleTypeDef *peripherie = nullptr;
     static constexpr auto TotalChannelCount = 4;
     static constexpr auto SampleCount = 16;
 
@@ -30,7 +34,6 @@ public:
     static constexpr auto McuTemperatureRank = 2;
 
     static constexpr auto CurrentMeasurementFactor = 1.0_A / 2.0_V;
-
 
     void conversionCompleteCallback();
 
@@ -51,7 +54,6 @@ private:
     static constexpr auto NtcNominalTemperature = 25.0_degC;
     static constexpr auto NtcResistanceAtNominalTemperature = 10_kOhm;
     static constexpr auto NtcSecondResistor = 10_kOhm;
-
 
     units::si::Voltage referenceVoltage{};
     units::si::Current inputCurrent{}; // on 12V rail
