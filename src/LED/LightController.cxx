@@ -9,8 +9,9 @@
 #include <climits>
 
 using util::pwm_led::DualLedColor;
+using util::wrappers::NotifyAction;
 
-void LightController::taskMain()
+[[noreturn]] void LightController::taskMain()
 {
     RedChannel.startPwmTimer();
     GreenChannel.startPwmTimer();
@@ -33,7 +34,7 @@ void LightController::taskMain()
 void LightController::onSettingsUpdate()
 {
     invertRotationDirection =
-        settingsContainer.getValue<firmwareSettings::InvertRotationDirection>();
+        settingsContainer.getValue<firmwareSettings::InvertRotationDirection, bool>();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -41,8 +42,8 @@ inline void LightController::sendStartFrame()
 {
     uint32_t startFrame = 0;
 
-    HAL_SPI_Transmit_DMA(SpiDevice, reinterpret_cast<uint8_t *>(&startFrame), sizeof(startFrame));
-    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    HAL_SPI_Transmit_DMA(&SpiDevice, reinterpret_cast<uint8_t *>(&startFrame), sizeof(startFrame)); // todo check hal errors
+    ulTaskNotifyTake(pdTRUE, portMAX_DELAY); //todo reasonable timeout instead of max_delay
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -65,30 +66,30 @@ void LightController::sendBuffer()
 
     sendStartFrame();
 
-    HAL_SPI_Transmit_DMA(SpiDevice, reinterpret_cast<uint8_t *>(ledSpiData1.data()),
-                         ledSpiData1.size() * sizeof(LedSpiData));
-    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    HAL_SPI_Transmit_DMA(&SpiDevice, reinterpret_cast<uint8_t *>(ledSpiData1.data()),
+                         ledSpiData1.size() * sizeof(LedSpiData)); // todo check hal errors
+    ulTaskNotifyTake(pdTRUE, portMAX_DELAY); //todo reasonable timeout instead of max_delay
 
-    HAL_SPI_Transmit_DMA(SpiDevice, reinterpret_cast<uint8_t *>(ledSpiData2.data()),
-                         ledSpiData2.size() * sizeof(LedSpiData));
-    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    HAL_SPI_Transmit_DMA(&SpiDevice, reinterpret_cast<uint8_t *>(ledSpiData2.data()),
+                         ledSpiData2.size() * sizeof(LedSpiData)); // todo check hal errors
+    ulTaskNotifyTake(pdTRUE, portMAX_DELAY); //todo reasonable timeout instead of max_delay
 
-    HAL_SPI_Transmit_DMA(SpiDevice, endFrames.data(), NumberOfEndFrames);
-    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    HAL_SPI_Transmit_DMA(&SpiDevice, endFrames.data(), NumberOfEndFrames); // todo check hal errors
+    ulTaskNotifyTake(pdTRUE, portMAX_DELAY); //todo reasonable timeout instead of max_delay
 }
 
 //--------------------------------------------------------------------------------------------------
 void LightController::notifySpiIsFinished()
 {
     auto higherPriorityTaskWoken = pdFALSE;
-    notifyFromISR(1, eSetBits, &higherPriorityTaskWoken);
+    notifyFromISR(1, NotifyAction::SetBits, &higherPriorityTaskWoken);
     portYIELD_FROM_ISR(higherPriorityTaskWoken);
 }
 
 //--------------------------------------------------------------------------------------------------
 void LightController::updateLightState()
 {
-    switch (stateMaschine.currentState)
+    switch (stateMachine.getCurrentState())
     {
     case StateMachine::State::Opened:
         statusLed.setColor(DualLedColor::DarkGreen);
@@ -100,7 +101,7 @@ void LightController::updateLightState()
         targetAnimation = &whirlingAnimation;
         whirlingAnimation.setWhirlingMode(WhirlingAnimation::WhirlingMode::Opening,
                                           invertRotationDirection);
-        whirlingAnimation.setProgess(motorController.getProgress());
+        whirlingAnimation.setProgress(motorController.getProgress());
         break;
 
     case StateMachine::State::ManualOpening:
@@ -120,7 +121,7 @@ void LightController::updateLightState()
         targetAnimation = &whirlingAnimation;
         whirlingAnimation.setWhirlingMode(WhirlingAnimation::WhirlingMode::Closing,
                                           invertRotationDirection);
-        whirlingAnimation.setProgess(motorController.getProgress());
+        whirlingAnimation.setProgress(motorController.getProgress());
         break;
 
     case StateMachine::State::ManualClosing:
@@ -156,15 +157,15 @@ void LightController::updateLightState()
         break;
     }
 
-    if (prevState != stateMaschine.currentState)
+    if (prevState != stateMachine.getCurrentState())
     {
         // prevent interruption of animation when switching from RetryToClose to WantToClose
         if (prevState != StateMachine::State::RetryToClose ||
-            stateMaschine.currentState != StateMachine::State::WantToClose)
+            stateMachine.getCurrentState() != StateMachine::State::WantToClose)
         {
             targetAnimation->resetAnimation();
         }
 
-        prevState = stateMaschine.currentState;
+        prevState = stateMachine.getCurrentState();
     }
 }

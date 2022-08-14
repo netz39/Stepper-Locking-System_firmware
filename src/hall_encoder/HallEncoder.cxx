@@ -6,7 +6,7 @@
 #include "units/si/frequency.hpp"
 
 //--------------------------------------------------------------------------------------------------
-void HallEncoder::taskMain()
+[[noreturn]] void HallEncoder::taskMain()
 {
     // wait for EEPROM
     sync::waitForAll(sync::ConfigurationLoaded);
@@ -54,7 +54,7 @@ void HallEncoder::onSettingsUpdate()
 
     // hall encoder is incrementing when the magnet rotates clockwise
     isIncrementingAtOpening =
-        !settingsContainer.getValue<firmwareSettings::InvertRotationDirection>();
+        !settingsContainer.getValue<firmwareSettings::InvertRotationDirection, bool>();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -92,19 +92,19 @@ void HallEncoder::detectCrossovers()
 }
 
 //--------------------------------------------------------------------------------------------------
-bool HallEncoder::isOkay()
+bool HallEncoder::isOkay() const
 {
     return device.isOK();
 }
 
 //--------------------------------------------------------------------------------------------------
-int32_t HallEncoder::getPosition()
+int32_t HallEncoder::getPosition() const
 {
     return currentPosition;
 }
 
 //--------------------------------------------------------------------------------------------------
-uint16_t HallEncoder::getRawPosition()
+uint16_t HallEncoder::getRawPosition() const
 {
     // start and stop pos are not set, so we can use the "scaled" angle like raw angle
     return device.getAngleScaled();

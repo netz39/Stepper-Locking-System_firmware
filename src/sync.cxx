@@ -11,12 +11,12 @@ namespace sync
 {
 void waitForOne(EventBits_t events)
 {
-    (void)xEventGroupWaitBits(syncEventGroup, events, pdFALSE, pdFALSE, portMAX_DELAY);
+    (void)xEventGroupWaitBits(syncEventGroup, events, pdFALSE, pdFALSE, portMAX_DELAY); //todo reasonable timeout instead of max_delay
 }
 
 void waitForAll(EventBits_t events)
 {
-    (void)xEventGroupWaitBits(syncEventGroup, events, pdFALSE, pdTRUE, portMAX_DELAY);
+    (void)xEventGroupWaitBits(syncEventGroup, events, pdFALSE, pdTRUE, portMAX_DELAY); //todo reasonable timeout instead of max_delay
 }
 
 void signal(EventBits_t events)

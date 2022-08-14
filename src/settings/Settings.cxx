@@ -2,7 +2,7 @@
 #include "firmwareSettings.hpp"
 #include "sync.hpp"
 
-void Settings::taskMain()
+[[noreturn]] void Settings::taskMain()
 {
     settingsIO.loadSettings();
     SettingsUser::notifySettingsUpdate();

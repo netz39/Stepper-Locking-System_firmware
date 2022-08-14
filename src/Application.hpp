@@ -1,5 +1,9 @@
 #pragma once
 
+// Do not include this file anywhere except in Application.cpp. You are creating design issue!
+// If you need access to a class contained in Application, just get yourself a reference to it
+// via your classes' constructor.
+
 #include "i2c-drivers/rtos_accessor.hpp"
 #include "i2c.h"
 
@@ -17,7 +21,7 @@ class Application
 {
 public:
     Application();
-    void run();
+    [[noreturn]] void run();
 
     static Application &getApplicationInstance();
 
@@ -33,15 +37,14 @@ public:
     firmwareSettings::IO settingsIo{eeprom, settingsContainer};
     Settings settings{settingsIo};
 
-    Temperature motorTemperature{};
     uint32_t overheatedCounter = 0;
     uint32_t warningTempCounter = 0;
 
-    AnalogDigital analogDigital{motorTemperature};
+    AnalogDigital analogDigital;
     HallEncoder hallEncoder{settingsContainer, eepromBusAccessor};
 
     TactileSwitches tactileSwitches;
-    MotorController motorController{settingsContainer, motorTemperature, hallEncoder,
+    MotorController motorController{settingsContainer, analogDigital, hallEncoder,
                                     uartAccessorTmc};
     StateMachine stateMachine{tactileSwitches, motorController};
 
@@ -53,4 +56,7 @@ public:
     static void i2cErrorCallback(I2C_HandleTypeDef *);
     static void uartTmcCmpltCallback(UART_HandleTypeDef *);
     static void uartTmcErrorCallback(UART_HandleTypeDef *);
+
+private:
+    static inline Application* instance{nullptr};
 };

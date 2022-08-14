@@ -13,7 +13,7 @@ GPIO_TypeDef *pinToGPIOBase(int8_t pin)
         return GPIOA;
     default:
         teensyStepErrorHandler();
-        break;
+        return nullptr; // never reached, quiets compiler
     }
 }
 

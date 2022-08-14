@@ -1,38 +1,40 @@
 #include "FreeRTOS.h"
 #include "task.h"
-
-#include "gpio.h"
 #include "main.h"
 
 #include "Application.hpp"
-#include "TeensyStep/src/TeensyStep.h"
-#include "motor_control/TMC2209.hpp"
 #include "wrappers/Task.hpp"
 
 #include <memory>
 
 Application::Application()
 {
+    // Delegated Singleton, see getApplicationInstance() for further explanations
+    SafeAssert(instance == nullptr);
+    instance = this;
+
+    // todo replace all explicit function pointers with capture-less lambdas [](...HandleTypeDef*) {}
+    //  for better code quality
     HAL_ADC_RegisterCallback(AnalogDigital::AdcPeripherie, HAL_ADC_CONVERSION_COMPLETE_CB_ID,
-                             &adcConversionCompleteCallback);
+                             &adcConversionCompleteCallback);     // todo check hal errors
 
     // SPI callback for addressable LEDs
-    HAL_SPI_RegisterCallback(LightController::SpiDevice, HAL_SPI_TX_COMPLETE_CB_ID,
-                             &ledSpiCallback);
+    HAL_SPI_RegisterCallback(&lightController.getSPIPeripheral(), HAL_SPI_TX_COMPLETE_CB_ID,
+                             &ledSpiCallback); // todo check hal errors
 
     // EEPROM callbacks
-    HAL_I2C_RegisterCallback(EepromBus, HAL_I2C_MASTER_TX_COMPLETE_CB_ID, &i2cMasterCmpltCallback);
-    HAL_I2C_RegisterCallback(EepromBus, HAL_I2C_MASTER_RX_COMPLETE_CB_ID, &i2cMasterCmpltCallback);
-    HAL_I2C_RegisterCallback(EepromBus, HAL_I2C_ERROR_CB_ID, &i2cErrorCallback);
+    HAL_I2C_RegisterCallback(EepromBus, HAL_I2C_MASTER_TX_COMPLETE_CB_ID, &i2cMasterCmpltCallback); // todo check hal errors
+    HAL_I2C_RegisterCallback(EepromBus, HAL_I2C_MASTER_RX_COMPLETE_CB_ID, &i2cMasterCmpltCallback); // todo check hal errors
+    HAL_I2C_RegisterCallback(EepromBus, HAL_I2C_ERROR_CB_ID, &i2cErrorCallback); // todo check hal errors
 
     // TMC UART callbacks
-    HAL_UART_RegisterCallback(TmcUartPeripherie, HAL_UART_TX_COMPLETE_CB_ID, &uartTmcCmpltCallback);
-    HAL_UART_RegisterCallback(TmcUartPeripherie, HAL_UART_RX_COMPLETE_CB_ID, &uartTmcCmpltCallback);
-    HAL_UART_RegisterCallback(TmcUartPeripherie, HAL_UART_ERROR_CB_ID, &uartTmcErrorCallback);
+    HAL_UART_RegisterCallback(TmcUartPeripherie, HAL_UART_TX_COMPLETE_CB_ID, &uartTmcCmpltCallback); // todo check hal errors
+    HAL_UART_RegisterCallback(TmcUartPeripherie, HAL_UART_RX_COMPLETE_CB_ID, &uartTmcCmpltCallback); // todo check hal errors
+    HAL_UART_RegisterCallback(TmcUartPeripherie, HAL_UART_ERROR_CB_ID, &uartTmcErrorCallback); // todo check hal errors
 }
 
 //--------------------------------------------------------------------------------------------------
-void Application::run()
+[[noreturn]] void Application::run()
 {
     util::wrappers::Task::applicationIsReadyStartAllTasks();
     while (true)
@@ -44,8 +46,9 @@ void Application::run()
 //--------------------------------------------------------------------------------------------------
 Application &Application::getApplicationInstance()
 {
-    static auto app = std::make_unique<Application>();
-    return *app;
+    // Not constructing Application in this singleton, to avoid bugs where something tries to
+    // access this function, while application constructs which will cause infinite recursion
+    return *instance;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -95,8 +98,8 @@ void Application::uartTmcErrorCallback(UART_HandleTypeDef *)
 //--------------------------------------------------------------------------------------------------
 extern "C" void StartDefaultTask(void *) // NOLINT
 {
-    auto &app = Application::getApplicationInstance();
-    app.run();
+    static auto app = std::make_unique<Application>();
+    app->run();
 
     __asm("bkpt"); // this line should be never reached
 }

@@ -7,6 +7,7 @@ class ShowStatusAnimation : public LedAnimationBase
 {
 public:
     explicit ShowStatusAnimation(LedSegmentArray &ledData) : ledData(ledData){};
+    ~ShowStatusAnimation() override = default;
 
     void showWarning()
     {

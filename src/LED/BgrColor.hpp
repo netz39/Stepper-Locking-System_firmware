@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <limits>
+#include <type_traits>
 
 struct __attribute((packed)) BgrColor
 {
@@ -8,25 +9,23 @@ struct __attribute((packed)) BgrColor
     uint8_t green = 0;
     uint8_t red = 0;
 
-    constexpr BgrColor &operator*=(const double &val)
+    constexpr BgrColor &operator*=(const float &val)
     {
-        blue *= val;
-        green *= val;
-        red *= val;
+        using T = std::remove_const<std::remove_reference<decltype(val)>::type>::type;
+        blue = static_cast<decltype(blue)>(static_cast<T>(blue) * val);
+        green = static_cast<decltype(green)>(static_cast<T>(green) * val);
+        red = static_cast<decltype(red)>(static_cast<T>(red) * val);
         return *this;
     }
 };
 
-inline constexpr BgrColor operator*(const BgrColor lhs, const double val)
+inline constexpr BgrColor operator*(BgrColor lhs, const float val)
 {
-    BgrColor result;
-    result.blue = lhs.blue * val;
-    result.green = lhs.green * val;
-    result.red = lhs.red * val;
-    return result;
+    lhs *= val;
+    return lhs;
 }
 
-inline constexpr BgrColor operator*(const double val, const BgrColor rhs)
+inline constexpr BgrColor operator*(const float val, const BgrColor rhs)
 {
     return rhs * val;
 }
@@ -59,11 +58,12 @@ struct __attribute((packed)) BgrColorDiff
     int16_t green = 0;
     int16_t red = 0;
 
-    constexpr BgrColorDiff &operator*=(const double &val)
+    constexpr BgrColorDiff &operator*=(const float &val)
     {
-        blue *= val;
-        green *= val;
-        red *= val;
+        using T = std::remove_const<std::remove_reference<decltype(val)>::type>::type;
+        blue = static_cast<decltype(blue)>(static_cast<T>(blue) * val);
+        green = static_cast<decltype(green)>(static_cast<T>(green) * val);
+        red = static_cast<decltype(red)>(static_cast<T>(red) * val);
         return *this;
     }
 };
@@ -77,33 +77,38 @@ inline constexpr BgrColor operator+(const BgrColor &lhs, const BgrColorDiff &rhs
     return result;
 }
 
-inline constexpr BgrColorDiff operator*(const BgrColorDiff lhs, const double val)
+inline constexpr BgrColorDiff operator*(BgrColorDiff lhs, const float val)
 {
-    BgrColorDiff result;
-    result.blue = lhs.blue * val;
-    result.green = lhs.green * val;
-    result.red = lhs.red * val;
-    return result;
+    lhs *= val;
+    return lhs;
 }
 
-inline constexpr BgrColorDiff operator*(const double val, const BgrColorDiff rhs)
+inline constexpr BgrColorDiff operator*(const float val, const BgrColorDiff rhs)
 {
     return rhs * val;
 }
-inline constexpr BgrColorDiff operator/(BgrColorDiff lhs, const double val)
+inline constexpr BgrColorDiff operator/(BgrColorDiff lhs, const float val)
 {
+    using T = std::remove_const<std::remove_reference<decltype(val)>::type>::type;
+
     BgrColorDiff result;
-    result.blue = lhs.blue / val;
-    result.green = lhs.green / val;
-    result.red = lhs.red / val;
+    result.blue = static_cast<decltype(result.blue)>(static_cast<T>(lhs.blue) / val);
+    result.green = static_cast<decltype(result.green)>(static_cast<T>(lhs.green) / val);
+    result.red = static_cast<decltype(result.red)>(static_cast<T>(lhs.red) / val);
     return result;
 }
 
 inline constexpr BgrColorDiff operator-(const BgrColor &lhs, const BgrColor &rhs)
 {
     BgrColorDiff result;
-    result.blue = lhs.blue - rhs.blue;
-    result.green = lhs.green - rhs.green;
-    result.red = lhs.red - rhs.red;
+    using T = decltype(result.blue);
+    static_assert(std::is_same<T, decltype(result.blue)>::value &&
+                      std::is_same<T, decltype(result.green)>::value &&
+                      std::is_same<T, decltype(result.red)>::value,
+                  "Code assumes equality of types");
+
+    result.blue = static_cast<T>(lhs.blue) - static_cast<T>(rhs.blue);
+    result.green = static_cast<T>(lhs.green) - static_cast<T>(rhs.green);
+    result.red = static_cast<T>(lhs.red) - static_cast<T>(rhs.red);
     return result;
 }
