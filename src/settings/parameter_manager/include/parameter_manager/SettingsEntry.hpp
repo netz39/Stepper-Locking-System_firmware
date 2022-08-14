@@ -37,7 +37,7 @@ public:
     {
     }
 
-    constexpr bool isValid() const
+    [[nodiscard]] constexpr bool isValid() const
     {
         return !(minValue > maxValue || defaultValue > maxValue || defaultValue < minValue);
     }

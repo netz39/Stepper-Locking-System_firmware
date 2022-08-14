@@ -1,5 +1,8 @@
 #pragma once
 
+#include <utility>
+
+// todo handles should be inserted via constructor to make class testable
 #include "main.h"
 #include "usart.h"
 
@@ -13,14 +16,13 @@
 
 #include "TMC2209.hpp"
 #include "TeensyStep.h"
+#include "analog_to_digital/AnalogDigital.hpp"
 
-using units::si::Temperature;
-using util::wrappers::TaskWithMemberFunctionBase;
 
 /// This class is used to control the stepper motor.
 /// It contains a wrapper of the needed functions of the stepper library as well as additional
 /// functions to monitor the stepper´s state.
-class MotorController : public TaskWithMemberFunctionBase, SettingsUser
+class MotorController : public util::wrappers::TaskWithMemberFunctionBase, SettingsUser
 {
 public:
     static constexpr auto DebugUartPeripherie = &huart1;
@@ -36,16 +38,17 @@ public:
         HallEncoderReconnected
     };
 
-    MotorController(firmwareSettings::Container &settingsContainer, Temperature &motorTemperature,
+    MotorController(const firmwareSettings::Container &settingsContainer, const AnalogDigital &adc,
                     HallEncoder &hallEncoder, UartAccessor &uartAccessorTmc)
         : TaskWithMemberFunctionBase("motorControllerTask", 128, osPriorityAboveNormal3), //
           settingsContainer(settingsContainer),                                           //
-          motorTemperature(motorTemperature),                                             //
+          adc(adc),                                             //
           hallEncoder(hallEncoder),                                                       //
           uartAccessorTmc{uartAccessorTmc}                                                //
     {
         stepControl.setCallback(std::bind(&MotorController::invokeFinishedCallback, this));
     }
+    ~MotorController() override = default;
 
     void openDoor();
 
@@ -100,14 +103,14 @@ public:
     void revokeCalibration();
 
     /// Return the progess of opening/closing actions in percentage.
-    uint8_t getProgress();
+    [[nodiscard]] uint8_t getProgress() const;
 
     using Callback = std::function<void(FailureType failureType)>;
 
     /// set up callback which will be called when the target is reached
     void setFinishedCallback(Callback newCallback)
     {
-        finishedCallback = newCallback;
+        finishedCallback = std::move(newCallback);
     }
 
     void notifyUartTxComplete();
@@ -131,19 +134,19 @@ public:
     static constexpr auto CriticalMotorTemp = 85.0_degC;
 
 protected:
-    void taskMain() override;
+    [[noreturn]] void taskMain() override;
 
     void onSettingsUpdate() override;
 
 private:
-    firmwareSettings::Container &settingsContainer;
-    Temperature &motorTemperature;
+    const firmwareSettings::Container &settingsContainer;
+    const AnalogDigital &adc;
     HallEncoder &hallEncoder;
 
     bool isOverheated = false;
-    uint32_t overheatedCounter;
+    uint32_t overheatedCounter{};
     bool hasWarningTemp = false;
-    uint32_t warningTempCounter;
+    uint32_t warningTempCounter{};
 
     bool isInCalibrationMode = false;
     bool isCalibrating = false;

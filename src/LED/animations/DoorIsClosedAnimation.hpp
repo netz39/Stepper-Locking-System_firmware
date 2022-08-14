@@ -9,6 +9,7 @@ public:
     explicit DoorIsClosedAnimation(LedSegmentArray &ledData) : ledData(ledData)
     {
     }
+    ~DoorIsClosedAnimation() override = default;
 
     void doAnimationStep() override
     {

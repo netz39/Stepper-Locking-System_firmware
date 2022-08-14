@@ -7,7 +7,9 @@
 constexpr auto BufferSize = 256;
 char buffer[BufferSize];
 
-void MotorController::taskMain()
+using util::wrappers::NotifyAction;
+
+[[noreturn]] void MotorController::taskMain()
 {
     sync::waitForAll(sync::ConfigurationLoaded | sync::StateMachineStarted);
     auto lastWakeTime = xTaskGetTickCount();
@@ -16,7 +18,7 @@ void MotorController::taskMain()
     {
         vTaskDelayUntil(&lastWakeTime, toOsTicks(50.0_Hz));
 
-        const auto MotorLoad = tmc2209.getSGResult().sgResultValue;
+        [[maybe_unused]] const auto MotorLoad = tmc2209.getSGResult().sgResultValue;
         if (tmc2209.isCommFailure())
         {
             if (uartCommunicationLossCounter++ >= 4)
@@ -109,7 +111,7 @@ void MotorController::taskMain()
             snprintf(buffer, BufferSize, "%ld, %ld, %d\n", stepperMotor.getPosition(),
                      hallEncoder.getPosition(), hallEncoder.getRawPosition());
             HAL_UART_Transmit(DebugUartPeripherie, reinterpret_cast<uint8_t *>(buffer),
-                              strlen(buffer), 1000);
+                              strlen(buffer), 1000); // todo check hal errors
         }
 
         checkMotorTemperature();
@@ -345,7 +347,7 @@ void MotorController::disableMotorTorque()
 //--------------------------------------------------------------------------------------------------
 void MotorController::checkMotorTemperature()
 {
-    if (motorTemperature >= CriticalMotorTemp)
+    if (adc.getMotorTemperature() >= CriticalMotorTemp)
     {
         if (!isOverheated)
             overheatedCounter++;
@@ -353,7 +355,7 @@ void MotorController::checkMotorTemperature()
         isOverheated = true;
         hasWarningTemp = false;
     }
-    else if (motorTemperature >= WarningMotorTemp)
+    else if (adc.getMotorTemperature() >= WarningMotorTemp)
     {
         if (!hasWarningTemp && !isOverheated)
             warningTempCounter++;
@@ -411,7 +413,7 @@ void MotorController::unfreezeMotor()
 }
 
 //--------------------------------------------------------------------------------------------------
-uint8_t MotorController::getProgress()
+uint8_t MotorController::getProgress() const
 {
     if (!isOpening && !isClosing)
         return 0;
@@ -448,7 +450,7 @@ void MotorController::resetOpeningClosingState()
 void MotorController::notifyUartTxComplete()
 {
     auto higherPriorityTaskWoken = pdFALSE;
-    notifyFromISR(1, eSetBits, &higherPriorityTaskWoken);
+    notifyFromISR(1, NotifyAction::SetBits, &higherPriorityTaskWoken);
     portYIELD_FROM_ISR(higherPriorityTaskWoken);
 }
 
@@ -456,6 +458,6 @@ void MotorController::notifyUartTxComplete()
 void MotorController::notifyUartRxComplete()
 {
     auto higherPriorityTaskWoken = pdFALSE;
-    notifyFromISR(1, eSetBits, &higherPriorityTaskWoken);
+    notifyFromISR(1, NotifyAction::SetBits, &higherPriorityTaskWoken);
     portYIELD_FROM_ISR(higherPriorityTaskWoken);
 }

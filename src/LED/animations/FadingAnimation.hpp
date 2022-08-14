@@ -7,6 +7,7 @@ class FadingAnimation : public LedAnimationBase
 {
 public:
     explicit FadingAnimation(LedSegmentArray &ledData) : ledData(ledData){};
+    ~FadingAnimation() override = default;
 
     void doAnimationStep() override
     {

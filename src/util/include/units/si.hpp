@@ -76,36 +76,36 @@ public:
     }
 
     template <typename Type = float, typename OffsetSiUnit>
-    constexpr void setMagnitude(Type magnitude, const Offset<OffsetSiUnit> offset) noexcept
+    constexpr void setMagnitude(Type newMagnitude, const Offset<OffsetSiUnit> offset) noexcept
     {
         static_assert(std::is_same<SiUnit, OffsetSiUnit>::value,
                        "Offset has incompatible underlying SI unit");
 
         if constexpr (std::is_same<Type, float>::value)
-            this->magnitude = magnitude - offset.getOffset();
+            magnitude = newMagnitude - offset.getOffset();
         else
-            this->magnitude = static_cast<Type>(magnitude - offset.getOffset());
+            magnitude = static_cast<Type>(newMagnitude - offset.getOffset());
     }
 
     template <typename Type = float, typename ScaleSiUnit>
-    constexpr void setMagnitude(Type magnitude, const Scale<ScaleSiUnit> scale) noexcept
+    constexpr void setMagnitude(Type newMagnitude, const Scale<ScaleSiUnit> scale) noexcept
     {
         static_assert(std::is_same<SiUnit, ScaleSiUnit>::value,
                       "Scale has incompatible underlying SI unit");
 
         if constexpr (std::is_same<Type, float>::value)
-            this->magnitude = magnitude / scale.getScalingFactor();
+            magnitude = newMagnitude / scale.getScalingFactor();
         else
-            this->magnitude = static_cast<Type>(magnitude * scale.getScalingFactor());
+            magnitude = static_cast<Type>(newMagnitude * scale.getScalingFactor());
     }
 
     template <typename Type = float>
-    constexpr void setMagnitude(Type magnitude) noexcept
+    constexpr void setMagnitude(Type newMagnitude) noexcept
     {
         if constexpr (std::is_same<Type, float>::value)
-            this->magnitude = magnitude;
+            magnitude = newMagnitude;
         else
-            this->magnitude = static_cast<Type>(magnitude);
+            magnitude = static_cast<Type>(newMagnitude);
     }
 
     template <typename Type = float>

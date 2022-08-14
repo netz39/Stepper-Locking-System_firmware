@@ -5,7 +5,10 @@
 #include "AnalogDigital.hpp"
 #include "helpers/freertos.hpp"
 
-void AnalogDigital::taskMain()
+using util::wrappers::NotifyAction;
+using namespace units::si;
+
+[[noreturn]] void AnalogDigital::taskMain()
 {
     static constexpr auto AdcTaskFrequency = 50.0_Hz;
 
@@ -38,14 +41,14 @@ void AnalogDigital::taskMain()
 void AnalogDigital::conversionCompleteCallback()
 {
     auto higherPriorityTaskWoken = pdFALSE;
-    notifyFromISR(1, eSetBits, &higherPriorityTaskWoken);
+    notifyFromISR(1, NotifyAction::SetBits, &higherPriorityTaskWoken);
     portYIELD_FROM_ISR(higherPriorityTaskWoken);
 }
 
 //----------------------------------------------------------------------------------------------
 void AnalogDigital::waitUntilConversionFinished()
 {
-    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    Task::notifyTake(portMAX_DELAY); //todo reasonable timeout instead of max_delay
 }
 
 //----------------------------------------------------------------------------------------------
@@ -59,7 +62,7 @@ void AnalogDigital::calibrateAdc()
 void AnalogDigital::startConversion()
 {
     HAL_ADC_Start_DMA(AdcPeripherie, reinterpret_cast<uint32_t *>(adcResults.data()),
-                      TotalChannelCount);
+                      TotalChannelCount); // todo check hal errors
 }
 
 //----------------------------------------------------------------------------------------------
@@ -78,7 +81,7 @@ Temperature AnalogDigital::calculateNtcTemperature(const Voltage dropVoltage)
         (referenceVoltage * NtcSecondResistor - dropVoltage * NtcSecondResistor) / dropVoltage;
 
     const float LogValue =
-        log((NtcResistance / NtcResistanceAtNominalTemperature).getMagnitude<double>());
+        logf((NtcResistance / NtcResistanceAtNominalTemperature).getMagnitude());
 
     return Temperature{
         1 / ((1_ / NtcNominalTemperature).getMagnitude() + (1 / NtcBetaValue) * LogValue)};
