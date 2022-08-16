@@ -260,6 +260,13 @@ void StateMachine::openButtonCallback(const util::Button::Action action)
             currentState = State::Opened;
             notify(ErrorBit, NotifyAction::SetBits);
         }
+
+        if (!isForceOpen)
+            resetTimer();
+
+        else
+            stopTimer();
+
         break;
 
     case Button::Action::SuperLongPress:
@@ -427,5 +434,27 @@ void StateMachine::motorControllerFinishedCallback(const MotorController::Failur
         currentState = State::Initializing;
         notify(ErrorBit, NotifyAction::SetBits);
         break;
+    }
+}
+
+//--------------------------------------------------------------------------------------------------
+void StateMachine::forceOpenCallback(const util::Button::Action action)
+{
+    if (action == util::Button::Action::ShortPress)
+    {
+        stopTimer();
+        openButtonCallback(action);
+        isForceOpen = true;
+    }
+}
+
+//--------------------------------------------------------------------------------------------------
+void StateMachine::forceCloseCallback(const util::Button::Action action)
+{
+    if (action == util::Button::Action::ShortPress)
+    {
+        stopTimer();
+        closeButtonCallback(action);
+        isForceOpen = false;
     }
 }

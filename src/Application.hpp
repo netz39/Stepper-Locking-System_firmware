@@ -44,9 +44,8 @@ public:
     HallEncoder hallEncoder{settingsContainer, eepromBusAccessor};
 
     TactileSwitches tactileSwitches;
-    MotorController motorController{settingsContainer, analogDigital, hallEncoder,
-                                    uartAccessorTmc};
-    StateMachine stateMachine{tactileSwitches, motorController};
+    MotorController motorController{settingsContainer, analogDigital, hallEncoder, uartAccessorTmc};
+    StateMachine stateMachine{tactileSwitches, motorController, &timeoutCallback};
 
     LightController lightController{settingsContainer, stateMachine, motorController};
 
@@ -56,6 +55,8 @@ public:
     static void i2cErrorCallback(I2C_HandleTypeDef *);
     static void uartTmcCmpltCallback(UART_HandleTypeDef *);
     static void uartTmcErrorCallback(UART_HandleTypeDef *);
+
+    static void timeoutCallback(TimerHandle_t timer);
 
 private:
     static inline Application* instance{nullptr};

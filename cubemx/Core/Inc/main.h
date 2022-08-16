@@ -73,6 +73,10 @@ void Error_Handler(void);
 #define StepperStep_GPIO_Port GPIOA
 #define StepperDirection_Pin GPIO_PIN_6
 #define StepperDirection_GPIO_Port GPIOA
+#define ForceOpenInput_Pin GPIO_PIN_7
+#define ForceOpenInput_GPIO_Port GPIOA
+#define ForceCloseInput_Pin GPIO_PIN_0
+#define ForceCloseInput_GPIO_Port GPIOB
 #define tempMotor_Pin GPIO_PIN_1
 #define tempMotor_GPIO_Port GPIOB
 #define inputCurrent_Pin GPIO_PIN_2

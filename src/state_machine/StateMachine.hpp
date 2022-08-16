@@ -5,15 +5,16 @@
 #include "tactile_switches/TactileSwitches.hpp"
 #include "wrappers/Task.hpp"
 
-
 /// State machine of locking system. Handle all cases and switches inputs.
 class StateMachine : public util::wrappers::TaskWithMemberFunctionBase
 {
 public:
-    StateMachine(TactileSwitches &tactileSwitches, MotorController &motorController)
+    StateMachine(TactileSwitches &tactileSwitches, MotorController &motorController,
+                 void (*timeoutCallback)(TimerHandle_t xTimer))
         : TaskWithMemberFunctionBase("stateMachineTask", 128, osPriorityNormal3), //
           tactileSwitches(tactileSwitches),                                       //
-          motorController(motorController)
+          motorController(motorController),                                       //
+          timeoutCallback(timeoutCallback)
     {
         tactileSwitches.openButton.setCallback(
             std::bind(&StateMachine::openButtonCallback, this, std::placeholders::_1));
@@ -29,7 +30,17 @@ public:
 
         motorController.setFinishedCallback(
             std::bind(&StateMachine::motorControllerFinishedCallback, this, std::placeholders::_1));
+
+        tactileSwitches.forceOpen.setCallback(
+            std::bind(&StateMachine::forceOpenCallback, this, std::placeholders::_1));
+
+        tactileSwitches.forceClose.setCallback(
+            std::bind(&StateMachine::forceCloseCallback, this, std::placeholders::_1));
+
+        timeoutTimer =
+            xTimerCreate("timeoutTimer", toOsTicks(30.0_s), pdFALSE, nullptr, timeoutCallback);
     };
+
     ~StateMachine() override = default;
 
     enum class State
@@ -59,6 +70,12 @@ public:
     [[nodiscard]] State getCurrentState() const noexcept {
         return currentState;
     }
+
+    void onTimeout(TimerHandle_t)
+    {
+        closeButtonCallback(util::Button::Action::ShortPress);
+    }
+
 protected:
     [[noreturn]] void taskMain() override;
 
@@ -82,6 +99,23 @@ private:
     void closeButtonCallback(util::Button::Action action);
     void doorSwitchCallback(util::Button::Action action);
     void lockSwitchCallback(util::Button::Action action);
+
+    void forceOpenCallback(util::Button::Action action);
+    void forceCloseCallback(util::Button::Action action);
+    bool isForceOpen = false;
+
+    TimerHandle_t timeoutTimer = nullptr;
+    void (*timeoutCallback)(TimerHandle_t xTimer);
+
+    void stopTimer()
+    {
+        xTimerStop(timeoutTimer, 0);
+    }
+
+    void resetTimer()
+    {
+        xTimerReset(timeoutTimer, 0);
+    }
 
     void motorControllerFinishedCallback(MotorController::FailureType failureType);
 };

@@ -96,6 +96,12 @@ void Application::uartTmcErrorCallback(UART_HandleTypeDef *)
 }
 
 //--------------------------------------------------------------------------------------------------
+void Application::timeoutCallback(TimerHandle_t timer)
+{
+    getApplicationInstance().stateMachine.onTimeout(timer);
+}
+
+//--------------------------------------------------------------------------------------------------
 extern "C" void StartDefaultTask(void *) // NOLINT
 {
     static auto app = std::make_unique<Application>();
