@@ -2,10 +2,6 @@
 
 #include <utility>
 
-// todo handles should be inserted via constructor to make class testable
-#include "main.h"
-#include "usart.h"
-
 #include "hall_encoder/HallEncoder.hpp"
 #include "helpers/freertos.hpp"
 #include "parameter_manager/SettingsUser.hpp"
@@ -18,15 +14,12 @@
 #include "TeensyStep.h"
 #include "analog_to_digital/AnalogDigital.hpp"
 
-
 /// This class is used to control the stepper motor.
 /// It contains a wrapper of the needed functions of the stepper library as well as additional
 /// functions to monitor the stepper´s state.
 class MotorController : public util::wrappers::TaskWithMemberFunctionBase, SettingsUser
 {
 public:
-    static constexpr auto DebugUartPeripherie = &huart1;
-
     enum class FailureType
     {
         None,
@@ -42,7 +35,7 @@ public:
                     HallEncoder &hallEncoder, UartAccessor &uartAccessorTmc)
         : TaskWithMemberFunctionBase("motorControllerTask", 128, osPriorityAboveNormal3), //
           settingsContainer(settingsContainer),                                           //
-          adc(adc),                                             //
+          adc(adc),                                                                       //
           hallEncoder(hallEncoder),                                                       //
           uartAccessorTmc{uartAccessorTmc}                                                //
     {

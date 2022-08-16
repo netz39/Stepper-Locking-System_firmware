@@ -16,12 +16,14 @@
 class AnalogDigital : public util::wrappers::TaskWithMemberFunctionBase
 {
 public:
+    static constexpr auto TimeoutInMilliseconds = 2000;
+
     explicit AnalogDigital(ADC_HandleTypeDef *peripherie)
         : TaskWithMemberFunctionBase("adcTask", 1024, osPriorityLow6), peripherie(peripherie)
     {
         SafeAssert(peripherie != nullptr);
     };
-    
+
     ~AnalogDigital() override = default;
 
     ADC_HandleTypeDef *peripherie = nullptr;

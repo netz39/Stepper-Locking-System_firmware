@@ -48,21 +48,20 @@ void AnalogDigital::conversionCompleteCallback()
 //----------------------------------------------------------------------------------------------
 void AnalogDigital::waitUntilConversionFinished()
 {
-    Task::notifyTake(portMAX_DELAY); //todo reasonable timeout instead of max_delay
+    Task::notifyTake(pdMS_TO_TICKS(TimeoutInMilliseconds));
 }
 
 //----------------------------------------------------------------------------------------------
 void AnalogDigital::calibrateAdc()
 {
-    if (HAL_ADCEx_Calibration_Start(peripherie) != HAL_OK)
-        __asm("bkpt");
+    SafeAssert(HAL_ADCEx_Calibration_Start(peripherie) == HAL_OK);
 }
 
 //----------------------------------------------------------------------------------------------
 void AnalogDigital::startConversion()
 {
-    HAL_ADC_Start_DMA(peripherie, reinterpret_cast<uint32_t *>(adcResults.data()),
-                      TotalChannelCount); // todo check hal errors
+    SafeAssert(HAL_ADC_Start_DMA(peripherie, reinterpret_cast<uint32_t *>(adcResults.data()),
+                                 TotalChannelCount) == HAL_OK);
 }
 
 //----------------------------------------------------------------------------------------------
