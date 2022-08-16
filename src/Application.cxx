@@ -31,7 +31,7 @@ Application::Application()
         [](ADC_HandleTypeDef *){ getApplicationInstance().analogDigital.conversionCompleteCallback(); });
 
     // SPI callback for addressable LEDs
-    result = HAL_SPI_RegisterCallback(&lightController.getSPIPeripheral(), HAL_SPI_TX_COMPLETE_CB_ID,
+    result = HAL_SPI_RegisterCallback(LedSpiPeripherie, HAL_SPI_TX_COMPLETE_CB_ID,
         [](SPI_HandleTypeDef *){ getApplicationInstance().lightController.notifySpiIsFinished(); });
     
 

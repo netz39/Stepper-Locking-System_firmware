@@ -49,7 +49,9 @@ public:
     MotorController motorController{settingsContainer, analogDigital, hallEncoder, uartAccessorTmc};
     StateMachine stateMachine{tactileSwitches, motorController};
 
-    LightController lightController{settingsContainer, stateMachine, motorController};
+    static constexpr auto LedSpiPeripherie = &hspi1;
+    LightController lightController{LedSpiPeripherie, settingsContainer, stateMachine,
+                                    motorController};
 
 private:
     static inline Application *instance{nullptr};

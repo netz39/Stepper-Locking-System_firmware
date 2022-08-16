@@ -44,6 +44,7 @@ set(Sources
 
         src/analog_to_digital/AnalogDigital.cxx
         src/hall_encoder/HallEncoder.cxx
+        src/LED/AddressableLedDriver.cxx
         src/LED/LightController.cxx
         src/motor_control/MotorController.cxx
         src/motor_control/TMC2209.cxx

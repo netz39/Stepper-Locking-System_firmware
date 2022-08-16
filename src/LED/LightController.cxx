@@ -24,7 +24,7 @@ using util::wrappers::NotifyAction;
         statusLed.updateState(xTaskGetTickCount());
 
         targetAnimation->doAnimationStep();
-        sendBuffer();
+        ledDriver.sendBuffer(ledSegments1, ledSegments2);
 
         vTaskDelay(toOsTicks(targetAnimation->getDelay()));
     }
@@ -35,47 +35,6 @@ void LightController::onSettingsUpdate()
 {
     invertRotationDirection =
         settingsContainer.getValue<firmwareSettings::InvertRotationDirection, bool>();
-}
-
-//--------------------------------------------------------------------------------------------------
-inline void LightController::sendStartFrame()
-{
-    uint32_t startFrame = 0;
-
-    HAL_SPI_Transmit_DMA(&SpiDevice, reinterpret_cast<uint8_t *>(&startFrame), sizeof(startFrame)); // todo check hal errors
-    ulTaskNotifyTake(pdTRUE, portMAX_DELAY); //todo reasonable timeout instead of max_delay
-}
-
-//--------------------------------------------------------------------------------------------------
-inline void LightController::convertToGammaCorrectedColors(LedSegmentArray &source,
-                                                           LedSpiDataArray &destination)
-{
-    for (size_t i = 0; i < destination.size(); i++)
-        destination[i].assignGammaCorrectedColor(source[i]);
-}
-
-//--------------------------------------------------------------------------------------------------
-void LightController::sendBuffer()
-{
-    convertToGammaCorrectedColors(ledSegments1, ledSpiData1);
-    convertToGammaCorrectedColors(ledSegments2, ledSpiData2);
-
-    // see following links or details
-    // https://cpldcpu.wordpress.com/2014/11/30/understanding-the-apa102-superled/
-    // https://cpldcpu.wordpress.com/2016/12/13/sk9822-a-clone-of-the-apa102/
-
-    sendStartFrame();
-
-    HAL_SPI_Transmit_DMA(&SpiDevice, reinterpret_cast<uint8_t *>(ledSpiData1.data()),
-                         ledSpiData1.size() * sizeof(LedSpiData)); // todo check hal errors
-    ulTaskNotifyTake(pdTRUE, portMAX_DELAY); //todo reasonable timeout instead of max_delay
-
-    HAL_SPI_Transmit_DMA(&SpiDevice, reinterpret_cast<uint8_t *>(ledSpiData2.data()),
-                         ledSpiData2.size() * sizeof(LedSpiData)); // todo check hal errors
-    ulTaskNotifyTake(pdTRUE, portMAX_DELAY); //todo reasonable timeout instead of max_delay
-
-    HAL_SPI_Transmit_DMA(&SpiDevice, endFrames.data(), NumberOfEndFrames); // todo check hal errors
-    ulTaskNotifyTake(pdTRUE, portMAX_DELAY); //todo reasonable timeout instead of max_delay
 }
 
 //--------------------------------------------------------------------------------------------------
