@@ -51,13 +51,6 @@ public:
 
     LightController lightController{settingsContainer, stateMachine, motorController};
 
-    static void adcConversionCompleteCallback(ADC_HandleTypeDef *);
-    static void ledSpiCallback(SPI_HandleTypeDef *);
-    static void i2cMasterCmpltCallback(I2C_HandleTypeDef *);
-    static void i2cErrorCallback(I2C_HandleTypeDef *);
-    static void uartTmcCmpltCallback(UART_HandleTypeDef *);
-    static void uartTmcErrorCallback(UART_HandleTypeDef *);
-
 private:
     static inline Application *instance{nullptr};
 };

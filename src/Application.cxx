@@ -7,30 +7,56 @@
 
 #include <memory>
 
+extern "C" void StartDefaultTask(void *) // NOLINT
+{
+    static auto app = std::make_unique<Application>();
+    app->run();
+
+    SafeAssert(false); // this line should be never reached
+}
+
+//--------------------------------------------------------------------------------------------------
 Application::Application()
 {
     // Delegated Singleton, see getApplicationInstance() for further explanations
     SafeAssert(instance == nullptr);
     instance = this;
 
-    // todo replace all explicit function pointers with capture-less
-    // lambdas [](...HandleTypeDef*){} for better code quality
-    HAL_ADC_RegisterCallback(AdcPeripherie, HAL_ADC_CONVERSION_COMPLETE_CB_ID,
-                             &adcConversionCompleteCallback); // todo check hal errors
+    HAL_StatusTypeDef result = HAL_OK;
+
+    // use capture-less lambdas [](...HandleTypeDef*){} as callbacks
+
+    // clang-format off
+    result = HAL_ADC_RegisterCallback(AdcPeripherie, HAL_ADC_CONVERSION_COMPLETE_CB_ID,
+        [](ADC_HandleTypeDef *){ getApplicationInstance().analogDigital.conversionCompleteCallback(); });
 
     // SPI callback for addressable LEDs
-    HAL_SPI_RegisterCallback(&lightController.getSPIPeripheral(), HAL_SPI_TX_COMPLETE_CB_ID,
-                             &ledSpiCallback); // todo check hal errors
+    result = HAL_SPI_RegisterCallback(&lightController.getSPIPeripheral(), HAL_SPI_TX_COMPLETE_CB_ID,
+        [](SPI_HandleTypeDef *){ getApplicationInstance().lightController.notifySpiIsFinished(); });
+    
 
     // EEPROM callbacks
-    HAL_I2C_RegisterCallback(EepromBus, HAL_I2C_MASTER_TX_COMPLETE_CB_ID, &i2cMasterCmpltCallback); // todo check hal errors
-    HAL_I2C_RegisterCallback(EepromBus, HAL_I2C_MASTER_RX_COMPLETE_CB_ID, &i2cMasterCmpltCallback); // todo check hal errors
-    HAL_I2C_RegisterCallback(EepromBus, HAL_I2C_ERROR_CB_ID, &i2cErrorCallback); // todo check hal errors
+    result = HAL_I2C_RegisterCallback(EepromBus, HAL_I2C_MASTER_TX_COMPLETE_CB_ID, 
+        [](I2C_HandleTypeDef *){ getApplicationInstance().eepromBusAccessor.signalTransferCompleteFromIsr(); });
+
+    result = HAL_I2C_RegisterCallback(EepromBus, HAL_I2C_MASTER_RX_COMPLETE_CB_ID,
+        [](I2C_HandleTypeDef *){ getApplicationInstance().eepromBusAccessor.signalTransferCompleteFromIsr(); });
+
+    result = HAL_I2C_RegisterCallback(EepromBus, HAL_I2C_ERROR_CB_ID, 
+        [](I2C_HandleTypeDef *){ getApplicationInstance().eepromBusAccessor.signalErrorFromIsr(); });
 
     // TMC UART callbacks
-    HAL_UART_RegisterCallback(TmcUartPeripherie, HAL_UART_TX_COMPLETE_CB_ID, &uartTmcCmpltCallback); // todo check hal errors
-    HAL_UART_RegisterCallback(TmcUartPeripherie, HAL_UART_RX_COMPLETE_CB_ID, &uartTmcCmpltCallback); // todo check hal errors
-    HAL_UART_RegisterCallback(TmcUartPeripherie, HAL_UART_ERROR_CB_ID, &uartTmcErrorCallback); // todo check hal errors
+    result = HAL_UART_RegisterCallback(TmcUartPeripherie, HAL_UART_TX_COMPLETE_CB_ID,
+        [](UART_HandleTypeDef *){ getApplicationInstance().uartAccessorTmc.signalTransferCompleteFromIsr(); });
+
+    result = HAL_UART_RegisterCallback(TmcUartPeripherie, HAL_UART_RX_COMPLETE_CB_ID,
+        [](UART_HandleTypeDef *){ getApplicationInstance().uartAccessorTmc.signalTransferCompleteFromIsr(); });
+
+    result = HAL_UART_RegisterCallback(TmcUartPeripherie, HAL_UART_ERROR_CB_ID, 
+        [](UART_HandleTypeDef *){ getApplicationInstance().uartAccessorTmc.signalErrorFromIsr(); });
+    // clang-format on
+
+    SafeAssert(result == HAL_OK);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -49,57 +75,4 @@ Application &Application::getApplicationInstance()
     // Not constructing Application in this singleton, to avoid bugs where something tries to
     // access this function, while application constructs which will cause infinite recursion
     return *instance;
-}
-
-//--------------------------------------------------------------------------------------------------
-void Application::adcConversionCompleteCallback(ADC_HandleTypeDef *)
-{
-    getApplicationInstance().analogDigital.conversionCompleteCallback();
-}
-
-//--------------------------------------------------------------------------------------------------
-void Application::ledSpiCallback(SPI_HandleTypeDef *)
-{
-    getApplicationInstance().lightController.notifySpiIsFinished();
-}
-
-//--------------------------------------------------------------------------------------------------
-void Application::i2cMasterCmpltCallback(I2C_HandleTypeDef *)
-{
-    auto higherPrioTaskWoken = pdFALSE;
-    getApplicationInstance().eepromBusAccessor.signalTransferCompleteFromIsr(&higherPrioTaskWoken);
-    portYIELD_FROM_ISR(higherPrioTaskWoken);
-}
-
-//--------------------------------------------------------------------------------------------------
-void Application::i2cErrorCallback(I2C_HandleTypeDef *)
-{
-    auto higherPrioTaskWoken = pdFALSE;
-    getApplicationInstance().eepromBusAccessor.signalErrorFromIsr(&higherPrioTaskWoken);
-    portYIELD_FROM_ISR(higherPrioTaskWoken);
-}
-
-//--------------------------------------------------------------------------------------------------
-void Application::uartTmcCmpltCallback(UART_HandleTypeDef *)
-{
-    auto higherPrioTaskWoken = pdFALSE;
-    getApplicationInstance().uartAccessorTmc.signalTransferCompleteFromIsr(&higherPrioTaskWoken);
-    portYIELD_FROM_ISR(higherPrioTaskWoken);
-}
-
-//--------------------------------------------------------------------------------------------------
-void Application::uartTmcErrorCallback(UART_HandleTypeDef *)
-{
-    auto higherPrioTaskWoken = pdFALSE;
-    getApplicationInstance().uartAccessorTmc.signalErrorFromIsr(&higherPrioTaskWoken);
-    portYIELD_FROM_ISR(higherPrioTaskWoken);
-}
-
-//--------------------------------------------------------------------------------------------------
-extern "C" void StartDefaultTask(void *) // NOLINT
-{
-    static auto app = std::make_unique<Application>();
-    app->run();
-
-    __asm("bkpt"); // this line should be never reached
 }
