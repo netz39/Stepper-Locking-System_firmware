@@ -2,6 +2,7 @@
 
 #include "LedDataTypes.hpp"
 #include "core/SafeAssert.h"
+#include "units/si/time.hpp"
 
 #include "stm32g0xx_hal.h"
 
@@ -9,7 +10,7 @@
 class AddressableLedDriver
 {
 public:
-    static constexpr auto TimeoutInMilliseconds = 2000;
+    static constexpr auto Timeout = 2.0_s;
 
     explicit AddressableLedDriver(SPI_HandleTypeDef *spiPeripherie) : spiPeripherie(spiPeripherie)
     {

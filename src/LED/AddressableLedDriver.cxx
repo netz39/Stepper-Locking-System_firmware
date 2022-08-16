@@ -1,6 +1,7 @@
 #include "AddressableLedDriver.hpp"
 
 #include "FreeRTOS.h"
+#include "helpers/freertos.hpp"
 #include "task.h"
 
 // see following links for implementation details
@@ -16,7 +17,7 @@ inline void AddressableLedDriver::sendStartFrame()
         HAL_SPI_Transmit_DMA(spiPeripherie, reinterpret_cast<uint8_t *>(&startFrame),
                              sizeof(startFrame));
 
-    ulTaskNotifyTake(pdTRUE, TimeoutInMilliseconds);
+    ulTaskNotifyTake(pdTRUE, toOsTicks(Timeout));
 
     if (result != HAL_OK)
     {
@@ -45,14 +46,14 @@ void AddressableLedDriver::sendBuffer(LedSegmentArray &firstArray, LedSegmentArr
 
     result = HAL_SPI_Transmit_DMA(spiPeripherie, reinterpret_cast<uint8_t *>(ledSpiData1.data()),
                                   ledSpiData1.size() * sizeof(LedSpiData));
-    ulTaskNotifyTake(pdTRUE, TimeoutInMilliseconds);
+    ulTaskNotifyTake(pdTRUE, toOsTicks(Timeout));
 
     result = HAL_SPI_Transmit_DMA(spiPeripherie, reinterpret_cast<uint8_t *>(ledSpiData2.data()),
                                   ledSpiData2.size() * sizeof(LedSpiData));
-    ulTaskNotifyTake(pdTRUE, TimeoutInMilliseconds);
+    ulTaskNotifyTake(pdTRUE, toOsTicks(Timeout));
 
     result = HAL_SPI_Transmit_DMA(spiPeripherie, endFrames.data(), NumberOfEndFrames);
-    ulTaskNotifyTake(pdTRUE, TimeoutInMilliseconds);
+    ulTaskNotifyTake(pdTRUE, toOsTicks(Timeout));
     if (result != HAL_OK)
     {
         // ToDo: report error in a such way

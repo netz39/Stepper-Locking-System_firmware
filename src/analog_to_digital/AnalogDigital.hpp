@@ -16,7 +16,7 @@
 class AnalogDigital : public util::wrappers::TaskWithMemberFunctionBase
 {
 public:
-    static constexpr auto TimeoutInMilliseconds = 2000;
+    static constexpr auto Timeout = 2.0_s;
 
     explicit AnalogDigital(ADC_HandleTypeDef *peripherie)
         : TaskWithMemberFunctionBase("adcTask", 1024, osPriorityLow6), peripherie(peripherie)

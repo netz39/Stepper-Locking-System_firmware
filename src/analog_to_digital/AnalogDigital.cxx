@@ -48,7 +48,7 @@ void AnalogDigital::conversionCompleteCallback()
 //----------------------------------------------------------------------------------------------
 void AnalogDigital::waitUntilConversionFinished()
 {
-    Task::notifyTake(pdMS_TO_TICKS(TimeoutInMilliseconds));
+    Task::notifyTake(toOsTicks(Timeout));
 }
 
 //----------------------------------------------------------------------------------------------
