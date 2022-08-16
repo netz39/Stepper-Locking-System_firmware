@@ -1,10 +1,5 @@
 #pragma once
 
-// todo handles should be inserted via constructor to make class testable
-#include "main.h"
-#include "spi.h"
-#include "tim.h"
-
 #include "AddressableLedDriver.hpp"
 #include "state_machine/StateMachine.hpp"
 #include "util/PwmLed.hpp"
@@ -18,19 +13,17 @@
 class LightController : public util::wrappers::TaskWithMemberFunctionBase, SettingsUser
 {
 public:
-    LightController(SPI_HandleTypeDef *SpiDevice,
+    LightController(SPI_HandleTypeDef *SpiDevice, util::pwm_led::DualLed<uint8_t> &statusLed,
                     const firmwareSettings::Container &settingsContainer,
                     const StateMachine &stateMachine, const MotorController &motorController)
         : TaskWithMemberFunctionBase("lightControllerTask", 512, osPriorityLow4),
           ledDriver(SpiDevice),                 //
+          statusLed(statusLed),                 //
           settingsContainer(settingsContainer), //
           stateMachine(stateMachine),           //
           motorController(motorController){};
 
     ~LightController() override = default;
-
-    static constexpr util::PwmOutput8Bit RedChannel{&htim2, TIM_CHANNEL_1}; // todo handle should be given via constructor
-    static constexpr util::PwmOutput8Bit GreenChannel{&htim3, TIM_CHANNEL_1}; // todo handle should be given via constructor
 
     void notifySpiIsFinished();
 
@@ -39,11 +32,11 @@ protected:
     void onSettingsUpdate() override;
 
 private:
-    util::pwm_led::DualLed<uint8_t> statusLed{RedChannel, GreenChannel};
-
     AddressableLedDriver ledDriver;
     LedSegmentArray ledSegments1{};
     LedSegmentArray ledSegments2{};
+
+    util::pwm_led::DualLed<uint8_t> &statusLed;
 
     bool invertRotationDirection = false;
 

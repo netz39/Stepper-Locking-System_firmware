@@ -7,6 +7,8 @@
 #include "adc.h"
 #include "i2c-drivers/rtos_accessor.hpp"
 #include "i2c.h"
+#include "spi.h"
+#include "tim.h"
 
 #include "LED/LightController.hpp"
 #include "analog_to_digital/AnalogDigital.hpp"
@@ -49,8 +51,12 @@ public:
     MotorController motorController{settingsContainer, analogDigital, hallEncoder, uartAccessorTmc};
     StateMachine stateMachine{tactileSwitches, motorController};
 
+    static constexpr util::PwmOutput8Bit RedChannel{&htim2, TIM_CHANNEL_1};
+    static constexpr util::PwmOutput8Bit GreenChannel{&htim3, TIM_CHANNEL_1};
+    util::pwm_led::DualLed<uint8_t> statusLed{RedChannel, GreenChannel};
     static constexpr auto LedSpiPeripherie = &hspi1;
-    LightController lightController{LedSpiPeripherie, settingsContainer, stateMachine,
+
+    LightController lightController{LedSpiPeripherie, statusLed, settingsContainer, stateMachine,
                                     motorController};
 
 private:

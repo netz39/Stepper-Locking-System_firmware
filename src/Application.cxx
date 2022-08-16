@@ -57,6 +57,9 @@ Application::Application()
     // clang-format on
 
     SafeAssert(result == HAL_OK);
+
+    RedChannel.startPwmTimer();
+    GreenChannel.startPwmTimer();
 }
 
 //--------------------------------------------------------------------------------------------------

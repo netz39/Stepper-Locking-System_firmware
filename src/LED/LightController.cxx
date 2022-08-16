@@ -13,9 +13,6 @@ using util::wrappers::NotifyAction;
 
 [[noreturn]] void LightController::taskMain()
 {
-    RedChannel.startPwmTimer();
-    GreenChannel.startPwmTimer();
-
     sync::waitForAll(sync::StateMachineStarted);
 
     while (true)
