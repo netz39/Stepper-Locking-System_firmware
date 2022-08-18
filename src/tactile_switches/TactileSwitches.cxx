@@ -11,6 +11,9 @@
         closeButton.update(ButtonSamplingInterval);
         doorSwitch.update(ButtonSamplingInterval);
         lockSwitch.update(ButtonSamplingInterval);
+
+        forceOpen.update(ButtonSamplingInterval);
+        forceClose.update(ButtonSamplingInterval);
         vTaskDelayUntil(&lastWakeTime, toOsTicks(ButtonSamplingInterval));
     }
 }

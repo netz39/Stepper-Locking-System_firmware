@@ -28,10 +28,10 @@ public:
     util::Button lockSwitch{{LockState_GPIO_Port, LockState_Pin}, 30.0_ms, true};
 
     // force open wire will pulled down when the door should open
-    util::Button forceOpen{{ForceOpenInput_GPIO_Port, ForceOpenInput_Pin}, 250.0_ms, false};
+    util::Button forceOpen{{ForceOpenInput_GPIO_Port, ForceOpenInput_Pin}, 100.0_ms, false};
 
     // force close wire will pulled down when the door should close
-    util::Button forceClose{{ForceCloseInput_GPIO_Port, ForceCloseInput_Pin}, 250.0_ms, false};
+    util::Button forceClose{{ForceCloseInput_GPIO_Port, ForceCloseInput_Pin}, 100.0_ms, false};
 
 protected:
     [[noreturn]] void taskMain() override;

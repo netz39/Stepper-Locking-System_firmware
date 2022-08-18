@@ -1,6 +1,6 @@
 #include "StateMachine.hpp"
-#include "sync.hpp"
 #include "main.h"
+#include "sync.hpp"
 
 #include <climits>
 
@@ -440,21 +440,21 @@ void StateMachine::motorControllerFinishedCallback(const MotorController::Failur
 //--------------------------------------------------------------------------------------------------
 void StateMachine::forceOpenCallback(const util::Button::Action action)
 {
-    if (action == util::Button::Action::ShortPress)
+    if (action == util::Button::Action::ShortPress || action == util::Button::Action::LongPress)
     {
         stopTimer();
-        openButtonCallback(action);
         isForceOpen = true;
-    }
+        openButtonCallback(action);
+        }
 }
 
 //--------------------------------------------------------------------------------------------------
 void StateMachine::forceCloseCallback(const util::Button::Action action)
 {
-    if (action == util::Button::Action::ShortPress)
+    if (action == util::Button::Action::ShortPress || action == util::Button::Action::LongPress)
     {
         stopTimer();
-        closeButtonCallback(action);
         isForceOpen = false;
+        closeButtonCallback(action);
     }
 }
