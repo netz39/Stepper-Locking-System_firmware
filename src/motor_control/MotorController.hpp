@@ -33,11 +33,11 @@ public:
 
     MotorController(const firmwareSettings::Container &settingsContainer, const AnalogDigital &adc,
                     HallEncoder &hallEncoder, UartAccessor &uartAccessorTmc)
-        : TaskWithMemberFunctionBase("motorControllerTask", 256, osPriorityAboveNormal3), //
-          settingsContainer(settingsContainer),                                           //
-          adc(adc),                                                                       //
-          hallEncoder(hallEncoder),                                                       //
-          uartAccessorTmc{uartAccessorTmc}                                                //
+        : TaskWithMemberFunctionBase("motorControllerTask", 256, osPriorityHigh3), //
+          settingsContainer(settingsContainer),                                    //
+          adc(adc),                                                                //
+          hallEncoder(hallEncoder),                                                //
+          uartAccessorTmc{uartAccessorTmc}                                         //
     {
         stepControl.setCallback(std::bind(&MotorController::invokeFinishedCallback, this));
     }

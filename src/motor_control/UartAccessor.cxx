@@ -23,6 +23,9 @@ bool UartAccessor::receive(uint8_t *buffer, uint16_t length)
 
     errorCondition = errorCondition || (binary.take(toOsTicks(Timeout)) == pdFALSE);
 
+    if (errorCondition)
+        HAL_UART_AbortReceive(uartHandle);
+
     bool returnValue = errorCondition;
     errorCondition = false;
     return !returnValue;
