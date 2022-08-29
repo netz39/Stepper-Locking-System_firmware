@@ -16,20 +16,23 @@ using util::wrappers::NotifyAction;
 
     while (true)
     {
-        vTaskDelayUntil(&lastWakeTime, toOsTicks(100.0_Hz));
+        vTaskDelayUntil(&lastWakeTime, toOsTicks(50.0_Hz));
 
         [[maybe_unused]] const auto MotorLoad = tmc2209.getSGResult().sgResultValue;
         if (tmc2209.isCommFailure())
         {
-            hadTmcFailure = true;
-            signalFailure(FailureType::StepperDriverNoAnswer);
-            continue;
+            if (uartFailureCounter++ >= UartFailueCounterThreshold)
+            {
+                hadTmcFailure = true;
+                signalFailure(FailureType::StepperDriverNoAnswer);
+                continue;
+            }
         }
-
-        if (hadTmcFailure)
+        else if (hadTmcFailure)
         {
             // TMC is reachable again, send sucess signal
             hadTmcFailure = false;
+            uartFailureCounter = 0;
             signalSuccess();
         }
 
@@ -37,7 +40,14 @@ using util::wrappers::NotifyAction;
         {
             // send warning, but door can open/close normally
             hadHallEncoderFailure = true;
-            signalFailure(FailureType::HallEncoderNoAnswer);
+
+            if (isCalibrating)
+                abortCalibration();
+
+            if (isCalibrated)
+                signalFailure(FailureType::HallEncoderNoAnswer);
+            else
+                signalFailure(FailureType::CalibrationFailed);
         }
         else if (hadHallEncoderFailure)
         {
@@ -52,8 +62,7 @@ using util::wrappers::NotifyAction;
             if (!stepControl.isRunning())
             {
                 // calibration was not successful
-                isCalibrating = false;
-                disableCalibrationMode();
+                abortCalibration();
                 signalFailure(FailureType::CalibrationFailed);
             }
 
@@ -100,13 +109,17 @@ using util::wrappers::NotifyAction;
             }
         }
 
+        /*
         if (isOpening || isClosing)
         {
             snprintf(buffer, BufferSize, "%ld, %ld, %d\n", stepperMotor.getPosition(),
                      hallEncoder.getPosition(), hallEncoder.getRawPosition());
+
+            static constexpr auto DebugUartPeripherie = &huart1;
             HAL_UART_Transmit(DebugUartPeripherie, reinterpret_cast<uint8_t *>(buffer),
-                              strlen(buffer), 1000); // todo check hal errors
+                              strlen(buffer), 1000);
         }
+        */
 
         checkMotorTemperature();
     }
@@ -224,6 +237,9 @@ void MotorController::disableManualMode()
 void MotorController::revokeCalibration()
 {
     isCalibrated = false;
+
+    if (isCalibrating)
+        abortCalibration();
 }
 
 //--------------------------------------------------------------------------------------------------

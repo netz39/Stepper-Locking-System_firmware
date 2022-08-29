@@ -4,8 +4,11 @@
 // If you need access to a class contained in Application, just get yourself a reference to it
 // via your classes' constructor.
 
+#include "adc.h"
 #include "i2c-drivers/rtos_accessor.hpp"
 #include "i2c.h"
+#include "spi.h"
+#include "tim.h"
 
 #include "LED/LightController.hpp"
 #include "analog_to_digital/AnalogDigital.hpp"
@@ -40,24 +43,25 @@ public:
     uint32_t overheatedCounter = 0;
     uint32_t warningTempCounter = 0;
 
-    AnalogDigital analogDigital;
+    static constexpr auto AdcPeripherie = &hadc1;
+    AnalogDigital analogDigital{AdcPeripherie};
     HallEncoder hallEncoder{settingsContainer, eepromBusAccessor};
 
     TactileSwitches tactileSwitches;
     MotorController motorController{settingsContainer, analogDigital, hallEncoder, uartAccessorTmc};
     StateMachine stateMachine{tactileSwitches, motorController, &timeoutCallback};
 
-    LightController lightController{settingsContainer, stateMachine, motorController};
 
-    static void adcConversionCompleteCallback(ADC_HandleTypeDef *);
-    static void ledSpiCallback(SPI_HandleTypeDef *);
-    static void i2cMasterCmpltCallback(I2C_HandleTypeDef *);
-    static void i2cErrorCallback(I2C_HandleTypeDef *);
-    static void uartTmcCmpltCallback(UART_HandleTypeDef *);
-    static void uartTmcErrorCallback(UART_HandleTypeDef *);
+    static constexpr util::PwmOutput8Bit RedChannel{&htim2, TIM_CHANNEL_1};
+    static constexpr util::PwmOutput8Bit GreenChannel{&htim3, TIM_CHANNEL_1};
+    util::pwm_led::DualLed<uint8_t> statusLed{RedChannel, GreenChannel};
+    static constexpr auto LedSpiPeripherie = &hspi1;
+
+    LightController lightController{LedSpiPeripherie, statusLed, settingsContainer, stateMachine,
+                                    motorController};
 
     static void timeoutCallback(TimerHandle_t timer);
 
 private:
-    static inline Application* instance{nullptr};
+    static inline Application *instance{nullptr};
 };

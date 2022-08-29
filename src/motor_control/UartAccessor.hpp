@@ -1,7 +1,7 @@
 #pragma once
 
-#include <wrappers/Mutex.hpp>
 #include <wrappers/BinarySemaphore.hpp>
+#include <wrappers/Mutex.hpp>
 
 #include "units/si/time.hpp"
 #include "usart.h"
@@ -9,8 +9,7 @@
 class UartAccessor
 {
 public:
-    explicit UartAccessor(UART_HandleTypeDef *huart) : uartHandle{huart}
-    {};
+    explicit UartAccessor(UART_HandleTypeDef *huart) : uartHandle{huart} {};
 
     void beginTransaction();
     void endTransaction();
@@ -21,14 +20,14 @@ public:
     bool receive(uint8_t *buffer, uint16_t length);
     bool transmit(const uint8_t *data, uint16_t length);
 
-    void signalTransferCompleteFromIsr(BaseType_t *higherPrioTaskWoken = nullptr);
-    void signalErrorFromIsr(BaseType_t *higherPrioTaskWoken = nullptr);
+    void signalTransferCompleteFromIsr();
+    void signalErrorFromIsr();
 
     static constexpr units::si::Time Timeout = 500.0_ms;
 
 private:
     UART_HandleTypeDef *uartHandle = nullptr;
-    util::wrappers::Mutex mutex;
-    util::wrappers::BinarySemaphore binary;
-    bool errorCondition = false;
+    util::wrappers::Mutex mutex{};
+    util::wrappers::BinarySemaphore binary{};
+    volatile bool errorCondition = false;
 };
