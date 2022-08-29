@@ -18,7 +18,6 @@
 #include "TeensyStep.h"
 #include "analog_to_digital/AnalogDigital.hpp"
 
-
 /// This class is used to control the stepper motor.
 /// It contains a wrapper of the needed functions of the stepper library as well as additional
 /// functions to monitor the stepper´s state.
@@ -40,9 +39,9 @@ public:
 
     MotorController(const firmwareSettings::Container &settingsContainer, const AnalogDigital &adc,
                     HallEncoder &hallEncoder, UartAccessor &uartAccessorTmc)
-        : TaskWithMemberFunctionBase("motorControllerTask", 128, osPriorityAboveNormal3), //
+        : TaskWithMemberFunctionBase("motorControllerTask", 256, osPriorityAboveNormal3), //
           settingsContainer(settingsContainer),                                           //
-          adc(adc),                                             //
+          adc(adc),                                                                       //
           hallEncoder(hallEncoder),                                                       //
           uartAccessorTmc{uartAccessorTmc}                                                //
     {
@@ -129,6 +128,7 @@ public:
     static constexpr auto StepLossEventCounterThreshold = 64;
     static constexpr auto StepLossEventAtCalibrationCounterThreshold = 16;
     static constexpr auto ExternalMotorMoveEventCounterThreshold = 4;
+    static constexpr auto UartFailueCounterThreshold = 5;
 
     static constexpr auto WarningMotorTemp = 70.0_degC;
     static constexpr auto CriticalMotorTemp = 85.0_degC;
@@ -177,6 +177,7 @@ private:
     uint32_t calibrationAcc = 0;
 
     uint32_t eventCounter = 0;
+    uint32_t uartFailureCounter = 0;
 
     /// Moves the motor asynchronously.
     /// @param microSteps moves the motor the given microSteps.

@@ -21,15 +21,18 @@ using util::wrappers::NotifyAction;
         [[maybe_unused]] const auto MotorLoad = tmc2209.getSGResult().sgResultValue;
         if (tmc2209.isCommFailure())
         {
-            hadTmcFailure = true;
-            signalFailure(FailureType::StepperDriverNoAnswer);
-            continue;
+            if (uartFailureCounter++ >= UartFailueCounterThreshold)
+            {
+                hadTmcFailure = true;
+                signalFailure(FailureType::StepperDriverNoAnswer);
+                continue;
+            }
         }
-
-        if (hadTmcFailure)
+        else if (hadTmcFailure)
         {
             // TMC is reachable again, send sucess signal
             hadTmcFailure = false;
+            uartFailureCounter = 0;
             signalSuccess();
         }
 
@@ -37,7 +40,14 @@ using util::wrappers::NotifyAction;
         {
             // send warning, but door can open/close normally
             hadHallEncoderFailure = true;
-            signalFailure(FailureType::HallEncoderNoAnswer);
+
+            if (isCalibrating)
+                abortCalibration();
+
+            if (isCalibrated)
+                signalFailure(FailureType::HallEncoderNoAnswer);
+            else
+                signalFailure(FailureType::CalibrationFailed);
         }
         else if (hadHallEncoderFailure)
         {
@@ -52,8 +62,7 @@ using util::wrappers::NotifyAction;
             if (!stepControl.isRunning())
             {
                 // calibration was not successful
-                isCalibrating = false;
-                disableCalibrationMode();
+                abortCalibration();
                 signalFailure(FailureType::CalibrationFailed);
             }
 
@@ -224,6 +233,9 @@ void MotorController::disableManualMode()
 void MotorController::revokeCalibration()
 {
     isCalibrated = false;
+
+    if (isCalibrating)
+        abortCalibration();
 }
 
 //--------------------------------------------------------------------------------------------------
