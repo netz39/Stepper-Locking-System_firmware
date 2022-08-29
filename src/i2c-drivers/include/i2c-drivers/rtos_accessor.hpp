@@ -20,14 +20,13 @@ public:
     bool read(uint8_t *buffer, uint16_t length, int flags) override;
     bool write(const uint8_t *data, uint16_t length, int flags) override;
 
-    void signalTransferCompleteFromIsr(BaseType_t *higherPrioTaskWoken = nullptr);
-    void signalErrorFromIsr(BaseType_t *higherPrioTaskWoken = nullptr);
+    void signalTransferCompleteFromIsr();
+    void signalErrorFromIsr();
 
     [[nodiscard]] I2C_HandleTypeDef *getHandle() const
     {
         return i2cHandle;
     }
-
 
     // Case-study AS5600L encoder
     // somehow it is possible to get the chip into an invalid internal state which causes it
@@ -43,19 +42,19 @@ private:
     util::wrappers::BinarySemaphore binary;
     volatile bool _errorCondition{false};
 
-    static constexpr uint32_t getXferOptionsFromFlags(const int flags) {
-        uint32_t options = 0;
+    static constexpr uint32_t getXferOptionsFromFlags(const int flags)
+    {
+        if ((flags & i2c::FirstFrame) && (flags & i2c::LastFrame))
+            return I2C_FIRST_AND_LAST_FRAME;
 
-        if ((flags & i2c::FirstFrame) && (flags & i2c::LastFrame)) {
-            options = I2C_FIRST_AND_LAST_FRAME;
-        } else if (flags & i2c::FirstFrame) {
-            options = I2C_FIRST_FRAME;
-        } else if (flags & i2c::LastFrame) {
-            options = I2C_LAST_FRAME;
-        } else {
-            options = I2C_NEXT_FRAME;
-        }
-        return options;
+        else if (flags & i2c::FirstFrame)
+            return I2C_FIRST_FRAME;
+
+        else if (flags & i2c::LastFrame)
+            return I2C_LAST_FRAME;
+
+        else
+            return I2C_NEXT_FRAME;
     }
 };
 } // namespace i2c

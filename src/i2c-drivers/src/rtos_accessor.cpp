@@ -66,15 +66,19 @@ bool RtosAccessor::write(const uint8_t *data, uint16_t length, int flags)
     return !errCnd;
 }
 
-void RtosAccessor::signalTransferCompleteFromIsr(BaseType_t *higherPrioTaskWoken)
+void RtosAccessor::signalTransferCompleteFromIsr()
 {
+    auto higherPrioTaskWoken = pdFALSE;
     _errorCondition = false;
-    binary.giveFromISR(higherPrioTaskWoken);
+    binary.giveFromISR(&higherPrioTaskWoken);
+    portYIELD_FROM_ISR(higherPrioTaskWoken);
 }
 
-void RtosAccessor::signalErrorFromIsr(BaseType_t *higherPrioTaskWoken)
+void RtosAccessor::signalErrorFromIsr()
 {
+    auto higherPrioTaskWoken = pdFALSE;
     _errorCondition = true;
-    binary.giveFromISR(higherPrioTaskWoken);
+    binary.giveFromISR(&higherPrioTaskWoken);
+    portYIELD_FROM_ISR(higherPrioTaskWoken);
 }
 } // namespace i2c

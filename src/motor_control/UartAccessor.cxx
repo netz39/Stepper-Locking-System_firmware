@@ -18,9 +18,10 @@ bool UartAccessor::receive(uint8_t *buffer, uint16_t length)
     errorCondition = false;
 
     portENTER_CRITICAL();
-    HAL_UART_Receive_DMA(uartHandle, buffer, length); // todo check hal errors
+    errorCondition = HAL_UART_Receive_DMA(uartHandle, buffer, length) != HAL_OK;
     portEXIT_CRITICAL();
-    errorCondition = (binary.take(toOsTicks(Timeout)) == pdFALSE);
+
+    errorCondition = errorCondition || (binary.take(toOsTicks(Timeout)) == pdFALSE);
 
     bool returnValue = errorCondition;
     errorCondition = false;
@@ -33,9 +34,11 @@ bool UartAccessor::transmit(const uint8_t *data, uint16_t length)
     errorCondition = false;
 
     portENTER_CRITICAL();
-    HAL_UART_Transmit_DMA(uartHandle, const_cast<uint8_t *>(data), length); // todo check hal errors
+    errorCondition =
+        HAL_UART_Transmit_DMA(uartHandle, const_cast<uint8_t *>(data), length) != HAL_OK;
     portEXIT_CRITICAL();
-    errorCondition = (binary.take(toOsTicks(Timeout)) == pdFALSE);
+
+    errorCondition = errorCondition || (binary.take(toOsTicks(Timeout)) == pdFALSE);
 
     bool returnValue = errorCondition;
     errorCondition = false;
@@ -43,17 +46,21 @@ bool UartAccessor::transmit(const uint8_t *data, uint16_t length)
 }
 
 //--------------------------------------------------------------------------------------------------
-void UartAccessor::signalTransferCompleteFromIsr(BaseType_t *higherPrioTaskWoken)
+void UartAccessor::signalTransferCompleteFromIsr()
 {
+    auto higherPrioTaskWoken = pdFALSE;
     errorCondition = false;
-    binary.giveFromISR(higherPrioTaskWoken);
+    binary.giveFromISR(&higherPrioTaskWoken);
+    portYIELD_FROM_ISR(higherPrioTaskWoken);
 }
 
 //--------------------------------------------------------------------------------------------------
-void UartAccessor::signalErrorFromIsr(BaseType_t *higherPrioTaskWoken)
+void UartAccessor::signalErrorFromIsr()
 {
+    auto higherPrioTaskWoken = pdFALSE;
     errorCondition = true;
-    binary.giveFromISR(higherPrioTaskWoken);
+    binary.giveFromISR(&higherPrioTaskWoken);
+    portYIELD_FROM_ISR(higherPrioTaskWoken);
 }
 
 //--------------------------------------------------------------------------------------------------

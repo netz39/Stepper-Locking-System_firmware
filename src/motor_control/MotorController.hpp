@@ -2,10 +2,6 @@
 
 #include <utility>
 
-// todo handles should be inserted via constructor to make class testable
-#include "main.h"
-#include "usart.h"
-
 #include "hall_encoder/HallEncoder.hpp"
 #include "helpers/freertos.hpp"
 #include "parameter_manager/SettingsUser.hpp"
@@ -24,8 +20,6 @@
 class MotorController : public util::wrappers::TaskWithMemberFunctionBase, SettingsUser
 {
 public:
-    static constexpr auto DebugUartPeripherie = &huart1;
-
     enum class FailureType
     {
         None,

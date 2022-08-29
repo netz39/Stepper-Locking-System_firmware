@@ -48,21 +48,20 @@ void AnalogDigital::conversionCompleteCallback()
 //----------------------------------------------------------------------------------------------
 void AnalogDigital::waitUntilConversionFinished()
 {
-    Task::notifyTake(portMAX_DELAY); //todo reasonable timeout instead of max_delay
+    Task::notifyTake(toOsTicks(Timeout));
 }
 
 //----------------------------------------------------------------------------------------------
 void AnalogDigital::calibrateAdc()
 {
-    if (HAL_ADCEx_Calibration_Start(AdcPeripherie) != HAL_OK)
-        __asm("bkpt");
+    SafeAssert(HAL_ADCEx_Calibration_Start(peripherie) == HAL_OK);
 }
 
 //----------------------------------------------------------------------------------------------
 void AnalogDigital::startConversion()
 {
-    HAL_ADC_Start_DMA(AdcPeripherie, reinterpret_cast<uint32_t *>(adcResults.data()),
-                      TotalChannelCount); // todo check hal errors
+    SafeAssert(HAL_ADC_Start_DMA(peripherie, reinterpret_cast<uint32_t *>(adcResults.data()),
+                                 TotalChannelCount) == HAL_OK);
 }
 
 //----------------------------------------------------------------------------------------------
@@ -80,8 +79,7 @@ Temperature AnalogDigital::calculateNtcTemperature(const Voltage dropVoltage)
     const auto NtcResistance =
         (referenceVoltage * NtcSecondResistor - dropVoltage * NtcSecondResistor) / dropVoltage;
 
-    const float LogValue =
-        logf((NtcResistance / NtcResistanceAtNominalTemperature).getMagnitude());
+    const float LogValue = logf((NtcResistance / NtcResistanceAtNominalTemperature).getMagnitude());
 
     return Temperature{
         1 / ((1_ / NtcNominalTemperature).getMagnitude() + (1 / NtcBetaValue) * LogValue)};

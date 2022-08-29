@@ -16,7 +16,7 @@ using util::wrappers::NotifyAction;
 
     while (true)
     {
-        vTaskDelayUntil(&lastWakeTime, toOsTicks(100.0_Hz));
+        vTaskDelayUntil(&lastWakeTime, toOsTicks(50.0_Hz));
 
         [[maybe_unused]] const auto MotorLoad = tmc2209.getSGResult().sgResultValue;
         if (tmc2209.isCommFailure())
@@ -109,13 +109,17 @@ using util::wrappers::NotifyAction;
             }
         }
 
+        /*
         if (isOpening || isClosing)
         {
             snprintf(buffer, BufferSize, "%ld, %ld, %d\n", stepperMotor.getPosition(),
                      hallEncoder.getPosition(), hallEncoder.getRawPosition());
+
+            static constexpr auto DebugUartPeripherie = &huart1;
             HAL_UART_Transmit(DebugUartPeripherie, reinterpret_cast<uint8_t *>(buffer),
-                              strlen(buffer), 1000); // todo check hal errors
+                              strlen(buffer), 1000);
         }
+        */
 
         checkMotorTemperature();
     }
