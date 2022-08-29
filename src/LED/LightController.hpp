@@ -5,6 +5,7 @@
 #include "spi.h"
 #include "tim.h"
 
+#include "GammaCorrection.hpp"
 #include "LedDataTypes.hpp"
 #include "state_machine/StateMachine.hpp"
 #include "util/PwmLed.hpp"
@@ -46,6 +47,22 @@ protected:
     void onSettingsUpdate() override;
 
 private:
+    struct LedSpiData
+    {
+        uint8_t Start = 0xFF; //!< the first byte contains control data like brightness
+        BgrColor color;
+
+        void assignGammaCorrectedColor(BgrColor newColor)
+        {
+            color.blue = GammaCorrectionLUT[newColor.blue];
+            color.green = GammaCorrectionLUT[newColor.green];
+            color.red = GammaCorrectionLUT[newColor.red];
+        }
+    };
+
+    /// array, in which its content is directly sended over SPI - contains control data
+    using LedSpiDataArray = std::array<LedSpiData, NumberOfLedsPerRing>;
+
     util::pwm_led::DualLed<uint8_t> statusLed{RedChannel, GreenChannel};
     SPI_HandleTypeDef & SpiDevice = hspi1; // todo handle should be given via constructor
 
