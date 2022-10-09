@@ -5,7 +5,7 @@ TMC2209::TMC2209(uint8_t slave, UartAccessor &uartAccessor)
 {
 }
 
-uint32_t TMC2209::readData(uint8_t regAddr)
+std::optional<uint32_t> TMC2209::readData(uint8_t regAddr)
 {
     ReadRequest rdReqData{};
     rdReqData.syncAddr = 0x05;
@@ -13,10 +13,9 @@ uint32_t TMC2209::readData(uint8_t regAddr)
     rdReqData.regAddr = regAddr;
     rdReqData.rw = 0;
     rdReqData.crc = 0;
-    calcCRC(reinterpret_cast<uint8_t *>(&rdReqData), sizeof(rdReqData));
+    addCRC(reinterpret_cast<uint8_t *>(&rdReqData), sizeof(rdReqData));
+
     ReadReqReply readReqReply{};
-    DataReverseUnion dataReverseUnion{};
-    DataReverse dataReverse{};
 
     uartAccessor.beginTransaction();
     uartAccessor.halfDuplexSwitchToTx();
@@ -25,27 +24,26 @@ uint32_t TMC2209::readData(uint8_t regAddr)
     {
         uartAccessor.endTransaction();
         commOk = false;
-        return dataReverseUnion.data;
+        return {};
     }
 
     uartAccessor.halfDuplexSwitchToRx();
-    if (!uartAccessor.receive(reinterpret_cast<uint8_t *>(&readReqReply), sizeof(readReqReply)))
-    {
-        uartAccessor.endTransaction();
-        commOk = false;
-        return dataReverseUnion.data;
-    }
+    commOk = uartAccessor.receive(reinterpret_cast<uint8_t *>(&readReqReply), sizeof(readReqReply));
     uartAccessor.endTransaction();
 
-    commOk = true;
+    if (!commOk)
+    {
+        return {};
+    }
 
-    ReadReply readReply1{};
-    readReply1 = readReqReply.readReply;
-    dataReverse.data4 =
-        (readReply1.data1); /* Reversing the bytes to get the Data in correct sequence */
-    dataReverse.data3 = (readReply1.data2);
-    dataReverse.data2 = (readReply1.data3);
-    dataReverse.data1 = (readReply1.data4);
+    // reversing the bytes to get the data in correct sequence
+    DataReverse dataReverse{};
+    dataReverse.data4 = readReqReply.readReply.data1;
+    dataReverse.data3 = readReqReply.readReply.data2;
+    dataReverse.data2 = readReqReply.readReply.data3;
+    dataReverse.data1 = readReqReply.readReply.data4;
+
+    DataReverseUnion dataReverseUnion{};
     dataReverseUnion.dataReverse = dataReverse;
     return dataReverseUnion.data;
 }
@@ -53,68 +51,97 @@ uint32_t TMC2209::readData(uint8_t regAddr)
 bool TMC2209::writeData(uint8_t regAddr, uint32_t data)
 {
     WriteData writeData{};
-    WriteDataBits writeDataBits{};
-    WriteAccess writeAccess{};
-    DataReverseUnion dataReverseUnion{};
-    DataReverse dataReverse{};
-    uint8_t initialCount = 0;
-    uint8_t finalCount = 0;
     writeData.data = data;
+
+    WriteDataBits writeDataBits{};
     writeDataBits = writeData.writeDataBits;
+
+    DataReverse dataReverse{};
     dataReverse.data4 = writeDataBits.data1;
     dataReverse.data3 = writeDataBits.data2;
     dataReverse.data2 = writeDataBits.data3;
     dataReverse.data1 = writeDataBits.data4;
+
+    DataReverseUnion dataReverseUnion{};
     dataReverseUnion.dataReverse = dataReverse;
+
+    WriteAccess writeAccess{};
     writeAccess.syncAddr = 0x05;
     writeAccess.slaveAddr = slaveaddress;
     writeAccess.regAddr = regAddr;
     writeAccess.rw = 1;
     writeAccess.data = dataReverseUnion.data;
     writeAccess.crc = 0;
+    addCRC(reinterpret_cast<uint8_t *>(&writeAccess), sizeof(writeAccess));
 
-    calcCRC(reinterpret_cast<uint8_t *>(&writeAccess), sizeof(writeAccess));
-    initialCount = getTransmissionCount();
+    auto initialCount = getTransmissionCount();
+    if (!initialCount.has_value())
+    {
+        // transmit failed
+        commOk = false;
+        return false;
+    }
 
     uartAccessor.beginTransaction();
     uartAccessor.halfDuplexSwitchToTx();
 
-    if (!uartAccessor.transmit(reinterpret_cast<uint8_t *>(&writeAccess), sizeof(writeAccess)))
+    bool success =
+        uartAccessor.transmit(reinterpret_cast<uint8_t *>(&writeAccess), sizeof(writeAccess));
+    uartAccessor.endTransaction();
+
+    if (!success)
     {
-        uartAccessor.endTransaction();
+        // transmit failed
         commOk = false;
         return false;
     }
-    uartAccessor.endTransaction();
 
-    finalCount = getTransmissionCount();
+    auto finalCount = getTransmissionCount();
+    if (!initialCount.has_value())
+    {
+        // transmit failed
+        commOk = false;
+        return false;
+    }
 
-    bool writeSuccessful = initialCount != finalCount;
+    bool writeSuccessful = initialCount.value() != finalCount.value();
     commOk = writeSuccessful;
     return writeSuccessful;
-    /* Checking the Transmission count value before and after write operation to check if Write
-     * Access was successful. When the write access is successful, the Transmission count
-     * (Interface Transmission Counter register) is incremented. */
+    // Checking the Transmission count value before and after write operation to check if Write
+    // Access was successful. When the write access is successful, the Transmission count
+    // (Interface Transmission Counter register) is incremented.
 }
 
-TMC2209::DrvStats TMC2209::drvReadStatus()
+std::optional<TMC2209::DrvStats> TMC2209::drvReadStatus()
 {
+    auto result = readData(DrvStatus);
+    if (!result.has_value())
+        return {};
+
     DrvStats drvStats{};
-    drvStats.drvStatus = readData(DrvStatus);
+    drvStats.drvStatus = result.value();
     return drvStats;
 }
 
-TMC2209::GConfigurations TMC2209::getConfiguration()
+std::optional<TMC2209::GConfigurations> TMC2209::getConfiguration()
 {
+    auto result = readData(Gconf);
+    if (!result.has_value())
+        return {};
+
     GConfigurations gConfigurations{};
-    gConfigurations.gConf = readData(Gconf);
+    gConfigurations.gConf = result.value();
     return gConfigurations;
 }
 
-TMC2209::FactoryConfigurations TMC2209::getFactoryConfiguration()
+std::optional<TMC2209::FactoryConfigurations> TMC2209::getFactoryConfiguration()
 {
+    auto result = readData(FactoryConf);
+    if (!result.has_value())
+        return {};
+
     FactoryConfigurations factoryConfigurations{};
-    factoryConfigurations.factConf = readData(FactoryConf);
+    factoryConfigurations.factConf = result.value();
     return factoryConfigurations;
 }
 
@@ -123,24 +150,36 @@ bool TMC2209::setFactoryConfiguration(FactoryConfigurations factoryConfiguration
     return writeData(FactoryConf, factoryConfigurations.factConf);
 }
 
-TMC2209::InputConfig TMC2209::getInputPinStatus()
+std::optional<TMC2209::InputConfig> TMC2209::getInputPinStatus()
 {
+    auto result = readData(Ioin);
+    if (!result.has_value())
+        return {};
+
     InputConfig inputConfig{};
-    inputConfig.inputConf = readData(Ioin);
+    inputConfig.inputConf = result.value();
     return inputConfig;
 }
 
-TMC2209::OTPRead TMC2209::otpReadStatus()
+std::optional<TMC2209::OTPRead> TMC2209::otpReadStatus()
 {
+    auto result = readData(OtpRead);
+    if (!result.has_value())
+        return {};
+
     OTPRead otpReadPins{};
-    otpReadPins.otpRead = readData(OtpRead);
+    otpReadPins.otpRead = result.value();
     return otpReadPins;
 }
 
-TMC2209::ChopperConfig TMC2209::getChopConf()
+std::optional<TMC2209::ChopperConfig> TMC2209::getChopConf()
 {
+    auto result = readData(ChopConf);
+    if (!result.has_value())
+        return {};
+
     ChopperConfig chopperConfig{};
-    chopperConfig.chopperConfValue = readData(ChopConf);
+    chopperConfig.chopperConfValue = result.value();
     return chopperConfig;
 }
 
@@ -218,161 +257,248 @@ bool TMC2209::clearIcReset()
     return writeData(Gstat, gStats.gStatus);
 }
 
-uint8_t TMC2209::getTransmissionCount()
+std::optional<uint8_t> TMC2209::getTransmissionCount()
 {
+    auto result = readData(Ifcnt);
+    if (!result.has_value())
+        return {};
+
     IFCount ifCount{};
-    ifCount.ifCount = readData(Ifcnt);
-    return ifCount.ifCountPins.count;
+    ifCount.ifCount = result.value();
+    return {static_cast<uint8_t>(ifCount.ifCountPins.count)};
 }
 
-TMC2209::Tstep TMC2209::getTStep()
+std::optional<TMC2209::Tstep> TMC2209::getTStep()
 {
+    auto result = readData(TstepRegister);
+    if (!result.has_value())
+        return {};
+
     Tstep tstep{};
-    tstep.tStepValue = readData(TstepRegister);
+    tstep.tStepValue = result.value();
     return tstep;
 }
 
-TMC2209::MSCount TMC2209::getMSCount()
+std::optional<TMC2209::MSCount> TMC2209::getMSCount()
 {
+    auto result = readData(MsCnt);
+    if (!result.has_value())
+        return {};
+
     MSCount msCount{};
-    msCount.msCountValue = readData(MsCnt);
+    msCount.msCountValue = result.value();
     return msCount;
 }
 
-TMC2209::MSCurrentActual TMC2209::getMSCurrent()
+std::optional<TMC2209::MSCurrentActual> TMC2209::getMSCurrent()
 {
+    auto result = readData(MscurAct);
+    if (!result.has_value())
+        return {};
+
     MSCurrentActual msCurrentActual{};
-    msCurrentActual.mscurActValue = readData(MscurAct);
+    msCurrentActual.mscurActValue = result.value();
     return msCurrentActual;
 }
 
-TMC2209::SGResult TMC2209::getSGResult()
+std::optional<TMC2209::SGResult> TMC2209::getSGResult()
 {
+    auto result = readData(SgResult);
+    if (!result.has_value())
+        return {};
+
     SGResult sgResult{};
-    sgResult.sgResultValue = readData(SgResult);
+    sgResult.sgResultValue = result.value();
     return sgResult;
 }
 
-bool TMC2209::getOvertempPrewarn()
+std::optional<bool> TMC2209::getOvertempPrewarn()
 {
+    auto result = readData(DrvStatus);
+    if (!result.has_value())
+        return {};
+
     DrvStats drvStatus{};
-    drvStatus.drvStatus = readData(DrvStatus);
-    return drvStatus.drvStatsRegister.overtemperaturePreWarning;
+    drvStatus.drvStatus = result.value();
+    return {drvStatus.drvStatsRegister.overtemperaturePreWarning != 0};
 }
 
-bool TMC2209::getOvertempStats()
+std::optional<bool> TMC2209::getOvertempStats()
 {
+    auto result = readData(DrvStatus);
+    if (!result.has_value())
+        return {};
+
     DrvStats drvStatus{};
-    drvStatus.drvStatus = readData(DrvStatus);
-    return drvStatus.drvStatsRegister.overtemperatureFlag;
+    drvStatus.drvStatus = result.value();
+    return {drvStatus.drvStatsRegister.overtemperatureFlag != 0};
 }
 
-bool TMC2209::short2GroundA()
+std::optional<bool> TMC2209::short2GroundA()
 {
+    auto result = readData(DrvStatus);
+    if (!result.has_value())
+        return {};
+
     DrvStats drvStatus{};
-    drvStatus.drvStatus = readData(DrvStatus);
-    return drvStatus.drvStatsRegister.shortToGndA;
+    drvStatus.drvStatus = result.value();
+    return {drvStatus.drvStatsRegister.shortToGndA != 0};
 }
 
-bool TMC2209::short2GroundB()
+std::optional<bool> TMC2209::short2GroundB()
 {
+    auto result = readData(DrvStatus);
+    if (!result.has_value())
+        return {};
+
     DrvStats drvStatus{};
-    drvStatus.drvStatus = readData(DrvStatus);
-    return drvStatus.drvStatsRegister.shortToGndB;
+    drvStatus.drvStatus = result.value();
+    return {drvStatus.drvStatsRegister.shortToGndB != 0};
 }
 
-bool TMC2209::shortLsA()
+std::optional<bool> TMC2209::shortLsA()
 {
+    auto result = readData(DrvStatus);
+    if (!result.has_value())
+        return {};
+
     DrvStats drvStatus{};
-    drvStatus.drvStatus = readData(DrvStatus);
-    return drvStatus.drvStatsRegister.shortLsA;
+    drvStatus.drvStatus = result.value();
+    return {drvStatus.drvStatsRegister.shortLsA != 0};
 }
 
-bool TMC2209::shortLsB()
+std::optional<bool> TMC2209::shortLsB()
 {
+    auto result = readData(DrvStatus);
+    if (!result.has_value())
+        return {};
+
     DrvStats drvStatus{};
-    drvStatus.drvStatus = readData(DrvStatus);
-    return drvStatus.drvStatsRegister.shortLsB;
+    drvStatus.drvStatus = result.value();
+    return {drvStatus.drvStatsRegister.shortLsB != 0};
 }
 
-bool TMC2209::openLoadA()
+std::optional<bool> TMC2209::openLoadA()
 {
+    auto result = readData(DrvStatus);
+    if (!result.has_value())
+        return {};
+
     DrvStats drvStatus{};
-    drvStatus.drvStatus = readData(DrvStatus);
-    return drvStatus.drvStatsRegister.openLoadA;
+    drvStatus.drvStatus = result.value();
+    return {drvStatus.drvStatsRegister.openLoadA != 0};
 }
 
-bool TMC2209::openLoadB()
+std::optional<bool> TMC2209::openLoadB()
 {
+    auto result = readData(DrvStatus);
+    if (!result.has_value())
+        return {};
+
     DrvStats drvStatus{};
-    drvStatus.drvStatus = readData(DrvStatus);
-    return drvStatus.drvStatsRegister.openLoadB;
+    drvStatus.drvStatus = result.value();
+    return {drvStatus.drvStatsRegister.openLoadB != 0};
 }
 
-bool TMC2209::tempExceeded120()
+std::optional<bool> TMC2209::tempExceeded120()
 {
+    auto result = readData(DrvStatus);
+    if (!result.has_value())
+        return {};
     DrvStats drvStatus{};
-    drvStatus.drvStatus = readData(DrvStatus);
-    return drvStatus.drvStatsRegister.tempExceeded120;
+    drvStatus.drvStatus = result.value();
+    return {drvStatus.drvStatsRegister.tempExceeded120 != 0};
 }
 
-bool TMC2209::tempExceeded143()
+std::optional<bool> TMC2209::tempExceeded143()
 {
+    auto result = readData(DrvStatus);
+    if (!result.has_value())
+        return {};
+
     DrvStats drvStatus{};
-    drvStatus.drvStatus = readData(DrvStatus);
-    return drvStatus.drvStatsRegister.tempExceeded143;
+    drvStatus.drvStatus = result.value();
+    return {drvStatus.drvStatsRegister.tempExceeded143 != 0};
 }
 
-bool TMC2209::tempExceeded150()
+std::optional<bool> TMC2209::tempExceeded150()
 {
+    auto result = readData(DrvStatus);
+    if (!result.has_value())
+        return {};
+
     DrvStats drvStatus{};
-    drvStatus.drvStatus = readData(DrvStatus);
-    return drvStatus.drvStatsRegister.tempExceeded150;
+    drvStatus.drvStatus = result.value();
+    return {drvStatus.drvStatsRegister.tempExceeded150 != 0};
 }
 
-bool TMC2209::tempExceeded157()
+std::optional<bool> TMC2209::tempExceeded157()
 {
+    auto result = readData(DrvStatus);
+    if (!result.has_value())
+        return {};
+
     DrvStats drvStatus{};
-    drvStatus.drvStatus = readData(DrvStatus);
-    return drvStatus.drvStatsRegister.tempExceeded157;
+    drvStatus.drvStatus = result.value();
+    return {drvStatus.drvStatsRegister.tempExceeded157 != 0};
 }
 
-bool TMC2209::stealthChopIndicator()
+std::optional<bool> TMC2209::stealthChopIndicator()
 {
+    auto result = readData(DrvStatus);
+    if (!result.has_value())
+        return {};
+
     DrvStats drvStatus{};
-    drvStatus.drvStatus = readData(DrvStatus);
-    return drvStatus.drvStatsRegister.stealthChopIndicator;
+    drvStatus.drvStatus = result.value();
+    return {drvStatus.drvStatsRegister.stealthChopIndicator != 0};
 }
 
-bool TMC2209::standstillIndicator()
+std::optional<bool> TMC2209::standstillIndicator()
 {
+    auto result = readData(DrvStatus);
+    if (!result.has_value())
+        return {};
+
     DrvStats drvStatus{};
-    drvStatus.drvStatus = readData(DrvStatus);
-    return drvStatus.drvStatsRegister.standstillIndicator;
+    drvStatus.drvStatus = result.value();
+    return {drvStatus.drvStatsRegister.standstillIndicator != 0};
 }
 
-bool TMC2209::icReset()
+std::optional<bool> TMC2209::icReset()
 {
+    auto result = readData(Gstat);
+    if (!result.has_value())
+        return {};
+
     GStats gStats{};
-    gStats.gStatus = readData(Gstat);
-    return gStats.gStatsPins.reset;
+    gStats.gStatus = result.value();
+    return {gStats.gStatsPins.reset != 0};
 }
 
-bool TMC2209::drvError()
+std::optional<bool> TMC2209::drvError()
 {
+    auto result = readData(Gstat);
+    if (!result.has_value())
+        return {};
+
     GStats gStats{};
-    gStats.gStatus = readData(Gstat);
-    return gStats.gStatsPins.drvErr;
+    gStats.gStatus = result.value();
+    return {gStats.gStatsPins.drvErr != 0};
 }
 
-bool TMC2209::underVoltageCp()
+std::optional<bool> TMC2209::underVoltageCp()
 {
+    auto result = readData(Gstat);
+    if (!result.has_value())
+        return {};
+
     GStats gStats{};
-    gStats.gStatus = readData(Gstat);
-    return gStats.gStatsPins.uvCp;
+    gStats.gStatus = result.value();
+    return {gStats.gStatsPins.uvCp != 0};
 }
 
-void TMC2209::calcCRC(uint8_t *datagram, uint8_t datagramLength)
+void TMC2209::addCRC(uint8_t *datagram, uint8_t datagramLength)
 {
     int i, j;
     uint8_t *crc = datagram + (datagramLength - 1); // CRC located in last byte of message
@@ -398,11 +524,15 @@ void TMC2209::calcCRC(uint8_t *datagram, uint8_t datagramLength)
     }
 }
 
-TMC2209::PWMConfig TMC2209::getPWMConf()
+std::optional<TMC2209::PWMConfig> TMC2209::getPWMConf()
 {
+    auto result = readData(PwmConf);
+    if (!result.has_value())
+        return {};
+
     PWMConfig pwmConfig{};
-    pwmConfig.pwmConfValue = readData(PwmConf);
-    return pwmConfig;
+    pwmConfig.pwmConfValue = result.value();
+    return {pwmConfig};
 }
 
 bool TMC2209::setPWMConf(TMC2209::PWMConfig pwmConfig)
@@ -410,18 +540,26 @@ bool TMC2209::setPWMConf(TMC2209::PWMConfig pwmConfig)
     return writeData(PwmConf, pwmConfig.pwmConfValue);
 }
 
-TMC2209::PWMScale TMC2209::getPWMScale()
+std::optional<TMC2209::PWMScale> TMC2209::getPWMScale()
 {
+    auto result = readData(PwScale);
+    if (!result.has_value())
+        return {};
+
     PWMScale pwmScale{};
-    pwmScale.pwscaleValue = readData(PwScale);
-    return pwmScale;
+    pwmScale.pwscaleValue = result.value();
+    return {pwmScale};
 }
 
-TMC2209::PWMAuto TMC2209::getPWMAuto()
+std::optional<TMC2209::PWMAuto> TMC2209::getPWMAuto()
 {
+    auto result = readData(PwAuto);
+    if (!result.has_value())
+        return {};
+
     PWMAuto pwmAuto{};
-    pwmAuto.pwautoValue = readData(PwAuto);
-    return pwmAuto;
+    pwmAuto.pwautoValue = result.value();
+    return {pwmAuto};
 }
 
 bool TMC2209::gConfInit()
