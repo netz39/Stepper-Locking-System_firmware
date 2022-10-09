@@ -18,7 +18,7 @@ using util::wrappers::NotifyAction;
     {
         vTaskDelayUntil(&lastWakeTime, toOsTicks(50.0_Hz));
 
-        [[maybe_unused]] const auto MotorLoad = tmc2209.getSGResult().sgResultValue;
+        // const auto MotorLoad = tmc2209.getSGResult().sgResultValue;
         if (tmc2209.isCommFailure())
         {
             if (uartCommunicationLossCounter++ >= 4)

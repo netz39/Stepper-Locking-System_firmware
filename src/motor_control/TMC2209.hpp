@@ -2,6 +2,7 @@
 
 #include "usart.h"
 #include <cstdint>
+#include <optional>
 
 #include "UartAccessor.hpp"
 
@@ -504,7 +505,7 @@ public:
      * @param regAddr Register Address whose data neads to be read
      * @return returns the 32 bit data from the register
      */
-    uint32_t readData(uint8_t regAddr);
+    std::optional<uint32_t> readData(uint8_t regAddr);
 
     /**
      * Sending the write access request to write a particular register. If the write access is
@@ -521,43 +522,43 @@ public:
      * @brief get the Interface transmission counter (IFCNT) to check if write access is successful
      * @return value of the transmission counter
      */
-    uint8_t getTransmissionCount();
+    std::optional<uint8_t> getTransmissionCount();
 
     /**
      * @brief Checks if the Overtemperature pre warning threshold is reached
      * @return returns true if threshold is exceeded. If not, returns false
      */
-    bool getOvertempPrewarn();
+    std::optional<bool> getOvertempPrewarn();
 
     /**
      * @brief Checks if Overtemperature threshold is reached
      * @return returns true if threshold is exceeded. If not, returns false.
      */
-    bool getOvertempStats();
+    std::optional<bool> getOvertempStats();
 
     /**
      * @brief short to ground indicator phase A of motor
      * @return returns true if short to ground is detected on phase A. If not, returns false
      */
-    bool short2GroundA();
+    std::optional<bool> short2GroundA();
 
     /**
      * @brief short to ground indicator phase B of motor
      * @return returns true if short to ground is detected on phase B. If not, returns false
      */
-    bool short2GroundB();
+    std::optional<bool> short2GroundB();
 
     /**
      * @brief Short on low-side MOSFET detected on phase A
      * @return returns true if short on low-side MOSFET detected on phase A. If not, returns false
      */
-    bool shortLsA();
+    std::optional<bool> shortLsA();
 
     /**
      * @brief Short on low-side MOSFET detected on phase B
      * @return returns true if short on low-side MOSFET detected on phase B. If not, returns false
      */
-    bool shortLsB();
+    std::optional<bool> shortLsB();
 
     /**
      * @brief Open load detected on phase A.This is just an informative flag. The driver takes no
@@ -565,7 +566,7 @@ public:
      * motion, only.
      * @return returns true if open load detected on phase A. If not, returns false
      */
-    bool openLoadA();
+    std::optional<bool> openLoadA();
 
     /**
      * @brief Open load detected on phase B.This is just an informative flag. The driver takes no
@@ -573,51 +574,51 @@ public:
      * motion, only.
      * @return returns true if open load detected on phase B. If not, returns false
      */
-    bool openLoadB();
+    std::optional<bool> openLoadB();
 
     /**
      * @brief Checks if temperature threshold of 120°C is exceeded.
      * @return returns true if temperature threshold of 120°C is exceeded. If not, returns false.
      */
-    bool tempExceeded120();
+    std::optional<bool> tempExceeded120();
 
     /**
      * @brief Checks if temperature threshold of 143°C is exceeded.
      * @return returns true if temperature threshold of 143°C is exceeded. If not, returns false.
      */
-    bool tempExceeded143();
+    std::optional<bool> tempExceeded143();
 
     /**
      * @brief Checks if temperature threshold of 150°C is exceeded.
      * @return returns true if temperature threshold of 150°C is exceeded. If not, returns false.
      */
-    bool tempExceeded150();
+    std::optional<bool> tempExceeded150();
 
     /**
      * @brief Checks if temperature threshold of 157°C is exceeded.
      * @return returns true if temperature threshold of 157°C is exceeded. If not, returns false.
      */
-    bool tempExceeded157();
+    std::optional<bool> tempExceeded157();
 
     /**
      * @brief Indicates whether the driver is operating in StealthChop mode or SpreadCycle mode
      * @return returns true if driver operates in StealthChop mode. returns false if driver operates
      * in SpreadCycle mode
      */
-    bool stealthChopIndicator();
+    std::optional<bool> stealthChopIndicator();
 
     /**
      * @brief This flag indicates motor stand still in each operation mode.
      * @return returns true if motor is in standstill. If not, returns false.
      */
-    bool standstillIndicator();
+    std::optional<bool> standstillIndicator();
 
     /**
      *@brief Indicates that the IC has been reset since the last read access to GSTAT. All registers
      *have been cleared to reset values.
      * @return returns true if IC has been reset. If not, returns false.
      */
-    bool icReset();
+    std::optional<bool> icReset();
 
     /**
      * @brief Indicates, that the driver has been shut down due to overtemperature or short circuit
@@ -626,14 +627,14 @@ public:
      * @return returns true if driver has been shut down due to overtemperature or short circuit. If
      * not, returns false.
      */
-    bool drvError();
+    std::optional<bool> drvError();
 
     /**
      * @brief Indicates an undervoltage on the charge pump. The driver is disabled in this case.
      * This flag is not latched and thus does not need to be cleared.
      * @return returns true if there is undervoltage on the charge pump. If not, returns false.
      */
-    bool underVoltageCp();
+    std::optional<bool> underVoltageCp();
 
     /**
      * @brief Reading the GCONF register to get all the Global configuration flags
@@ -641,7 +642,7 @@ public:
      * configuration flags. return value of union GConfigurations can be used to access each
      * configuration flag separately.
      */
-    GConfigurations getConfiguration();
+    std::optional<TMC2209::GConfigurations> getConfiguration();
 
     /**
      *@brief to set the global configuration flags in the GCONF register
@@ -666,7 +667,7 @@ public:
      * pins. return value union InputConfig can be used to access state of each input pin
      * separately.
      */
-    InputConfig getInputPinStatus();
+    std::optional<TMC2209::InputConfig> getInputPinStatus();
 
     /**
      * @brief Reading the OTP_READ register. The OTP memory holds power up defaults for certain
@@ -675,7 +676,7 @@ public:
      * functions. return value union OTPRead can be used to access reset values of each OTP function
      * separately.
      */
-    OTPRead otpReadStatus();
+    std::optional<OTPRead> otpReadStatus();
 
     /**
      * @brief Programs the OTP memory. Writes into the OTP_PROG register.
@@ -691,14 +692,14 @@ public:
      * @param len length of the datagram
      * @return returns the 8-bit CRC
      */
-    void calcCRC(uint8_t *datagram, uint8_t datagramLength);
+    void addCRC(uint8_t *datagram, uint8_t datagramLength);
 
     /**
      *@brief Reading the DRVSTATUS register. DRVSTATUS registers gives the Driver status flags.
      * @return returns DrvStats object with 32 bit data consisting of Driver status flags.
      * return value union DrvStats can be used to each Driver status flags separately.
      */
-    DrvStats drvReadStatus();
+    std::optional<TMC2209::DrvStats> drvReadStatus();
 
     /**
      * @brief clears the reset flag that is set when IC has been reset since the last read access to
@@ -722,7 +723,7 @@ public:
      * @return returns FactoryConfigurations object with 32 bit data consisting of values for lowest
      * to highest clock frequency (FCLKTRIM) and OTTRIM.
      */
-    FactoryConfigurations getFactoryConfiguration();
+    std::optional<TMC2209::FactoryConfigurations> getFactoryConfiguration();
 
     /**
      * @brief Writing into FACTORY_CONF register. It has the values for lowest to highest clock
@@ -758,7 +759,7 @@ public:
      * microsteps derived from the step input frequency in units of 1/fCLK
      * @return returns TStep object
      */
-    Tstep getTStep();
+    std::optional<TMC2209::Tstep> getTStep();
 
     /**
      * @brief sets the upper velocity for StealthChop voltage PWM mode. When velocity exceeds the
@@ -802,7 +803,7 @@ public:
      * updated with each fullstep, independent of TCOOLTHRS and SGTHRS.
      * @return SGResult object with StallGuard result.
      */
-    SGResult getSGResult();
+    std::optional<TMC2209::SGResult> getSGResult();
 
     bool setCoolConf(CoolConfiguration coolConfiguration);
 
@@ -812,19 +813,19 @@ public:
      * @return MSCount object which allows determination of the motor position within the
      * electrical wave.
      */
-    MSCount getMSCount();
+    std::optional<TMC2209::MSCount> getMSCount();
 
     /**
      * @brief reads MSCURACT register which gives actual microstep current for motor phase A and B.
      * @return returns MSCurrentActual object with values from MSCURACT register.
      */
-    MSCurrentActual getMSCurrent();
+    std::optional<TMC2209::MSCurrentActual> getMSCurrent();
 
     /**
      * @brief reads the CHOPCONF register with different chopper and Driver Configurations.
      * @return returns ChopperConfig Object with values from CHOPCONF register.
      */
-    ChopperConfig getChopConf();
+    std::optional<TMC2209::ChopperConfig> getChopConf();
 
     bool setChopConf(ChopperConfig chopperConfig);
 
@@ -832,7 +833,7 @@ public:
      * @brief reads the PWMCONF register with StealthChop PWM chopper configurations.
      * @return returns PWMConfig Object with values from PWMCONF register.
      */
-    PWMConfig getPWMConf();
+    std::optional<PWMConfig> getPWMConf();
 
     bool setPWMConf(PWMConfig pwmConfig);
 
@@ -842,14 +843,14 @@ public:
      * @return returns PWMScale Object with values of PWSCALE_SUM ( Actual PWM duty cycle ) and
      * PWSCALE_AUTO ( 9 Bit signed offset added to the calculated PWM duty cycle )
      */
-    PWMScale getPWMScale();
+    std::optional<TMC2209::PWMScale> getPWMScale();
 
     /**
      * @brief reads the PWAUTO register which are automatically generated values that can be used
      * to determine a default / power up setting for PWGRAD and PWOFS.
      * @return returns PWMAuto Object with values of PWAUTO register
      */
-    PWMAuto getPWMAuto();
+    std::optional<TMC2209::PWMAuto> getPWMAuto();
 
     /**
      * @brief sets the slave address for TMC
