@@ -220,4 +220,6 @@ private:
     void setClosingState();
 
     void resetOpeningClosingState();
+
+    bool setSendDelayToMax();
 };

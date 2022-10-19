@@ -200,7 +200,6 @@ bool TMC2209::setVActual(VActual vActual)
 
 bool TMC2209::setSlaveConfig(SlaveConfig slaveConfig)
 {
-
     return writeData(Slaveconf, slaveConfig.slaveConfig);
 }
 

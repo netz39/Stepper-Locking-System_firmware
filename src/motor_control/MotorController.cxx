@@ -12,6 +12,9 @@ using util::wrappers::NotifyAction;
 [[noreturn]] void MotorController::taskMain()
 {
     sync::waitForAll(sync::ConfigurationLoaded | sync::StateMachineStarted);
+
+    setSendDelayToMax();
+
     auto lastWakeTime = xTaskGetTickCount();
 
     while (true)
@@ -472,4 +475,12 @@ void MotorController::notifyUartRxComplete()
     auto higherPriorityTaskWoken = pdFALSE;
     notifyFromISR(1, NotifyAction::SetBits, &higherPriorityTaskWoken);
     portYIELD_FROM_ISR(higherPriorityTaskWoken);
+}
+
+//--------------------------------------------------------------------------------------------------
+bool MotorController::setSendDelayToMax()
+{
+    TMC2209::SlaveConfig slaveConf{};
+    slaveConf.slaveConfig = 15 << 8;
+    return tmc2209.setSlaveConfig(slaveConf);
 }
