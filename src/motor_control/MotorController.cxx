@@ -18,7 +18,13 @@ using util::wrappers::NotifyAction;
     {
         vTaskDelayUntil(&lastWakeTime, toOsTicks(50.0_Hz));
 
-        // const auto MotorLoad = tmc2209.getSGResult().sgResultValue;
+        if (shouldSendSignalSuccess)
+        {
+            shouldSendSignalSuccess = false;
+            signalSuccess();
+        }
+
+        [[maybe_unused]] const auto MotorLoad = tmc2209.getSGResult().value_or(TMC2209::SGResult{});
         if (tmc2209.isCommFailure())
         {
             if (uartCommunicationLossCounter++ >= 4)
@@ -151,7 +157,9 @@ void MotorController::invokeFinishedCallback()
     if (!ignoreFinishedEvent)
     {
         disableMotorTorque();
-        signalSuccess();
+
+        // do not call signalSuccess directly because this call is coming from interrupt context
+        shouldSendSignalSuccess = true;
     }
 }
 

@@ -147,6 +147,8 @@ private:
     bool ignoreFinishedEvent = false;
     bool isMotorFreezed = false;
 
+    bool shouldSendSignalSuccess = false;
+
     // only for progess bar
     bool isOpening = false;
     bool isClosing = false;
