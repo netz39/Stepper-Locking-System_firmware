@@ -223,4 +223,8 @@ private:
     void resetOpeningClosingState();
 
     bool setSendDelayToMax();
+
+    volatile uint32_t hallFailureCounter = 0;
+    volatile uint32_t tmcFailureCounter = 0;
+    volatile uint32_t stepLossesCounter = 0;
 };
