@@ -104,7 +104,7 @@ bool TMC2209::writeData(uint8_t regAddr, uint32_t data)
         return false;
     }
 
-    bool writeSuccessful = initialCount.value() != finalCount.value();
+    bool writeSuccessful = initialCount.value_or(false) != finalCount.value_or(false);
     commOk = writeSuccessful;
     return writeSuccessful;
     // Checking the Transmission count value before and after write operation to check if Write
@@ -200,7 +200,6 @@ bool TMC2209::setVActual(VActual vActual)
 
 bool TMC2209::setSlaveConfig(SlaveConfig slaveConfig)
 {
-
     return writeData(Slaveconf, slaveConfig.slaveConfig);
 }
 

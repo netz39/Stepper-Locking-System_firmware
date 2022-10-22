@@ -12,13 +12,22 @@ using util::wrappers::NotifyAction;
 [[noreturn]] void MotorController::taskMain()
 {
     sync::waitForAll(sync::ConfigurationLoaded | sync::StateMachineStarted);
+
+    setSendDelayToMax();
+
     auto lastWakeTime = xTaskGetTickCount();
 
     while (true)
     {
         vTaskDelayUntil(&lastWakeTime, toOsTicks(50.0_Hz));
 
-        // const auto MotorLoad = tmc2209.getSGResult().sgResultValue;
+        if (shouldSendSignalSuccess)
+        {
+            shouldSendSignalSuccess = false;
+            signalSuccess();
+        }
+
+        [[maybe_unused]] const auto MotorLoad = tmc2209.getSGResult().value_or(TMC2209::SGResult{});
         if (tmc2209.isCommFailure())
         {
             if (uartFailureCounter++ >= UartFailueCounterThreshold)
@@ -154,7 +163,9 @@ void MotorController::invokeFinishedCallback()
     if (!ignoreFinishedEvent)
     {
         disableMotorTorque();
-        signalSuccess();
+
+        // do not call signalSuccess directly because this call is coming from interrupt context
+        shouldSendSignalSuccess = true;
     }
 }
 
@@ -470,4 +481,12 @@ void MotorController::notifyUartRxComplete()
     auto higherPriorityTaskWoken = pdFALSE;
     notifyFromISR(1, NotifyAction::SetBits, &higherPriorityTaskWoken);
     portYIELD_FROM_ISR(higherPriorityTaskWoken);
+}
+
+//--------------------------------------------------------------------------------------------------
+bool MotorController::setSendDelayToMax()
+{
+    TMC2209::SlaveConfig slaveConf{};
+    slaveConf.slaveConfig = 15 << 8;
+    return tmc2209.setSlaveConfig(slaveConf);
 }

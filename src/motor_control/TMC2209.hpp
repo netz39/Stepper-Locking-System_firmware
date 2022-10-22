@@ -67,22 +67,6 @@ private:
         uint32_t crc : 8;
     } __attribute__((packed));
 
-    struct SlaveConfigPins
-    {
-        uint32_t reserved : 8;
-        uint32_t lsb0 : 1;
-        uint32_t lsb1 : 1;
-        uint32_t msb0 : 1;
-        uint32_t msb1 : 1;
-        uint32_t reserved2 : 20;
-    } __attribute__((packed));
-
-    union SlaveConfig
-    {
-        SlaveConfigPins slaveConfigPins;
-        uint32_t slaveConfig : 32;
-    };
-
     struct OTPProgPins
     {
         uint32_t otpBit : 3;
@@ -181,6 +165,22 @@ public:
     static constexpr auto PwmConf = 0x70;
     static constexpr auto PwScale = 0x71;
     static constexpr auto PwAuto = 0x72;
+
+    struct SlaveConfigPins
+    {
+        uint32_t reserved : 8;
+        uint32_t lsb0 : 1;
+        uint32_t lsb1 : 1;
+        uint32_t msb0 : 1;
+        uint32_t msb1 : 1;
+        uint32_t reserved2 : 20;
+    } __attribute__((packed));
+
+    union SlaveConfig
+    {
+        SlaveConfigPins slaveConfigPins;
+        uint32_t slaveConfig : 32;
+    };
 
     struct GStatsPins
     {
