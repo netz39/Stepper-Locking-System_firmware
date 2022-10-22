@@ -30,6 +30,9 @@ using util::wrappers::NotifyAction;
         [[maybe_unused]] const auto MotorLoad = tmc2209.getSGResult().value_or(TMC2209::SGResult{});
         if (tmc2209.isCommFailure())
         {
+            if (!hadTmcFailure)
+                tmcFailureCounter++;
+
             if (uartFailureCounter++ >= UartFailueCounterThreshold)
             {
                 hadTmcFailure = true;
@@ -47,6 +50,9 @@ using util::wrappers::NotifyAction;
 
         if (!hallEncoder.isOkay())
         {
+            if (!hadHallEncoderFailure)
+                hallFailureCounter++;
+
             // send warning, but door can open/close normally
             hadHallEncoderFailure = true;
 
@@ -78,6 +84,8 @@ using util::wrappers::NotifyAction;
             // check for step losses while calibrating
             if (checkForStepLosses())
             {
+                stepLossesCounter++;
+
                 // step losses occured, count it
                 if (eventCounter++ >= StepLossEventAtCalibrationCounterThreshold)
                 {
@@ -93,6 +101,8 @@ using util::wrappers::NotifyAction;
             // check for step losses while normal movement
             if (checkForStepLosses())
             {
+                stepLossesCounter++;
+
                 // step losses occured, update steppers internal position to hall encoder
                 // movement will be corrected by TeensyStep
                 stepperMotor.setPosition(hallEncoder.getPosition());
@@ -275,9 +285,9 @@ void MotorController::doCalibration(bool forceInverted)
 //--------------------------------------------------------------------------------------------------
 void MotorController::abortCalibration()
 {
+    isCalibrating = false;
     stopMovement();
     disableCalibrationMode();
-    isCalibrating = false;
 }
 
 //--------------------------------------------------------------------------------------------------
