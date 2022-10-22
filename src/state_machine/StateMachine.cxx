@@ -133,9 +133,6 @@ using util::wrappers::NotifyAction;
 
                 if (!waitForLockStateReleased())
                     break;
-
-                motorController.abortCalibration();
-                vTaskDelay(toOsTicks(50.0_ms));
             }
 
             motorController.doCalibration();

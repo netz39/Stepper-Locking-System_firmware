@@ -275,9 +275,9 @@ void MotorController::doCalibration(bool forceInverted)
 //--------------------------------------------------------------------------------------------------
 void MotorController::abortCalibration()
 {
+    isCalibrating = false;
     stopMovement();
     disableCalibrationMode();
-    isCalibrating = false;
 }
 
 //--------------------------------------------------------------------------------------------------
