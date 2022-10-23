@@ -193,7 +193,7 @@ void MotorController::onSettingsUpdate()
 }
 
 //--------------------------------------------------------------------------------------------------
-void MotorController::invokeFinishedCallback()
+void MotorController::callbackFromTeensyStepISR()
 {
     eventCounter = 0;
     resetOpeningClosingState();
@@ -203,6 +203,7 @@ void MotorController::invokeFinishedCallback()
         disableMotorTorque();
 
         // do not call signalSuccess directly because this call is coming from interrupt context
+        // set flag so motor controller task will send the success signal in normal context
         shouldSendSignalSuccess = true;
     }
 }
@@ -210,15 +211,15 @@ void MotorController::invokeFinishedCallback()
 //--------------------------------------------------------------------------------------------------
 void MotorController::signalSuccess()
 {
-    if (finishedCallback)
-        finishedCallback(FailureType::None);
+    if (notifyStateMaschine)
+        notifyStateMaschine(FailureType::None);
 }
 
 //--------------------------------------------------------------------------------------------------
 void MotorController::signalFailure(FailureType failureType)
 {
-    if (finishedCallback)
-        finishedCallback(failureType);
+    if (notifyStateMaschine)
+        notifyStateMaschine(failureType);
 }
 
 //--------------------------------------------------------------------------------------------------

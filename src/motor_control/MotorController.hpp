@@ -39,7 +39,7 @@ public:
           hallEncoder(hallEncoder),                                                //
           uartAccessorTmc{uartAccessorTmc}                                         //
     {
-        stepControl.setCallback(std::bind(&MotorController::invokeFinishedCallback, this));
+        stepControl.setCallback(std::bind(&MotorController::callbackFromTeensyStepISR, this));
     }
     ~MotorController() override = default;
 
@@ -66,8 +66,9 @@ public:
     /// Stops calibration movement, restore motor params and save position
     void calibrationIsDone();
 
-    // called by TeensyStep when it is finished with a movement
-    void invokeFinishedCallback();
+    /// called by TeensyStep when it finished a movement
+    /// caution: its happens in interrupt context!
+    void callbackFromTeensyStepISR();
 
     /// Interrupt opening action and return to position before opening -> fully closed
     void revertOpening();
@@ -101,9 +102,9 @@ public:
     using Callback = std::function<void(FailureType failureType)>;
 
     /// set up callback which will be called when the target is reached
-    void setFinishedCallback(Callback newCallback)
+    void setNotifyStateMaschineCallback(Callback newCallback)
     {
-        finishedCallback = std::move(newCallback);
+        notifyStateMaschine = std::move(newCallback);
     }
 
     void notifyUartTxComplete();
@@ -164,7 +165,7 @@ private:
     bool hadTmcFailure = false;
     bool hadHallEncoderFailure = false;
 
-    Callback finishedCallback = nullptr;
+    Callback notifyStateMaschine = nullptr;
 
     uint8_t maximumMotorCurrentInPercentage = 0;
     uint32_t maximumMotorSpeed = 0;
