@@ -33,7 +33,7 @@ public:
 
     MotorController(const firmwareSettings::Container &settingsContainer, const AnalogDigital &adc,
                     HallEncoder &hallEncoder, UartAccessor &uartAccessorTmc)
-        : TaskWithMemberFunctionBase("motorControllerTask", 256, osPriorityHigh3), //
+        : TaskWithMemberFunctionBase("motorControllerTask", 512, osPriorityHigh3), //
           settingsContainer(settingsContainer),                                    //
           adc(adc),                                                                //
           hallEncoder(hallEncoder),                                                //
@@ -233,7 +233,18 @@ private:
 
     void checkMovement();
 
+    // ToDo: get/save counters from/to EEPROM
     volatile uint32_t hallFailureCounter = 0;
     volatile uint32_t tmcFailureCounter = 0;
     volatile uint32_t stepLossesCounter = 0;
+
+    uint32_t openCommandCounter = 0;
+    uint32_t closeCommandCounter = 0;
+    volatile uint32_t completeOpeningCounter = 0;
+    volatile uint32_t completeClosingCounter = 0;
+
+    uint32_t calibrationCommandCounter = 0;
+    uint32_t calibrationInverseCommandCounter = 0;
+    uint32_t abortCalibrationCounter = 0;
+    uint32_t completeCalibrationCounter = 0;
 };

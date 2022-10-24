@@ -289,13 +289,17 @@ void MotorController::revokeCalibration()
     isCalibrated = false;
 
     if (isCalibrating)
+    {
+        abortCalibrationCounter++;
         abortCalibration();
+    }
 }
 
 //--------------------------------------------------------------------------------------------------
 
 void MotorController::doCalibration(bool forceInverted)
 {
+    forceInverted ? calibrationInverseCommandCounter++ : calibrationCommandCounter++;
     enableCalibrationMode();
 
     // only do it to get comparable values to detect step losses reliable
@@ -322,6 +326,7 @@ void MotorController::abortCalibration()
 //--------------------------------------------------------------------------------------------------
 void MotorController::calibrationIsDone()
 {
+    completeCalibrationCounter++;
     abortCalibration();
 
     vTaskDelay(10); // wait for new steady value from hall encoder
@@ -489,6 +494,7 @@ uint8_t MotorController::getProgress() const
 //--------------------------------------------------------------------------------------------------
 void MotorController::setOpeningState()
 {
+    openCommandCounter++;
     isOpening = true;
     isClosing = false;
 }
@@ -496,6 +502,7 @@ void MotorController::setOpeningState()
 //--------------------------------------------------------------------------------------------------
 void MotorController::setClosingState()
 {
+    closeCommandCounter++;
     isOpening = false;
     isClosing = true;
 }
@@ -503,6 +510,12 @@ void MotorController::setClosingState()
 //--------------------------------------------------------------------------------------------------
 void MotorController::resetOpeningClosingState()
 {
+    if (isOpening)
+        completeOpeningCounter++;
+
+    else if (isClosing)
+        completeClosingCounter++;
+
     isOpening = false;
     isClosing = false;
 }
