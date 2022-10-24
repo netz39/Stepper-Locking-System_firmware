@@ -23,112 +23,24 @@ using util::wrappers::NotifyAction;
 
         if (shouldSendSignalSuccess)
         {
+            // signal flag from ISR context arrived, send it without ISR context
             shouldSendSignalSuccess = false;
             signalSuccess();
         }
 
-        [[maybe_unused]] const auto MotorLoad = tmc2209.getSGResult().value_or(TMC2209::SGResult{});
-        if (tmc2209.isCommFailure())
-        {
-            if (!hadTmcFailure)
-                tmcFailureCounter++;
+        if (!checkStepperDriver())
+            continue;
 
-            if (uartFailureCounter++ >= UartFailueCounterThreshold)
-            {
-                hadTmcFailure = true;
-                signalFailure(FailureType::StepperDriverNoAnswer);
-                continue;
-            }
-        }
-        else if (hadTmcFailure)
-        {
-            // TMC is reachable again, send sucess signal
-            hadTmcFailure = false;
-            uartFailureCounter = 0;
-            signalSuccess();
-        }
-
-        if (!hallEncoder.isOkay())
-        {
-            if (!hadHallEncoderFailure)
-                hallFailureCounter++;
-
-            // send warning, but door can open/close normally
-            hadHallEncoderFailure = true;
-
-            if (isCalibrating)
-                abortCalibration();
-
-            if (isCalibrated)
-                signalFailure(FailureType::HallEncoderNoAnswer);
-            else
-                signalFailure(FailureType::CalibrationFailed);
-        }
-        else if (hadHallEncoderFailure)
-        {
-            // send signal for recalibrating
-            hadHallEncoderFailure = false;
-            signalFailure(FailureType::HallEncoderReconnected);
-        }
+        checkHallEncoder();
 
         if (isCalibrating)
-        {
-            // check if there is no calibration movement anymore
-            if (!stepControl.isRunning())
-            {
-                // calibration was not successful
-                abortCalibration();
-                signalFailure(FailureType::CalibrationFailed);
-            }
+            checkCalibration();
 
-            // check for step losses while calibrating
-            if (checkForStepLosses())
-            {
-                stepLossesCounter++;
-
-                // step losses occured, count it
-                if (eventCounter++ >= StepLossEventAtCalibrationCounterThreshold)
-                {
-                    isCalibrating = false;
-                    stopMovementImmediately();
-                    signalFailure(FailureType::CalibrationFailed);
-                    eventCounter = 0;
-                }
-            }
-        }
         else if (isCalibrated)
-        {
-            // check for step losses while normal movement
-            if (checkForStepLosses())
-            {
-                stepLossesCounter++;
-
-                // step losses occured, update steppers internal position to hall encoder
-                // movement will be corrected by TeensyStep
-                stepperMotor.setPosition(hallEncoder.getPosition());
-
-                if (stepControl.isRunning())
-                {
-                    if (eventCounter++ >= StepLossEventCounterThreshold)
-                    {
-                        stopMovementImmediately();
-                        signalFailure(FailureType::ExcessiveStepLosses);
-                        eventCounter = 0;
-                    }
-                }
-                else
-                {
-                    if (eventCounter++ >= ExternalMotorMoveEventCounterThreshold)
-                    {
-                        // motor is moving externally
-                        signalFailure(FailureType::MotorMovedExternally);
-                        eventCounter = 0;
-                    }
-                }
-            }
-        }
+            checkMovement();
 
         /*
+        // print data over UART while moving
         if (isOpening || isClosing)
         {
             snprintf(buffer, BufferSize, "%ld, %ld, %d\n", stepperMotor.getPosition(),
@@ -141,6 +53,122 @@ using util::wrappers::NotifyAction;
         */
 
         checkMotorTemperature();
+    }
+}
+
+//--------------------------------------------------------------------------------------------------
+bool MotorController::checkStepperDriver()
+{
+    // ping TMC with a request for motor load
+    [[maybe_unused]] const auto MotorLoad = tmc2209.getSGResult().value_or(TMC2209::SGResult{});
+
+    if (tmc2209.isCommFailure())
+    {
+        if (!hadTmcFailure)
+            tmcFailureCounter++;
+
+        if (uartFailureCounter++ >= UartFailueCounterThreshold)
+        {
+            hadTmcFailure = true;
+            signalFailure(FailureType::StepperDriverNoAnswer);
+            return false;
+        }
+    }
+    else if (hadTmcFailure)
+    {
+        // TMC is reachable again, send sucess signal
+        hadTmcFailure = false;
+        uartFailureCounter = 0;
+        signalSuccess();
+    }
+
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::checkHallEncoder()
+{
+    if (!hallEncoder.isOkay())
+    {
+        if (!hadHallEncoderFailure)
+            hallFailureCounter++;
+
+        // send warning, but door can open/close normally
+        hadHallEncoderFailure = true;
+
+        if (isCalibrating)
+            abortCalibration();
+
+        if (isCalibrated)
+            signalFailure(FailureType::HallEncoderNoAnswer);
+        else
+            signalFailure(FailureType::CalibrationFailed);
+    }
+    else if (hadHallEncoderFailure)
+    {
+        // send signal for recalibrating
+        hadHallEncoderFailure = false;
+        signalFailure(FailureType::HallEncoderReconnected);
+    }
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::checkCalibration()
+{
+    // check if there is no calibration movement anymore
+    if (!stepControl.isRunning())
+    {
+        // calibration was not successful
+        abortCalibration();
+        signalFailure(FailureType::CalibrationFailed);
+    }
+
+    // check for step losses while calibrating
+    if (checkForStepLosses())
+    {
+        stepLossesCounter++;
+
+        // step losses occured, count it
+        if (eventCounter++ >= StepLossEventAtCalibrationCounterThreshold)
+        {
+            isCalibrating = false;
+            stopMovementImmediately();
+            signalFailure(FailureType::CalibrationFailed);
+            eventCounter = 0;
+        }
+    }
+}
+
+//--------------------------------------------------------------------------------------------------
+void MotorController::checkMovement()
+{
+    // check for step losses while normal movement
+    if (checkForStepLosses())
+    {
+        stepLossesCounter++;
+
+        // step losses occured, update steppers internal position to hall encoder
+        // movement will be corrected by TeensyStep
+        stepperMotor.setPosition(hallEncoder.getPosition());
+
+        if (stepControl.isRunning())
+        {
+            if (eventCounter++ >= StepLossEventCounterThreshold)
+            {
+                stopMovementImmediately();
+                signalFailure(FailureType::ExcessiveStepLosses);
+                eventCounter = 0;
+            }
+        }
+        else
+        {
+            if (eventCounter++ >= ExternalMotorMoveEventCounterThreshold)
+            {
+                // motor is moving externally
+                signalFailure(FailureType::MotorMovedExternally);
+                eventCounter = 0;
+            }
+        }
     }
 }
 
@@ -165,7 +193,7 @@ void MotorController::onSettingsUpdate()
 }
 
 //--------------------------------------------------------------------------------------------------
-void MotorController::invokeFinishedCallback()
+void MotorController::callbackFromTeensyStepISR()
 {
     eventCounter = 0;
     resetOpeningClosingState();
@@ -175,6 +203,7 @@ void MotorController::invokeFinishedCallback()
         disableMotorTorque();
 
         // do not call signalSuccess directly because this call is coming from interrupt context
+        // set flag so motor controller task will send the success signal in normal context
         shouldSendSignalSuccess = true;
     }
 }
@@ -182,15 +211,15 @@ void MotorController::invokeFinishedCallback()
 //--------------------------------------------------------------------------------------------------
 void MotorController::signalSuccess()
 {
-    if (finishedCallback)
-        finishedCallback(FailureType::None);
+    if (notifyStateMaschine)
+        notifyStateMaschine(FailureType::None);
 }
 
 //--------------------------------------------------------------------------------------------------
 void MotorController::signalFailure(FailureType failureType)
 {
-    if (finishedCallback)
-        finishedCallback(failureType);
+    if (notifyStateMaschine)
+        notifyStateMaschine(failureType);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -260,13 +289,17 @@ void MotorController::revokeCalibration()
     isCalibrated = false;
 
     if (isCalibrating)
+    {
+        abortCalibrationCounter++;
         abortCalibration();
+    }
 }
 
 //--------------------------------------------------------------------------------------------------
 
 void MotorController::doCalibration(bool forceInverted)
 {
+    forceInverted ? calibrationInverseCommandCounter++ : calibrationCommandCounter++;
     enableCalibrationMode();
 
     // only do it to get comparable values to detect step losses reliable
@@ -293,6 +326,7 @@ void MotorController::abortCalibration()
 //--------------------------------------------------------------------------------------------------
 void MotorController::calibrationIsDone()
 {
+    completeCalibrationCounter++;
     abortCalibration();
 
     vTaskDelay(10); // wait for new steady value from hall encoder
@@ -406,6 +440,7 @@ bool MotorController::checkForStepLosses()
 {
     if (!hallEncoder.isOkay())
         return false;
+
     return (std::abs(stepperMotor.getPosition() - hallEncoder.getPosition()) >
             MicrostepLossThreshold);
 }
@@ -459,6 +494,7 @@ uint8_t MotorController::getProgress() const
 //--------------------------------------------------------------------------------------------------
 void MotorController::setOpeningState()
 {
+    openCommandCounter++;
     isOpening = true;
     isClosing = false;
 }
@@ -466,6 +502,7 @@ void MotorController::setOpeningState()
 //--------------------------------------------------------------------------------------------------
 void MotorController::setClosingState()
 {
+    closeCommandCounter++;
     isOpening = false;
     isClosing = true;
 }
@@ -473,6 +510,12 @@ void MotorController::setClosingState()
 //--------------------------------------------------------------------------------------------------
 void MotorController::resetOpeningClosingState()
 {
+    if (isOpening)
+        completeOpeningCounter++;
+
+    else if (isClosing)
+        completeClosingCounter++;
+
     isOpening = false;
     isClosing = false;
 }

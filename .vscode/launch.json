@@ -31,6 +31,18 @@
         },
         {
             "type": "cortex-debug",
+            "request": "attach",
+            "name": "Attach (J-Link, RTOS-aware)",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceFolder}/build/${workspaceFolderBasename}.elf",
+            "serverpath": "JLinkGDBServer",
+            "servertype": "jlink",
+            "device": "stm32g0b1ke",
+            "interface": "swd",
+            "rtos": "FreeRTOS"
+        },
+        {
+            "type": "cortex-debug",
             "request": "launch",
             "name": "Debug (ST-LINK)",
             "cwd": "${workspaceFolder}",
