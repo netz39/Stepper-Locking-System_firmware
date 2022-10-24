@@ -28,7 +28,7 @@ public:
         tactileSwitches.lockSwitch.setCallback(
             std::bind(&StateMachine::lockSwitchCallback, this, std::placeholders::_1));
 
-        motorController.setFinishedCallback(
+        motorController.setNotifyStateMaschineCallback(
             std::bind(&StateMachine::motorControllerFinishedCallback, this, std::placeholders::_1));
 
         tactileSwitches.forceOpen.setCallback(
@@ -67,7 +67,8 @@ public:
     static constexpr uint32_t LockStateReleaseBit = 1 << 6;
     static constexpr uint32_t FinishedEvent = 1 << 7;
 
-    [[nodiscard]] State getCurrentState() const noexcept {
+    [[nodiscard]] State getCurrentState() const noexcept
+    {
         return currentState;
     }
 
@@ -82,7 +83,7 @@ protected:
 private:
     TactileSwitches &tactileSwitches;
     MotorController &motorController;
-    State currentState {State::Initializing};
+    State currentState{State::Initializing};
 
     bool isCalibrated = false;
 
