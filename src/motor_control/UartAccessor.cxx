@@ -43,6 +43,9 @@ bool UartAccessor::transmit(const uint8_t *data, uint16_t length)
 
     errorCondition = errorCondition || (binary.take(toOsTicks(Timeout)) == pdFALSE);
 
+    if (errorCondition)
+        HAL_UART_AbortTransmit(uartHandle);
+
     bool returnValue = errorCondition;
     errorCondition = false;
     return !returnValue;

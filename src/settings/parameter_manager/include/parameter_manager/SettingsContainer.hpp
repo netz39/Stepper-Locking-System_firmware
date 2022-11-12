@@ -119,6 +119,31 @@ public:
     }
 
     /**
+     * Add to value by name / index.
+     * Name templated overload determines setting existence at compile time. Zero cost.
+     * String overload ASSERTS setting existence. String search on every usage.
+     * Index lookup ASSERTS index validity. Zero cost.
+     *
+     * @return true on success, false if min / max bounds are violated
+     */
+    template <const std::string_view &name>
+    bool addToValue(const SettingsValue_t addValue)
+    {
+        constexpr size_t Index = getIndex<name>();
+        return addToValue(Index, addValue);
+    }
+
+    bool addToValue(std::string_view name, const SettingsValue_t addValue)
+    {
+        return addToValue(getIndex(name), addValue);
+    }
+
+    bool addToValue(size_t Index, const float addValue)
+    {
+        return setValue(Index, getValue(Index) + addValue);
+    }
+
+    /**
      * Get the values type by name/index - only relevant for UAVCAN's param server.
      */
     template <const std::string_view &name>

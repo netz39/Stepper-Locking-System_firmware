@@ -65,7 +65,7 @@ bool MotorController::checkStepperDriver()
     if (tmc2209.isCommFailure())
     {
         if (!hadTmcFailure)
-            tmcFailureCounter++;
+            settingsContainer.addToValue<firmwareSettings::TmcFailureCounter>(1);
 
         if (uartFailureCounter++ >= UartFailueCounterThreshold)
         {
@@ -91,7 +91,7 @@ void MotorController::checkHallEncoder()
     if (!hallEncoder.isOkay())
     {
         if (!hadHallEncoderFailure)
-            hallFailureCounter++;
+            settingsContainer.addToValue<firmwareSettings::HallFailureCounter>(1);
 
         // send warning, but door can open/close normally
         hadHallEncoderFailure = true;
@@ -126,11 +126,10 @@ void MotorController::checkCalibration()
     // check for step losses while calibrating
     if (checkForStepLosses())
     {
-        stepLossesCounter++;
-
         // step losses occured, count it
         if (eventCounter++ >= StepLossEventAtCalibrationCounterThreshold)
         {
+            settingsContainer.addToValue<firmwareSettings::CriticalStepLossCounter>(1);
             isCalibrating = false;
             stopMovementImmediately();
             signalFailure(FailureType::CalibrationFailed);
@@ -145,8 +144,6 @@ void MotorController::checkMovement()
     // check for step losses while normal movement
     if (checkForStepLosses())
     {
-        stepLossesCounter++;
-
         // step losses occured, update steppers internal position to hall encoder
         // movement will be corrected by TeensyStep
         stepperMotor.setPosition(hallEncoder.getPosition());
@@ -155,6 +152,8 @@ void MotorController::checkMovement()
         {
             if (eventCounter++ >= StepLossEventCounterThreshold)
             {
+
+                settingsContainer.addToValue<firmwareSettings::CriticalStepLossCounter>(1);
                 stopMovementImmediately();
                 signalFailure(FailureType::ExcessiveStepLosses);
                 eventCounter = 0;
@@ -164,6 +163,7 @@ void MotorController::checkMovement()
         {
             if (eventCounter++ >= ExternalMotorMoveEventCounterThreshold)
             {
+                settingsContainer.addToValue<firmwareSettings::ExternalMotorMovementCounter>(1);
                 // motor is moving externally
                 signalFailure(FailureType::MotorMovedExternally);
                 eventCounter = 0;
@@ -181,9 +181,6 @@ void MotorController::onSettingsUpdate()
     maximumMotorAcc = settingsContainer.getValue<firmwareSettings::MotorMaxAcc>();
     calibrationSpeed = settingsContainer.getValue<firmwareSettings::CalibrationSpeed>();
     calibrationAcc = settingsContainer.getValue<firmwareSettings::CalibrationAcc>();
-
-    overheatedCounter = settingsContainer.getValue<firmwareSettings::MotorOverheatCounter>();
-    warningTempCounter = settingsContainer.getValue<firmwareSettings::MotorWarningTempCounter>();
 
     stepperMotor.setInverseRotation(
         settingsContainer.getValue<firmwareSettings::InvertRotationDirection>());
@@ -290,7 +287,7 @@ void MotorController::revokeCalibration()
 
     if (isCalibrating)
     {
-        abortCalibrationCounter++;
+        settingsContainer.addToValue<firmwareSettings::AbortCalibrationCounter>(1);
         abortCalibration();
     }
 }
@@ -299,7 +296,10 @@ void MotorController::revokeCalibration()
 
 void MotorController::doCalibration(bool forceInverted)
 {
-    forceInverted ? calibrationInverseCommandCounter++ : calibrationCommandCounter++;
+    forceInverted
+        ? settingsContainer.addToValue<firmwareSettings::CalibrationInverseCommandCounter>(1)
+        : settingsContainer.addToValue<firmwareSettings::CalibrationCommandCounter>(1);
+
     enableCalibrationMode();
 
     // only do it to get comparable values to detect step losses reliable
@@ -326,7 +326,7 @@ void MotorController::abortCalibration()
 //--------------------------------------------------------------------------------------------------
 void MotorController::calibrationIsDone()
 {
-    completeCalibrationCounter++;
+    settingsContainer.addToValue<firmwareSettings::CompleteCalibrationCounter>(1);
     abortCalibration();
 
     vTaskDelay(10); // wait for new steady value from hall encoder
@@ -415,7 +415,7 @@ void MotorController::checkMotorTemperature()
     if (adc.getMotorTemperature() >= CriticalMotorTemp)
     {
         if (!isOverheated)
-            overheatedCounter++;
+            settingsContainer.addToValue<firmwareSettings::MotorOverheatCounter>(1);
 
         isOverheated = true;
         hasWarningTemp = false;
@@ -423,7 +423,7 @@ void MotorController::checkMotorTemperature()
     else if (adc.getMotorTemperature() >= WarningMotorTemp)
     {
         if (!hasWarningTemp && !isOverheated)
-            warningTempCounter++;
+            settingsContainer.addToValue<firmwareSettings::MotorWarningTempCounter>(1.0f);
 
         isOverheated = false;
         hasWarningTemp = true;
@@ -494,7 +494,7 @@ uint8_t MotorController::getProgress() const
 //--------------------------------------------------------------------------------------------------
 void MotorController::setOpeningState()
 {
-    openCommandCounter++;
+    settingsContainer.addToValue<firmwareSettings::OpenCommandCounter>(1);
     isOpening = true;
     isClosing = false;
 }
@@ -502,7 +502,7 @@ void MotorController::setOpeningState()
 //--------------------------------------------------------------------------------------------------
 void MotorController::setClosingState()
 {
-    closeCommandCounter++;
+    settingsContainer.addToValue<firmwareSettings::CloseCommandCounter>(1);
     isOpening = false;
     isClosing = true;
 }
@@ -511,10 +511,10 @@ void MotorController::setClosingState()
 void MotorController::resetOpeningClosingState()
 {
     if (isOpening)
-        completeOpeningCounter++;
+        settingsContainer.addToValue<firmwareSettings::CompleteOpeningCounter>(1);
 
     else if (isClosing)
-        completeClosingCounter++;
+        settingsContainer.addToValue<firmwareSettings::CompleteClosingCounter>(1);
 
     isOpening = false;
     isClosing = false;

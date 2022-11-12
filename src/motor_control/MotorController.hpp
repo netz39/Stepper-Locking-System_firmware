@@ -31,7 +31,7 @@ public:
         HallEncoderReconnected
     };
 
-    MotorController(const firmwareSettings::Container &settingsContainer, const AnalogDigital &adc,
+    MotorController(firmwareSettings::Container &settingsContainer, const AnalogDigital &adc,
                     HallEncoder &hallEncoder, UartAccessor &uartAccessorTmc)
         : TaskWithMemberFunctionBase("motorControllerTask", 512, osPriorityHigh3), //
           settingsContainer(settingsContainer),                                    //
@@ -134,14 +134,12 @@ protected:
     void onSettingsUpdate() override;
 
 private:
-    const firmwareSettings::Container &settingsContainer;
+    firmwareSettings::Container &settingsContainer;
     const AnalogDigital &adc;
     HallEncoder &hallEncoder;
 
     bool isOverheated = false;
-    uint32_t overheatedCounter{};
     bool hasWarningTemp = false;
-    uint32_t warningTempCounter{};
 
     bool isInCalibrationMode = false;
     bool isCalibrating = false;
@@ -232,19 +230,4 @@ private:
     void checkCalibration();
 
     void checkMovement();
-
-    // ToDo: get/save counters from/to EEPROM
-    volatile uint32_t hallFailureCounter = 0;
-    volatile uint32_t tmcFailureCounter = 0;
-    volatile uint32_t stepLossesCounter = 0;
-
-    uint32_t openCommandCounter = 0;
-    uint32_t closeCommandCounter = 0;
-    volatile uint32_t completeOpeningCounter = 0;
-    volatile uint32_t completeClosingCounter = 0;
-
-    uint32_t calibrationCommandCounter = 0;
-    uint32_t calibrationInverseCommandCounter = 0;
-    uint32_t abortCalibrationCounter = 0;
-    uint32_t completeCalibrationCounter = 0;
 };

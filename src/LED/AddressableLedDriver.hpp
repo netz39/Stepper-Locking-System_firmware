@@ -1,5 +1,6 @@
 #pragma once
 
+#include "GammaCorrection.hpp"
 #include "LedDataTypes.hpp"
 #include "core/SafeAssert.h"
 #include "units/si/time.hpp"
@@ -22,6 +23,20 @@ public:
 
 private:
     SPI_HandleTypeDef *spiPeripherie = nullptr;
+
+    struct LedSpiData
+    {
+        uint8_t Start = 0xFF; //!< the first byte contains control data like brightness
+        BgrColor color;
+
+        void assignGammaCorrectedColor(BgrColor newColor)
+        {
+            color.blue = GammaCorrectionLUT[newColor.blue];
+            color.green = GammaCorrectionLUT[newColor.green];
+            color.red = GammaCorrectionLUT[newColor.red];
+        }
+    };
+    using LedSpiDataArray = std::array<LedSpiData, NumberOfLedsPerRing>;
 
     LedSpiDataArray ledSpiData1;
     LedSpiDataArray ledSpiData2;
