@@ -38,7 +38,7 @@ public:
     // private:
     firmwareSettings::Container settingsContainer{};
     firmwareSettings::IO settingsIo{eeprom, settingsContainer};
-    Settings settings{settingsIo};
+    Settings settings{settingsIo, settingsContainer};
 
     uint32_t overheatedCounter = 0;
     uint32_t warningTempCounter = 0;

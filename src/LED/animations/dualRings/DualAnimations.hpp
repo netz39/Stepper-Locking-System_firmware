@@ -1,7 +1,7 @@
 #pragma once
 
-#include "LED/animations/ShowStatusAnimation.hpp"
-#include "LED/animations/WhirlingAnimation.hpp"
+#include "../ShowStatusAnimation.hpp"
+#include "../WhirlingAnimation.hpp"
 
 template <class T>
 class DualAnimations : public LedAnimationBase
