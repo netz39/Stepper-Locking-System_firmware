@@ -1,4 +1,5 @@
 # Stepper-Locking-System_firmware
+[![Build status](https://github.com/netz39/Stepper-Locking-System_firmware/actions/workflows/build.yml/badge.svg)](https://github.com/netz39/Stepper-Locking-System_firmware/actions/workflows/build.yml)
 The C++ firmware for our **[Stepper-Locking-System](https://github.com/netz39/Stepper-Locking-System) hardware**.
 
 An [overview](https://wiki.netz39.de/projects:2022:stepper_locking_system) (German) of this complete project is also available.
