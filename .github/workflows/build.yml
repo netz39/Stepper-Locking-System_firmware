@@ -1,0 +1,37 @@
+name: build
+
+on:
+  pull_request:
+    branches:
+    - 'main'
+  push:
+    branches:
+    - 'main'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        type: [Debug, Release]
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+      with:
+        submodules: 'recursive'
+        
+    - name: arm-none-eabi-gcc
+      uses: ryanwinter/arm-none-eabi-gcc@master
+      with:
+        release: '10.3-2021.10 ' # The arm-none-eabi-gcc release to use.
+    
+    - name: Install Ninja
+      uses: seanmiddleditch/gha-setup-ninja@v3
+
+    - name: Install gitpython
+      run: pip install gitpython
+      
+    - name: Build binary
+      run: |
+          cmake -B build/${{ matrix.type }} -G Ninja -DCMAKE_C_COMPILER:FILEPATH=arm-none-eabi-gcc -DCMAKE_CXX_COMPILER:FILEPATH=arm-none-eabi-g++ -DCMAKE_BUILD_TYPE="${{ matrix.type }}"
+          cmake --build build/${{ matrix.type }}  
