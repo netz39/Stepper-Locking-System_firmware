@@ -7,8 +7,8 @@
     while (true)
     {
         static constexpr auto ButtonSamplingInterval = 10.0_ms;
-        openButton.update(ButtonSamplingInterval);
-        closeButton.update(ButtonSamplingInterval);
+        // openButton.update(ButtonSamplingInterval);
+        // closeButton.update(ButtonSamplingInterval);
         doorSwitch.update(ButtonSamplingInterval);
         lockSwitch.update(ButtonSamplingInterval);
 
