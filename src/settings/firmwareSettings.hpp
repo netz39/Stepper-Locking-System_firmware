@@ -44,7 +44,7 @@ inline constexpr std::array EntryArray = {
     SettingsEntry{0, 12500, 750000, MotorMaxAcc, VariableType::integerType},     //
     SettingsEntry{0, 2000, 300000, CalibrationSpeed, VariableType::integerType}, //
     SettingsEntry{0, 12500, 750000, CalibrationAcc, VariableType::integerType},  //
-    SettingsEntry{true, InvertRotationDirection},                                //
+    SettingsEntry{false, InvertRotationDirection},                               //
 
     // 16777216 is the max possible intregal value in a float
     SettingsEntry{0, 0, 16777216, MotorOverheatCounter, VariableType::integerType},             //
