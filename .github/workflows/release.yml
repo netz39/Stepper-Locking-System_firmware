@@ -1,0 +1,44 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
+
+jobs:
+  build-project:
+    uses: Netz39/Stepper-Locking-System_firmware/.github/workflows/build.yml@main
+
+  create-release:
+    runs-on: ubuntu-latest
+    needs: build-project
+    steps:
+    - name: "Generate release changelog"
+      id: generate-release-changelog
+      uses: heinrichreimer/github-changelog-generator-action@v2.3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        onlyLastTag: "false" # set to false if no tags exist (buggy with only one tag)
+        stripHeaders: "true"
+        stripGeneratorNotice: "true"
+
+    - name: Extract the VERSION name
+      id: get-version
+      run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
+
+    - name: Retrieve build files
+      uses: actions/download-artifact@v3.0.1
+      with:
+        name: build-artifact
+        path: build/artifacts
+
+    - name: "Create GitHub release"
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.ref }}
+        name: "${{ steps.get-version.outputs.VERSION }}"
+        body: "${{ steps.generate-release-changelog.outputs.changelog }}"
+        prerelease: ${{ startsWith(steps.get-version.outputs.VERSION, 'v0.') }}
+        token: ${{ secrets.GITHUB_TOKEN }}
+        files: |
+          ./build/artifacts/*
