@@ -496,7 +496,7 @@ void MotorController::unfreezeMotor()
 uint8_t MotorController::getProgress() const
 {
     if (!isOpening && !isClosing)
-        return 0;
+        return 100;
 
     const auto Target = isOpening ? NumberOfMicrostepsForOperation : 0;
     const auto Diff = std::abs(Target - stepperMotor.getPosition());
