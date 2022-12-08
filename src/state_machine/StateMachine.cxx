@@ -143,6 +143,8 @@ using util::wrappers::NotifyAction;
             motorController.calibrationIsDone();
             isCalibrated = true;
             currentState = State::Closed;
+
+            onTimeout(nullptr); // go to state which we get from force wires
         }
         break;
 
@@ -257,12 +259,6 @@ void StateMachine::openButtonCallback(const util::Button::Action action)
             currentState = State::Opened;
             notify(ErrorBit, NotifyAction::SetBits);
         }
-
-        if (!isForceOpen)
-            resetTimer();
-
-        else
-            stopTimer();
 
         break;
 
@@ -423,6 +419,7 @@ void StateMachine::motorControllerFinishedCallback(const MotorController::Failur
     case MotorController::FailureType::MotorMovedExternally:
         // switch to warning, but do not revoke calibration
         currentState = State::Warning;
+        resetTimer(); // 1min timeout and to back to state which we get from force wires
         notify(ErrorBit, NotifyAction::SetBits);
         break;
 
@@ -440,9 +437,8 @@ void StateMachine::forceOpenCallback(const util::Button::Action action)
     if (action == util::Button::Action::ShortPress || action == util::Button::Action::LongPress)
     {
         stopTimer();
-        isForceOpen = true;
         openButtonCallback(action);
-        }
+    }
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -451,7 +447,6 @@ void StateMachine::forceCloseCallback(const util::Button::Action action)
     if (action == util::Button::Action::ShortPress || action == util::Button::Action::LongPress)
     {
         stopTimer();
-        isForceOpen = false;
         closeButtonCallback(action);
     }
 }

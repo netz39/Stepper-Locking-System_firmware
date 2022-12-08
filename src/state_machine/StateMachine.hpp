@@ -38,7 +38,7 @@ public:
             std::bind(&StateMachine::forceCloseCallback, this, std::placeholders::_1));
 
         timeoutTimer =
-            xTimerCreate("timeoutTimer", toOsTicks(30.0_s), pdFALSE, nullptr, timeoutCallback);
+            xTimerCreate("timeoutTimer", toOsTicks(1.0_min), pdFALSE, nullptr, timeoutCallback);
     };
 
     ~StateMachine() override = default;
@@ -74,7 +74,11 @@ public:
 
     void onTimeout(TimerHandle_t)
     {
-        closeButtonCallback(util::Button::Action::ShortPress);
+        if (tactileSwitches.forceOpen.isPressing())
+            openButtonCallback(util::Button::Action::ShortPress);
+
+        else
+            closeButtonCallback(util::Button::Action::ShortPress);
     }
 
 protected:
@@ -103,7 +107,6 @@ private:
 
     void forceOpenCallback(util::Button::Action action);
     void forceCloseCallback(util::Button::Action action);
-    bool isForceOpen = false;
 
     TimerHandle_t timeoutTimer = nullptr;
     void (*timeoutCallback)(TimerHandle_t xTimer);
