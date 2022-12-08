@@ -220,26 +220,34 @@ void MotorController::signalFailure(FailureType failureType)
 }
 
 //--------------------------------------------------------------------------------------------------
-void MotorController::moveAbsolute(int32_t position)
+void MotorController::moveAbsolute(int32_t position, bool async)
 {
     if (!isOverheated && !isMotorFreezed)
     {
         enableMotorTorque();
 
         stepperMotor.setTargetAbs(position);
-        stepControl.moveAsync(stepperMotor);
+
+        if (async)
+            stepControl.moveAsync(stepperMotor);
+        else
+            stepControl.move(stepperMotor);
     }
 }
 
 //--------------------------------------------------------------------------------------------------
-void MotorController::moveRelative(int32_t microSteps)
+void MotorController::moveRelative(int32_t microSteps, bool async)
 {
     if (!isOverheated && !isMotorFreezed)
     {
         enableMotorTorque();
 
         stepperMotor.setTargetRel(microSteps);
-        stepControl.moveAsync(stepperMotor);
+
+        if (async)
+            stepControl.moveAsync(stepperMotor);
+        else
+            stepControl.move(stepperMotor);
     }
 }
 
@@ -327,6 +335,12 @@ void MotorController::abortCalibration()
 void MotorController::calibrationIsDone()
 {
     settingsContainer.addToValue<firmwareSettings::CompleteCalibrationCounter>(1);
+
+    // add offset to move the stepper a little bit further
+    // this should ensure that the lock switch is triggered in every case to turn off the Nerdstern
+    stepperMotor.setPosition(CalibrationOffsetInMicrosteps);
+    moveAbsolute(0, false);
+
     abortCalibration();
 
     vTaskDelay(10); // wait for new steady value from hall encoder
@@ -482,7 +496,7 @@ void MotorController::unfreezeMotor()
 uint8_t MotorController::getProgress() const
 {
     if (!isOpening && !isClosing)
-        return 0;
+        return 100;
 
     const auto Target = isOpening ? NumberOfMicrostepsForOperation : 0;
     const auto Diff = std::abs(Target - stepperMotor.getPosition());

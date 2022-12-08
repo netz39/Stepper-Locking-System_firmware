@@ -115,9 +115,10 @@ public:
     static constexpr auto NumberOfFullSteps = 200;
     static constexpr auto MicrostepsPerRevolution = MicrostepsPerFullStep * NumberOfFullSteps;
     static constexpr auto GearReduction = 5;
-    static constexpr auto NeededRevolutions = 1.75;
+    static constexpr auto NeededRevolutions = 1.5;
     static constexpr int32_t NumberOfMicrostepsForOperation =
         NeededRevolutions * MicrostepsPerRevolution * GearReduction;
+    static constexpr auto CalibrationOffsetInMicrosteps = 256;
 
     static constexpr auto MicrostepLossThreshold = 64;
     static constexpr auto StepLossEventCounterThreshold = 64;
@@ -177,11 +178,15 @@ private:
     /// Moves the motor asynchronously.
     /// @param microSteps moves the motor the given microSteps.
     /// Postive values opens the door.
-    void moveRelative(int32_t microSteps);
+    /// @param async defines whether function is blocking until movement is finished, default is non
+    /// blocking
+    void moveRelative(int32_t microStepss, bool async = true);
 
     /// Moves the motor asynchronously.
     /// @param position moves the motor to given position.
-    void moveAbsolute(int32_t position);
+    /// @param async defines whether function is blocking until movement is finished, default is non
+    /// blocking
+    void moveAbsolute(int32_t position, bool async = true);
 
     /// - reduces max speed/acc
     /// - sets motor current to 100%

@@ -20,8 +20,9 @@ public:
     /// press event when triggering button
     util::Button closeButton{{CloseButton_GPIO_Port, CloseButton_Pin}, 250.0_ms, true};
 
-    /// press event when triggering (normally closed) switch
-    util::Button doorSwitch{{DoorState_GPIO_Port, DoorState_Pin}, 500.0_ms, false};
+    /// press event when releasing (normally closed) switch
+    /// StopLongPress event when triggering switch
+    util::Button doorSwitch{{DoorState_GPIO_Port, DoorState_Pin}, 500.0_ms, true};
 
     /// press event when releasing switch (normally closed)
     /// StopLongPress event when triggering switch
