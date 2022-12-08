@@ -437,7 +437,7 @@ void StateMachine::forceOpenCallback(const util::Button::Action action)
     if (action == util::Button::Action::ShortPress || action == util::Button::Action::LongPress)
     {
         stopTimer();
-        openButtonCallback(action);
+        openButtonCallback(util::Button::Action::ShortPress);
     }
 }
 
@@ -447,6 +447,6 @@ void StateMachine::forceCloseCallback(const util::Button::Action action)
     if (action == util::Button::Action::ShortPress || action == util::Button::Action::LongPress)
     {
         stopTimer();
-        closeButtonCallback(action);
+        closeButtonCallback(util::Button::Action::ShortPress);
     }
 }
