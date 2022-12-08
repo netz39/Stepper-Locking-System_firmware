@@ -115,7 +115,7 @@ public:
     static constexpr auto NumberOfFullSteps = 200;
     static constexpr auto MicrostepsPerRevolution = MicrostepsPerFullStep * NumberOfFullSteps;
     static constexpr auto GearReduction = 5;
-    static constexpr auto NeededRevolutions = 1.75;
+    static constexpr auto NeededRevolutions = 1.5;
     static constexpr int32_t NumberOfMicrostepsForOperation =
         NeededRevolutions * MicrostepsPerRevolution * GearReduction;
 
