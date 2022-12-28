@@ -47,6 +47,9 @@ private:
         if ((flags & i2c::FirstFrame) && (flags & i2c::LastFrame))
             return I2C_FIRST_AND_LAST_FRAME;
 
+        else if ((flags & i2c::FirstFrame) && (flags & i2c::NextFrame))
+            return I2C_FIRST_AND_NEXT_FRAME;
+
         else if (flags & i2c::FirstFrame)
             return I2C_FIRST_FRAME;
 
