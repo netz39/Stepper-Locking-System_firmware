@@ -11,7 +11,8 @@ enum TransferFlags : int
 {
     NoFlags = 0,
     FirstFrame = 1 << 0,
-    LastFrame = 1 << 1
+    LastFrame = 1 << 1,
+    NextFrame = 1 << 2
 };
 
 class IBusAccessor

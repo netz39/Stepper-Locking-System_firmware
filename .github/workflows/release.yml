@@ -13,9 +13,13 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-project
     steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+      with:
+        submodules: 'recursive'
     - name: "Generate release changelog"
       id: generate-release-changelog
-      uses: heinrichreimer/github-changelog-generator-action@v2.3
+      uses: heinrichreimer/action-github-changelog-generator@v2.3
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         onlyLastTag: "true" # set to false if no tags exist (buggy with only one tag)

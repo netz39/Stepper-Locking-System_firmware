@@ -33,7 +33,6 @@ Application::Application()
     // SPI callback for addressable LEDs
     result = HAL_SPI_RegisterCallback(LedSpiPeripherie, HAL_SPI_TX_COMPLETE_CB_ID,
         [](SPI_HandleTypeDef *){ getApplicationInstance().lightController.notifySpiIsFinished(); });
-    
 
     // EEPROM callbacks
     result = HAL_I2C_RegisterCallback(EepromBus, HAL_I2C_MASTER_TX_COMPLETE_CB_ID, 

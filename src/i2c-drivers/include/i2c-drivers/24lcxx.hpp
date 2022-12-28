@@ -4,8 +4,8 @@
 
 #include "i2c-drivers/bus_accessor.hpp"
 #include <array>
-#include <limits>
 #include <core/SafeAssert.h>
+#include <limits>
 
 template <size_t KiB, size_t BytesPerPage>
 class Eeprom24LCXX
@@ -20,11 +20,11 @@ public:
                       "Choose Address_t to be unsigned!");
 
         static_assert(
-            static_cast<uint64_t>(getSizeInBytes()-1) <=
+            static_cast<uint64_t>(getSizeInBytes() - 1) <=
                 static_cast<uint64_t>(std::numeric_limits<Address_t>::max()),
             "Address_t is not able to cover complete size of eeprom. Choose a bigger type");
 
-        static_assert(static_cast<uint64_t>(getSizeInBytes()-1) <=
+        static_assert(static_cast<uint64_t>(getSizeInBytes() - 1) <=
                           static_cast<uint64_t>(std::numeric_limits<uint16_t>::max()),
                       "read() and write() are still statically written for 2-byte addresses. "
                       "Revise implementations");
@@ -38,7 +38,7 @@ public:
     virtual void read(Address_t address, uint8_t *buffer, Address_t length)
     {
         SafeAssert(length != 0);
-        SafeAssert(length - 1<= std::numeric_limits<uint16_t>::max());
+        SafeAssert(length - 1 <= std::numeric_limits<uint16_t>::max());
         SafeAssert(!doesAddressExceedLimit(address + length - 1));
 
         auto memoryAddressBuffer = getAddressBuffer(static_cast<uint16_t>(address));
@@ -67,7 +67,7 @@ public:
 
         // Write first page
         auto memoryAddressBuffer = getAddressBuffer(address);
-        accessor.write(memoryAddressBuffer.data(), 2, i2c::FirstFrame);
+        accessor.write(memoryAddressBuffer.data(), 2, i2c::FirstFrame | i2c::NextFrame);
         accessor.write(data, numberOfBytesOnFirstPage, i2c::LastFrame);
         waitPageWriteFinished();
 
@@ -77,7 +77,7 @@ public:
         for (size_t i = 0; i < numberOfFullPages; ++i)
         {
             memoryAddressBuffer = getAddressBuffer(address);
-            accessor.write(memoryAddressBuffer.data(), 2, i2c::FirstFrame);
+            accessor.write(memoryAddressBuffer.data(), 2, i2c::FirstFrame | i2c::NextFrame);
             accessor.write(data, BytesPerPage, i2c::LastFrame);
             waitPageWriteFinished();
 
@@ -89,7 +89,7 @@ public:
         if (firstPage != lastPage && numberOfBytesOnLastPage > 0)
         {
             memoryAddressBuffer = getAddressBuffer(address);
-            accessor.write(memoryAddressBuffer.data(), 2, i2c::FirstFrame);
+            accessor.write(memoryAddressBuffer.data(), 2, i2c::FirstFrame | i2c::NextFrame);
             accessor.write(data, numberOfBytesOnLastPage, i2c::LastFrame);
             waitPageWriteFinished();
         }
