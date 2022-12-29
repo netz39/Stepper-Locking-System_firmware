@@ -1,8 +1,10 @@
 #pragma once
 #include "FreeRTOS.h"
-#include "as5600_constants.hpp"
-#include "rtos_accessor.hpp"
 #include "task.h"
+
+#include "as5600_constants.hpp"
+#include "eeprom-driver/I2cAccessor.hpp"
+
 #include <utility>
 
 /// Driver for AMS AS5600 Magnetic Rotary Encoder
@@ -25,9 +27,9 @@ public:
     };
 
     /// Construct a new AS5600 driver
-    /// @param accessor  i2c bus access
+    /// @param accessor  i2c bus accessor
     /// @param voltage Volage the device is fed
-    AS5600(i2c::RtosAccessor &accessor, Voltage voltage, Variant variant);
+    AS5600(I2cAccessor &accessor, Voltage voltage, Variant variant);
 
     bool operator==(const AS5600 &other) const;
 
@@ -201,7 +203,7 @@ public:
     }
 
 private:
-    i2c::RtosAccessor &accessor;
+    I2cAccessor &accessor;
     const Voltage voltage;
     const uint8_t deviceAddress;
     TaskHandle_t task_ = nullptr;

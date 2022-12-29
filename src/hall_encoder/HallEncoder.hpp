@@ -1,19 +1,18 @@
 #pragma once
 
+#include "as5600.hpp"
 #include "helpers/freertos.hpp"
-#include "i2c-drivers/as5600.hpp"
 #include "settings/Settings.hpp"
 #include "wrappers/Task.hpp"
 
 #include <array>
-
 
 /// Read the hall encoder periodically and calc the current motor position
 class HallEncoder : public util::wrappers::TaskWithMemberFunctionBase, SettingsUser
 {
 
 public:
-    HallEncoder(const firmwareSettings::Container &settingsContainer, i2c::RtosAccessor &busAccessor)
+    HallEncoder(const firmwareSettings::Container &settingsContainer, I2cAccessor &busAccessor)
         : TaskWithMemberFunctionBase("hallEncoderTask", 256, osPriorityNormal3), //
           settingsContainer(settingsContainer),                                  //
           busAccessor(busAccessor)                                               //
@@ -44,7 +43,7 @@ protected:
 
 private:
     const firmwareSettings::Container &settingsContainer;
-    i2c::RtosAccessor &busAccessor;
+    I2cAccessor &busAccessor;
 
     AS5600::AS5600 device{busAccessor, AS5600::AS5600::Voltage::ThreePointThree,
                           AS5600::AS5600::Variant::AS5600};

@@ -1,11 +1,11 @@
-#include "i2c-drivers/as5600.hpp"
+#include "as5600.hpp"
 #include "hal_header.h"
 #include "util/MapValue.hpp"
 #include <cstdlib>
 
 namespace AS5600
 {
-AS5600::AS5600(i2c::RtosAccessor &accessor, Voltage voltage, Variant variant)
+AS5600::AS5600(I2cAccessor &accessor, Voltage voltage, Variant variant)
     : accessor{accessor}, voltage{voltage}, deviceAddress{variant == Variant::AS5600
                                                               ? DEVICE_ADDRESS
                                                               : DEVICE_ADDRESS_L_VARIANT}
