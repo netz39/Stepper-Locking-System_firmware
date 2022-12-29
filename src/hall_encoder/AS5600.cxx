@@ -5,6 +5,7 @@
 
 using namespace as5600_constants;
 
+//--------------------------------------------------------------------------------------------------
 AS5600::AS5600(I2cAccessor &accessor, Voltage voltage, Variant variant)
     : accessor{accessor}, voltage{voltage}, deviceAddress{variant == Variant::AS5600
                                                               ? DeviceAddress
@@ -12,11 +13,13 @@ AS5600::AS5600(I2cAccessor &accessor, Voltage voltage, Variant variant)
 {
 }
 
+//--------------------------------------------------------------------------------------------------
 bool AS5600::operator==(const AS5600 &other) const
 {
     return accessor == other.accessor;
 }
 
+//--------------------------------------------------------------------------------------------------
 bool AS5600::init()
 {
     // sync up internal variables
@@ -57,6 +60,7 @@ bool AS5600::init()
     return !commFail;
 }
 
+//--------------------------------------------------------------------------------------------------
 void AS5600::run()
 {
     if (commFail)
@@ -116,6 +120,7 @@ void AS5600::run()
     synchronizeScaledAngle();
 }
 
+//--------------------------------------------------------------------------------------------------
 bool AS5600::configureDevice(PowerMode pwrMode, HysteresisMode hystMode, SlowFilterMode sfMode,
                              FastFilterThreshold ffth, bool watchdog)
 {
@@ -152,11 +157,13 @@ bool AS5600::configureDevice(PowerMode pwrMode, HysteresisMode hystMode, SlowFil
     return !commFail;
 }
 
+//--------------------------------------------------------------------------------------------------
 bool AS5600::configurePowerMode(PowerMode pwrMode)
 {
     return configureDevice(pwrMode, hystMode, sfMode, ffth, watchdog);
 }
 
+//--------------------------------------------------------------------------------------------------
 void AS5600::readByte(RegisterOneByte reg, uint8_t &data)
 {
     accessor.beginTransaction(deviceAddress);
@@ -165,6 +172,7 @@ void AS5600::readByte(RegisterOneByte reg, uint8_t &data)
     accessor.endTransaction();
 }
 
+//--------------------------------------------------------------------------------------------------
 /// Returns data in little endian order.
 void AS5600::readWord(RegisterTwoBytes reg, uint16_t &data)
 {
@@ -174,6 +182,7 @@ void AS5600::readWord(RegisterTwoBytes reg, uint16_t &data)
     accessor.endTransaction();
 }
 
+//--------------------------------------------------------------------------------------------------
 void AS5600::writeByte(RegisterOneByte reg, uint8_t data)
 {
     accessor.beginTransaction(deviceAddress);
@@ -181,6 +190,7 @@ void AS5600::writeByte(RegisterOneByte reg, uint8_t data)
     accessor.endTransaction();
 }
 
+//--------------------------------------------------------------------------------------------------
 void AS5600::writeWord(RegisterTwoBytes reg, uint16_t data)
 {
     accessor.beginTransaction(deviceAddress);
@@ -188,6 +198,7 @@ void AS5600::writeWord(RegisterTwoBytes reg, uint16_t data)
     accessor.endTransaction();
 }
 
+//--------------------------------------------------------------------------------------------------
 uint16_t AS5600::getRawAngle()
 {
     uint16_t rawAngle = 0;
@@ -195,6 +206,7 @@ uint16_t AS5600::getRawAngle()
     return rawAngle & RawAngle::ContentMask;
 }
 
+//--------------------------------------------------------------------------------------------------
 bool AS5600::setMaximumAngle(float maxAngle)
 {
     if (maxAngle < Mang::Minimum || maxAngle > Mang::Maximum)
@@ -216,6 +228,7 @@ bool AS5600::setMaximumAngle(float maxAngle)
     return !commFail;
 }
 
+//--------------------------------------------------------------------------------------------------
 bool AS5600::setStartStopPosition(uint16_t rawStartPos, uint16_t rawStopPos)
 {
     if (rawStartPos > Zpos::ContentMask || rawStopPos > Mpos::ContentMask)
@@ -249,6 +262,7 @@ bool AS5600::setStartStopPosition(uint16_t rawStartPos, uint16_t rawStopPos)
     return !commFail;
 }
 
+//--------------------------------------------------------------------------------------------------
 bool AS5600::synchronizeScaledAngle()
 {
     uint16_t temp = 0;
