@@ -1,6 +1,4 @@
 #pragma once
-#include "FreeRTOS.h"
-#include "task.h"
 
 #include "as5600_constants.hpp"
 #include "eeprom-driver/I2cAccessor.hpp"
@@ -84,13 +82,7 @@ public:
     };
 
     /// Changes settings of device. Blocking. Waits until a new angle sample is received.
-    ///  @param pwrMode
-    ///  @param hystMode
-    ///  @param sfMode
-    ///  @param ffth
-    ///  @param watchdog
-    ///  @return true  success
-    ///  @return false i2c bus error
+    ///  @return true on success - false on i2c bus error
     bool configureDevice(PowerMode pwrMode, HysteresisMode hystMode, SlowFilterMode sfMode,
                          FastFilterThreshold ffth, bool watchdog);
 
@@ -105,24 +97,18 @@ public:
     }
 
     /// Checks if the magnet is too close.
-    ///  @return true    magnet is too close
-    ///  @return false   magnet is not too close
     [[nodiscard]] bool isMagnetTooClose() const
     {
         return magnetStatus < MagnetTooCloseLimit;
     }
 
     /// Checks if the magnet is too far away.
-    /// @return true     magnet is too far away
-    /// @return false    magnet is not too far away
     [[nodiscard]] bool isMagnetTooFarAway() const
     {
         return magnetStatus > MagnetTooFarLimit;
     }
 
     /// Checks if the communication is ok.
-    /// @return true     communication is ok
-    /// @return false    communication is interrupted
     [[nodiscard]] bool isCommunicationOK() const
     {
         return !commFail;
@@ -131,8 +117,6 @@ public:
     /// Checks if communication and magnet are ok. Non-blocking.
     /// See run() for additional details
     /// Also returns false when run() wasn't called at least once
-    /// @return true  green across the board
-    /// @return false  communication interrupted
     [[nodiscard]] bool isOK() const
     {
         return !isMagnetTooClose() && !isMagnetTooFarAway() && isCommunicationOK() && !reconnecting;
@@ -141,8 +125,6 @@ public:
     /// Checks if the driver is successfully initialized. Non-blocking.
     /// Poll this function until it returns true when createTask is used in constructor.
     /// When createTask is not used, just wait for init() to finish.
-    /// @return true
-    /// @return false
     [[nodiscard]] bool isInitialized() const
     {
         return initialized;
@@ -151,8 +133,7 @@ public:
     /// Set the start and stop of angular range. Blocking. Waits for new angle sample.
     /// @param rawStartPos 0 - 4095
     /// @param rawStopPos 0 - 4095
-    /// @return true no error
-    /// @return false communication interrupted. See run() for additional details
+    /// @return false if communication is interrupted. See run() for additional details
     bool setStartStopPosition(uint16_t rawStartPos, uint16_t rawStopPos);
 
     /// Get the start and stop of angular range. Non-blocking
@@ -169,11 +150,10 @@ public:
         return maxAngle;
     }
 
-    /// Set the maximum angular range, value must be greater than 18 degrees. Blocking. Will
-    ///  wait for new angle sample
-    ///  @param maxAngle value between 1/10 Pi - 2Pi
-    ///  @return true on success,
-    ///  @return false on communication failure. See run() for additional details
+    /// Set the maximum angular range, value must be greater than 18 degrees.
+    /// Blocking. Will wait for new angle sample
+    /// @param maxAngle value between 1/10 Pi - 2Pi
+    /// @return false on communication failure. See run() for additional details
     bool setMaximumAngle(float maxAngle);
 
     /// Get the unscaled and unmodified angle value. Blocking.
@@ -206,7 +186,7 @@ private:
     I2cAccessor &accessor;
     const Voltage voltage;
     const uint8_t deviceAddress;
-    TaskHandle_t task_ = nullptr;
+
     bool commFail = true;
     bool reconnecting = false;
     bool initialized = false;
@@ -242,12 +222,6 @@ private:
     void writeWord(RegisterTwoBytes reg, uint16_t data);
 
     /// Reads out the scaled angle and writes it to angle
-    /// @return true communication ok
-    /// @return false communicaiton failed
+    /// @return false if communicaiton is failed
     bool synchronizeScaledAngle();
-
-    /// Translates power modes to polling times for freertos
-    ///@param pwrMode
-    /// @return TickType_t
-    TickType_t getPollingTime(PowerMode pwrMode);
 };
