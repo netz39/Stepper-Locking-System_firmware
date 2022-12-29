@@ -5,3 +5,7 @@
 	path = src/eeprom-driver
 	url = ../../MG-5/eeprom-driver.git
 	branch = main
+[submodule "src/settings/settings-manager"]
+	path = src/settings/settings-manager
+	url = ../../MG-5/settings-manager.git
+	branch = main

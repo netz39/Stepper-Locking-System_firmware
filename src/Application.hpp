@@ -3,15 +3,14 @@
 // Do not include this file anywhere except in Application.cpp. You are creating design issue!
 // If you need access to a class contained in Application, just get yourself a reference to it
 // via your classes' constructor.
-
 #include "adc.h"
-#include "i2c-drivers/rtos_accessor.hpp"
 #include "i2c.h"
 #include "spi.h"
 #include "tim.h"
 
 #include "LED/LightController.hpp"
 #include "analog_to_digital/AnalogDigital.hpp"
+#include "eeprom-driver/I2cAccessor.hpp"
 #include "hall_encoder/HallEncoder.hpp"
 #include "motor_control/MotorController.hpp"
 #include "settings/Settings.hpp"
@@ -29,7 +28,7 @@ public:
     static Application &getApplicationInstance();
 
     static constexpr auto EepromBus = &hi2c1;
-    i2c::RtosAccessor eepromBusAccessor{EepromBus}; // also for hall encoder
+    I2cAccessor eepromBusAccessor{EepromBus}; // also for hall encoder
     Eeprom24LC64 eeprom{eepromBusAccessor, 0b000};
 
     static constexpr auto TmcUartPeripherie = &huart2;
