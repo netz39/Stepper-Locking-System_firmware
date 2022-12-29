@@ -233,16 +233,13 @@ private:
     static constexpr float MaxValueThreePointThreeVolt = 128.0f;
     static constexpr float MaxValueFiveVolt = 255.0f;
 
-    /// reads / writes two bytes to a register. Accepts / Returns data in little endian order.
-    /// @param dir
-    /// @param reg
-    /// @param data
-    void rwTwoBytes(Direction dir, RegisterTwoBytes reg, uint16_t *data);
-    void rwOneByte(Direction dir, RegisterOneByte reg, uint8_t *data);
+    void readByte(RegisterOneByte reg, uint8_t &data);
 
-    /// sensor is bit-endian internally. using this to swap to little-endian
-    /// for all two byte registers
-    static void swapBytes(uint16_t &);
+    /// Returns data in little endian order.
+    void readWord(RegisterTwoBytes reg, uint16_t &data);
+
+    void writeByte(RegisterOneByte reg, uint8_t data);
+    void writeWord(RegisterTwoBytes reg, uint16_t data);
 
     /// Reads out the scaled angle and writes it to angle
     /// @return true communication ok

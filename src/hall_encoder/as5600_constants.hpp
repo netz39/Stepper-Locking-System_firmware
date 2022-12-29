@@ -123,10 +123,4 @@ namespace AGC
 {
 static constexpr uint8_t CONTENT_MASK = 255; // 8 bits
 }
-
-enum class Direction : uint8_t
-{
-    READ,
-    WRITE
-};
 } // namespace AS5600
