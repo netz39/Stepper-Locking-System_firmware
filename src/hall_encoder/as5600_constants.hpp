@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-namespace AS5600
+namespace as5600_constants
 {
 constexpr uint8_t DeviceAddress = 0x36;
 constexpr uint8_t DeviceAddressVariantL = 0x40;
@@ -121,4 +121,4 @@ namespace Agc
 {
 constexpr uint8_t ContentMask = 0xFF; // 8 bits
 }
-} // namespace AS5600
+} // namespace as5600_constants

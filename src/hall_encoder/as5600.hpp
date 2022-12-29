@@ -7,10 +7,10 @@
 
 #include <utility>
 
+using namespace as5600_constants;
+
 /// Driver for AMS AS5600 Magnetic Rotary Encoder
 /// Only one instance per accessor allowed because you can't change the device's address
-namespace AS5600
-{
 class AS5600
 {
 public:
@@ -251,4 +251,3 @@ private:
     /// @return TickType_t
     TickType_t getPollingTime(PowerMode pwrMode);
 };
-} // namespace AS5600

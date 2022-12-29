@@ -45,8 +45,7 @@ private:
     const firmwareSettings::Container &settingsContainer;
     I2cAccessor &busAccessor;
 
-    AS5600::AS5600 device{busAccessor, AS5600::AS5600::Voltage::ThreePointThree,
-                          AS5600::AS5600::Variant::AS5600};
+    AS5600 device{busAccessor, AS5600::Voltage::ThreePointThree, AS5600::Variant::AS5600};
 
     void configureHall();
 

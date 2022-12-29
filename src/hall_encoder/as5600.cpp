@@ -3,8 +3,8 @@
 #include "util/MapValue.hpp"
 #include <cstdlib>
 
-namespace AS5600
-{
+using namespace as5600_constants;
+
 AS5600::AS5600(I2cAccessor &accessor, Voltage voltage, Variant variant)
     : accessor{accessor}, voltage{voltage}, deviceAddress{variant == Variant::AS5600
                                                               ? DeviceAddress
@@ -307,4 +307,3 @@ TickType_t AS5600::getPollingTime(PowerMode pwrMode)
         std::abort();
     }
 }
-} // namespace AS5600
