@@ -1,4 +1,4 @@
-#include "as5600.hpp"
+#include "AS5600.hpp"
 #include "hal_header.h"
 #include "util/MapValue.hpp"
 #include <cstdlib>

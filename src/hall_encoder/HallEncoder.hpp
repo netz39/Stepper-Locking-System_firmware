@@ -1,6 +1,6 @@
 #pragma once
 
-#include "as5600.hpp"
+#include "AS5600.hpp"
 #include "helpers/freertos.hpp"
 #include "settings/Settings.hpp"
 #include "wrappers/Task.hpp"

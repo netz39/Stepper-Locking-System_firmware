@@ -43,7 +43,7 @@ set(Sources
         src/sync.cxx
 
         src/analog_to_digital/AnalogDigital.cxx
-        src/hall_encoder/as5600.cpp
+        src/hall_encoder/AS5600.cxx
         src/hall_encoder/HallEncoder.cxx
         src/LED/AddressableLedDriver.cxx
         src/LED/LightController.cxx
