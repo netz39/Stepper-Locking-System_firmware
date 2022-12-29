@@ -7,8 +7,8 @@ namespace AS5600
 {
 AS5600::AS5600(I2cAccessor &accessor, Voltage voltage, Variant variant)
     : accessor{accessor}, voltage{voltage}, deviceAddress{variant == Variant::AS5600
-                                                              ? DEVICE_ADDRESS
-                                                              : DEVICE_ADDRESS_L_VARIANT}
+                                                              ? DeviceAddress
+                                                              : DeviceAddressVariantL}
 {
 }
 
@@ -22,40 +22,40 @@ bool AS5600::init()
     // sync up internal variables
     uint16_t temp;
 
-    readWord(RegisterTwoBytes::ZPOS, startPosition);
+    readWord(RegisterTwoBytes::Zpos, startPosition);
     if (commFail)
     {
         return false;
     }
-    startPosition &= Zpos::CONTENT_MASK;
+    startPosition &= Zpos::ContentMask;
 
-    readWord(RegisterTwoBytes::MPOS, stopPosition);
+    readWord(RegisterTwoBytes::Mpos, stopPosition);
     if (commFail)
     {
         return false;
     }
-    stopPosition &= Mpos::CONTENT_MASK;
+    stopPosition &= Mpos::ContentMask;
 
-    readWord(RegisterTwoBytes::MANG, temp);
+    readWord(RegisterTwoBytes::Mang, temp);
     if (commFail)
     {
         return false;
     }
-    temp &= Mang::CONTENT_MASK;
-    maxAngle = static_cast<float>(temp) * Mang::toFloat;
+    temp &= Mang::ContentMask;
+    maxAngle = static_cast<float>(temp) * Mang::ToFloat;
 
-    readWord(RegisterTwoBytes::CONF, temp);
+    readWord(RegisterTwoBytes::Conf, temp);
     if (commFail)
     {
         return false;
     }
 
-    pwrMode = static_cast<PowerMode>((temp >> Conf::POWERMODE_POS) & Conf::POWERMODE_MASK);
-    hystMode = static_cast<HysteresisMode>((temp >> Conf::HYSTERESIS_POS) & Conf::HYSTERESIS_MASK);
-    sfMode = static_cast<SlowFilterMode>((temp >> Conf::SLOWFILTER_POS) & Conf::SLOWFILTER_MASK);
-    ffth = static_cast<FastFilterThreshold>((temp >> Conf::FAST_FILTER_THRESHOLD_POS) &
-                                            Conf::FAST_FILTER_THRESHOLD_MASK);
-    watchdog = static_cast<bool>((temp >> Conf::WATCHDOG_POS) & Conf::WATCHDOG_MASK);
+    pwrMode = static_cast<PowerMode>((temp >> Conf::PowermodePos) & Conf::PowermodeMask);
+    hystMode = static_cast<HysteresisMode>((temp >> Conf::HysteresisPos) & Conf::HysteresisMask);
+    sfMode = static_cast<SlowFilterMode>((temp >> Conf::SlowfilterPos) & Conf::SlowfilterMask);
+    ffth = static_cast<FastFilterThreshold>((temp >> Conf::FastFilterThresholdPos) &
+                                            Conf::FastFilterThresholdMask);
+    watchdog = static_cast<bool>((temp >> Conf::WatchdogPos) & Conf::WatchdogMask);
 
     synchronizeScaledAngle();
     initialized = true;
@@ -101,20 +101,20 @@ void AS5600::run()
         lastMagnetPolling = tnow;
         // get status
         uint8_t temp;
-        readByte(RegisterOneByte::STATUS, temp);
+        readByte(RegisterOneByte::Status, temp);
 
-        if ((temp >> Status::MAGNET_TOO_STRONG_POS) & Status::MAGNET_TOO_STRONG_MASK)
+        if ((temp >> Status::MagnetTooStrongBit) & 0b1)
         {
             magnetStatus = -1;
         }
-        else if ((temp >> Status::MAGNET_TOO_WEAK_POS) & Status::MAGNET_TOO_WEAK_MASK)
+        else if ((temp >> Status::MagnetTooWeakBit) & 0b1)
         {
             magnetStatus = 2;
         }
         else
         {
-            readByte(RegisterOneByte::AGC, temp);
-            temp &= AGC::CONTENT_MASK;
+            readByte(RegisterOneByte::Agc, temp);
+            temp &= Agc::ContentMask;
 
             const float MinInput = 0.f;
             const float MaxInput = voltage == Voltage::ThreePointThree ? MaxValueThreePointThreeVolt
@@ -137,27 +137,27 @@ bool AS5600::configureDevice(PowerMode pwrMode, HysteresisMode hystMode, SlowFil
     watchdog = watchdog;
 
     uint16_t regContent = 0;
-    readWord(RegisterTwoBytes::CONF, regContent);
+    readWord(RegisterTwoBytes::Conf, regContent);
     if (commFail)
     {
         return false;
     }
 
-    regContent &= Conf::SYSTEM_INTERNAL_MASK << Conf::SYSTEM_INTERNAL_POS;
+    regContent &= Conf::SystemInternalMask << Conf::SystemInternalPos;
 
     // clang-format off
-    regContent |= (static_cast<uint8_t>(pwrMode) & Conf::POWERMODE_MASK)<<Conf::POWERMODE_POS;
-    regContent |= (static_cast<uint8_t>(hystMode) & Conf::HYSTERESIS_MASK)<<Conf::HYSTERESIS_POS;
+    regContent |= (static_cast<uint8_t>(pwrMode) & Conf::PowermodeMask)<<Conf::PowermodePos;
+    regContent |= (static_cast<uint8_t>(hystMode) & Conf::HysteresisMask)<<Conf::HysteresisPos;
     // we aren't using the output pin so might aswell shut down the DAC to save power
-    regContent |= (static_cast<uint8_t>(Conf::OutputStage::digitalPWM) & Conf::OUTPUT_STAGE_MASK)<<Conf::OUTPUT_STAGE_POS;
+    regContent |= (static_cast<uint8_t>(Conf::OutputStage::DigitalPWM) & Conf::OutputStageMask)<<Conf::OutputStagePos;
     // slow pwm
-    regContent |= (static_cast<uint8_t>(Conf::PWMFrequency::Hz115) & Conf::PWM_FREQ_MASK)<<Conf::PWM_FREQ_POS;
-    regContent |= (static_cast<uint8_t>(sfMode) & Conf::SLOWFILTER_MASK)<<Conf::SLOWFILTER_POS;
-    regContent |= (static_cast<uint8_t>(ffth) & Conf::FAST_FILTER_THRESHOLD_MASK)<<Conf::FAST_FILTER_THRESHOLD_POS;
-    regContent |= (static_cast<uint8_t>(watchdog) & Conf::WATCHDOG_MASK)<<Conf::WATCHDOG_POS;
+    regContent |= (static_cast<uint8_t>(Conf::PWMFrequency::Hz115) & Conf::PwmFreqMask)<<Conf::PwmFreqPos;
+    regContent |= (static_cast<uint8_t>(sfMode) & Conf::SlowfilterMask)<<Conf::SlowfilterPos;
+    regContent |= (static_cast<uint8_t>(ffth) & Conf::FastFilterThresholdMask)<<Conf::FastFilterThresholdPos;
+    regContent |= (static_cast<uint8_t>(watchdog) & Conf::WatchdogMask)<<Conf::WatchdogPos;
     // clang-format on
 
-    writeWord(RegisterTwoBytes::CONF, regContent);
+    writeWord(RegisterTwoBytes::Conf, regContent);
     if (commFail)
     {
         return false;
@@ -206,27 +206,27 @@ void AS5600::writeWord(RegisterTwoBytes reg, uint16_t data)
 uint16_t AS5600::getRawAngle()
 {
     uint16_t rawAngle = 0;
-    readWord(RegisterTwoBytes::RAW_ANGLE, rawAngle);
-    return rawAngle & RawAngle::CONTENT_MASK;
+    readWord(RegisterTwoBytes::RawAngle, rawAngle);
+    return rawAngle & RawAngle::ContentMask;
 }
 
 bool AS5600::setMaximumAngle(float maxAngle)
 {
-    if (maxAngle < Mang::minimum || maxAngle > Mang::maximum)
+    if (maxAngle < Mang::Minimum || maxAngle > Mang::Maximum)
     {
         return false;
     }
     maxAngle = maxAngle;
 
     uint16_t temp = 0;
-    readWord(RegisterTwoBytes::MANG, temp);
+    readWord(RegisterTwoBytes::Mang, temp);
     if (commFail)
     {
         return false;
     }
 
-    temp |= static_cast<uint16_t>(maxAngle * Mang::fromFloat) & Mang::CONTENT_MASK;
-    writeWord(RegisterTwoBytes::MANG, temp);
+    temp |= static_cast<uint16_t>(maxAngle * Mang::FromFloat) & Mang::ContentMask;
+    writeWord(RegisterTwoBytes::Mang, temp);
     if (commFail)
     {
         return false;
@@ -238,7 +238,7 @@ bool AS5600::setMaximumAngle(float maxAngle)
 
 bool AS5600::setStartStopPosition(uint16_t rawStartPos, uint16_t rawStopPos)
 {
-    if (rawStartPos > Zpos::CONTENT_MASK || rawStopPos > Mpos::CONTENT_MASK)
+    if (rawStartPos > Zpos::ContentMask || rawStopPos > Mpos::ContentMask)
     {
         return false;
     }
@@ -247,30 +247,30 @@ bool AS5600::setStartStopPosition(uint16_t rawStartPos, uint16_t rawStopPos)
     stopPosition = rawStopPos;
 
     // start
-    readWord(RegisterTwoBytes::ZPOS, temp);
+    readWord(RegisterTwoBytes::Zpos, temp);
     if (commFail)
     {
         return false;
     }
 
-    temp &= ~Zpos::CONTENT_MASK;
-    temp |= rawStartPos & Zpos::CONTENT_MASK;
-    writeWord(RegisterTwoBytes::ZPOS, temp);
+    temp &= ~Zpos::ContentMask;
+    temp |= rawStartPos & Zpos::ContentMask;
+    writeWord(RegisterTwoBytes::Zpos, temp);
     if (commFail)
     {
         return false;
     }
 
     // stop
-    readWord(RegisterTwoBytes::MPOS, temp);
+    readWord(RegisterTwoBytes::Mpos, temp);
     if (commFail)
     {
         return false;
     }
 
-    temp &= ~Mpos::CONTENT_MASK;
-    temp |= rawStopPos & Mpos::CONTENT_MASK;
-    writeWord(RegisterTwoBytes::MPOS, temp);
+    temp &= ~Mpos::ContentMask;
+    temp |= rawStopPos & Mpos::ContentMask;
+    writeWord(RegisterTwoBytes::Mpos, temp);
 
     synchronizeScaledAngle();
     return !commFail;
@@ -279,15 +279,15 @@ bool AS5600::setStartStopPosition(uint16_t rawStartPos, uint16_t rawStopPos)
 bool AS5600::synchronizeScaledAngle()
 {
     uint16_t temp = 0;
-    readWord(RegisterTwoBytes::ANGLE, temp);
+    readWord(RegisterTwoBytes::Angle, temp);
 
     if (commFail)
     {
         return false;
     }
 
-    angleScaled = temp & Angle::CONTENT_MASK;
-    angleScaledRadian = static_cast<float>(angleScaled) * Angle::toFloat;
+    angleScaled = temp & Angle::ContentMask;
+    angleScaledRadian = static_cast<float>(angleScaled) * Angle::ToFloat;
     return true;
 }
 
