@@ -9,3 +9,7 @@
 	path = src/settings/settings-manager
 	url = ../../MG-5/settings-manager.git
 	branch = main
+[submodule "core"]
+	path = core
+	url = ../../MG-5/core.git
+	branch = main
