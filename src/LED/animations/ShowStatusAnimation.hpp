@@ -49,20 +49,39 @@ public:
 
         if (currentState == State::Calibration)
         {
-            ledData[(counter) % NumberOfLedsInRing] = targetColor;
-            ledData[(14 + counter) % NumberOfLedsInRing] = targetColor;
-            ledData[(16 + counter) % NumberOfLedsInRing] = targetColor;
-            ledData[(30 + counter) % NumberOfLedsInRing] = targetColor;
+            switch (counter)
+            {
+            case 0:
+                ledData[14] = targetColor;
+                ledData[30] = targetColor;
+                break;
+
+            case 1:
+            case 3:
+                ledData[15] = targetColor;
+                ledData[31] = targetColor;
+                break;
+
+            case 2:
+                ledData[16] = targetColor;
+                ledData[0] = targetColor;
+                break;
+
+            default:
+                break;
+            }
+
+            ++counter %= 4;
+            setDelay(100.0_ms);
         }
         else
         {
             for (size_t i = 0; i < NumberOfLedsInRing; i += DistanceBetweenLeds)
                 ledData[(i + counter) % NumberOfLedsInRing] = targetColor;
+
+            ++counter %= 2;
+            setDelay(150.0_ms);
         }
-
-        ++counter %= 2;
-
-        setDelay(150.0_ms);
     }
 
 protected:
