@@ -175,8 +175,7 @@ bool AS5600::configurePowerMode(PowerMode pwrMode)
 void AS5600::readByte(RegisterOneByte reg, uint8_t &data)
 {
     accessor.beginTransaction(deviceAddress);
-    uint8_t readedByte;
-    commFail = !accessor.readByteFromRegister(reg, readedByte);
+    commFail = !accessor.readByteFromRegister(reg, data);
     accessor.endTransaction();
 }
 
@@ -184,8 +183,7 @@ void AS5600::readByte(RegisterOneByte reg, uint8_t &data)
 void AS5600::readWord(RegisterTwoBytes reg, uint16_t &data)
 {
     accessor.beginTransaction(deviceAddress);
-    uint16_t readedWord;
-    commFail = !accessor.readWordFromRegister(reg, readedWord);
+    commFail = !accessor.readWordFromRegister(reg, data);
     accessor.endTransaction();
 }
 
