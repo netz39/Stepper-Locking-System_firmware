@@ -148,8 +148,8 @@ void MotorControlBase<t>::stepTimerISR()
     timerField.triggerDelay(); // start delay line to dactivate all step pins
 
     if (mode == Mode::target &&
-        (leadMotor->current ==
-         leadMotor->target)) // stop timer and call callback if we reached target
+        ((leadMotor->current == leadMotor->target) ||
+         timerField.stepFrequencyIsZero)) // stop timer and call callback if we reached target
     {
         // timerField.stepTimerStop();
         timerField.endAfterPulse();

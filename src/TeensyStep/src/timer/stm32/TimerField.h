@@ -44,6 +44,8 @@ public:
     inline void triggerDelay();
     inline void setPulseWidth(unsigned pulseWidth);
 
+    bool stepFrequencyIsZero = false;
+
 protected:
     static int instances;
     static TIM_TypeDef *timer_mapping[MAX_TIMERS];
@@ -125,7 +127,14 @@ void TimerField::setPulseWidth(unsigned pulseWidth)
 
 void TimerField::setStepFrequency(unsigned f)
 {
-    f == 0 ? end() : stepTimer.setOverflow(f, HERTZ_FORMAT);
+    if (f == 0)
+        stepFrequencyIsZero = true;
+
+    else
+    {
+        stepFrequencyIsZero = false;
+        stepTimer.setOverflow(f, HERTZ_FORMAT);
+    }
 }
 
 bool TimerField::begin()
