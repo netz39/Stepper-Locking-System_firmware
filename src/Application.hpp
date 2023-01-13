@@ -27,9 +27,9 @@ public:
 
     static Application &getApplicationInstance();
 
-    static constexpr auto EepromBus = &hi2c1;
-    I2cAccessor eepromBusAccessor{EepromBus}; // also for hall encoder
-    Eeprom24LC64 eeprom{eepromBusAccessor, 0b000};
+    static constexpr auto I2cBus = &hi2c1;
+    I2cAccessor i2cBusAccessor{I2cBus}; // for eeprom and hall encoder
+    Eeprom24LC64 eeprom{i2cBusAccessor, 0b000};
 
     static constexpr auto TmcUartPeripherie = &huart2;
     UartAccessor uartAccessorTmc{TmcUartPeripherie};
@@ -44,7 +44,7 @@ public:
 
     static constexpr auto AdcPeripherie = &hadc1;
     AnalogDigital analogDigital{AdcPeripherie};
-    HallEncoder hallEncoder{settingsContainer, eepromBusAccessor};
+    HallEncoder hallEncoder{settingsContainer, i2cBusAccessor};
 
     TactileSwitches tactileSwitches;
     MotorController motorController{settingsContainer, analogDigital, hallEncoder, uartAccessorTmc};
