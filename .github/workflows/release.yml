@@ -22,7 +22,7 @@ jobs:
       uses: heinrichreimer/action-github-changelog-generator@v2.3
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        onlyLastTag: "true" # set to false if no tags exist (buggy with only one tag)
+        onlyLastTag: "false" # set to false if no tags exist (buggy with only one tag)
         stripHeaders: "true"
         stripGeneratorNotice: "true"
 
