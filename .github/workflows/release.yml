@@ -17,14 +17,6 @@ jobs:
       uses: actions/checkout@v3
       with:
         submodules: 'recursive'
-    - name: "Generate release changelog"
-      id: generate-release-changelog
-      uses: heinrichreimer/action-github-changelog-generator@v2.3
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        onlyLastTag: "false" # set to false if no tags exist (buggy with only one tag)
-        stripHeaders: "true"
-        stripGeneratorNotice: "true"
 
     - name: Extract the VERSION name
       id: get-version
@@ -36,12 +28,18 @@ jobs:
         name: build-artifact
         path: build/artifacts
 
+    - name: Build Changelog
+      id: github_release
+      uses: mikepenz/release-changelog-builder-action@v3
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     - name: "Create GitHub release"
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ github.ref }}
         name: "${{ steps.get-version.outputs.VERSION }}"
-        body: "${{ steps.generate-release-changelog.outputs.changelog }}"
+        body:  ${{steps.github_release.outputs.changelog}}
         prerelease: ${{ startsWith(steps.get-version.outputs.VERSION, 'v0.') }}
         token: ${{ secrets.GITHUB_TOKEN }}
         files: |
