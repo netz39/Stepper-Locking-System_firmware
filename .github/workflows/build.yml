@@ -35,7 +35,7 @@ jobs:
     - name: Build binary
       run: |
           cmake -B build/${{ matrix.type }} -G Ninja -DCMAKE_C_COMPILER:FILEPATH=arm-none-eabi-gcc -DCMAKE_CXX_COMPILER:FILEPATH=arm-none-eabi-g++ -DCMAKE_BUILD_TYPE="${{ matrix.type }}"
-          cmake --build build/${{ matrix.type }}
+          cmake --build build/${{ matrix.type }} --target Stepper-Locking-System_firmware
 
     - name: Rename and move build files 
       run : |
