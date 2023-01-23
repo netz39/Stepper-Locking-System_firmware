@@ -70,4 +70,8 @@ inline constexpr std::array EntryArray = {
 using Container = SettingsContainer<EntryArray.size(), EntryArray>;
 using IO = SettingsIO<EntryArray.size(), EntryArray, Eeprom24LC64>;
 
+// to simplify debugging (searching for hash in EEPROM)
+// VS Code and CLion shows the result in IDE w/o compiling
+constexpr auto TestHash = core::hash::fnvStringview(UptimeHours);
+
 } // namespace firmwareSettings
