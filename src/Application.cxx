@@ -35,14 +35,14 @@ Application::Application()
         [](SPI_HandleTypeDef *){ getApplicationInstance().lightController.notifySpiIsFinished(); });
 
     // EEPROM callbacks
-    result = HAL_I2C_RegisterCallback(EepromBus, HAL_I2C_MASTER_TX_COMPLETE_CB_ID, 
-        [](I2C_HandleTypeDef *){ getApplicationInstance().eepromBusAccessor.signalTransferCompleteFromIsr(); });
+    result = HAL_I2C_RegisterCallback(I2cBus, HAL_I2C_MASTER_TX_COMPLETE_CB_ID, 
+        [](I2C_HandleTypeDef *){ getApplicationInstance().i2cBusAccessor.signalTransferCompleteFromIsr(); });
 
-    result = HAL_I2C_RegisterCallback(EepromBus, HAL_I2C_MASTER_RX_COMPLETE_CB_ID,
-        [](I2C_HandleTypeDef *){ getApplicationInstance().eepromBusAccessor.signalTransferCompleteFromIsr(); });
+    result = HAL_I2C_RegisterCallback(I2cBus, HAL_I2C_MASTER_RX_COMPLETE_CB_ID,
+        [](I2C_HandleTypeDef *){ getApplicationInstance().i2cBusAccessor.signalTransferCompleteFromIsr(); });
 
-    result = HAL_I2C_RegisterCallback(EepromBus, HAL_I2C_ERROR_CB_ID, 
-        [](I2C_HandleTypeDef *){ getApplicationInstance().eepromBusAccessor.signalErrorFromIsr(); });
+    result = HAL_I2C_RegisterCallback(I2cBus, HAL_I2C_ERROR_CB_ID, 
+        [](I2C_HandleTypeDef *){ getApplicationInstance().i2cBusAccessor.signalErrorFromIsr(); });
 
     // TMC UART callbacks
     result = HAL_UART_RegisterCallback(TmcUartPeripherie, HAL_UART_TX_COMPLETE_CB_ID,

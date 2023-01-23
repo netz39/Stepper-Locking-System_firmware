@@ -18,7 +18,7 @@ constexpr uint32_t toMilliSeconds(const units::si::Frequency frequency)
 
 constexpr TickType_t toOsTicks(const units::si::Time time)
 {
-    return pdMS_TO_TICKS(toMilliSeconds(time));
+    return toMilliSeconds(time) * (configTICK_RATE_HZ / 1000.0);
 }
 
 constexpr TickType_t toOsTicks(const units::si::Frequency frequency)

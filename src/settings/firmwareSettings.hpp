@@ -1,8 +1,10 @@
 #pragma once
 
-#include "parameter_manager/SettingsContainer.hpp"
-#include "parameter_manager/SettingsIO.hpp"
-#include "parameter_manager/SettingsUser.hpp"
+#include "settings-manager/SettingsContainer.hpp"
+#include "settings-manager/SettingsIO.hpp"
+#include "settings-manager/SettingsUser.hpp"
+
+#include "eeprom-driver/Eeprom24lcxx.hpp"
 #include <string_view>
 
 using namespace settings;
@@ -66,6 +68,10 @@ inline constexpr std::array EntryArray = {
 };
 
 using Container = SettingsContainer<EntryArray.size(), EntryArray>;
-using IO = SettingsIO<EntryArray.size(), EntryArray>;
+using IO = SettingsIO<EntryArray.size(), EntryArray, Eeprom24LC64>;
+
+// to simplify debugging (searching for hash in EEPROM)
+// VS Code and CLion shows the result in IDE w/o compiling
+constexpr auto TestHash = core::hash::fnvStringview(UptimeHours);
 
 } // namespace firmwareSettings

@@ -4,7 +4,7 @@
 
 #include "hall_encoder/HallEncoder.hpp"
 #include "helpers/freertos.hpp"
-#include "parameter_manager/SettingsUser.hpp"
+#include "settings-manager/SettingsUser.hpp"
 #include "settings/Settings.hpp"
 #include "units/si/temperature.hpp"
 #include "util/gpio.hpp"
