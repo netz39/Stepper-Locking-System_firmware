@@ -23,8 +23,8 @@ set(core_BUILDCONFIGURATION "embedded")
 add_subdirectory(core)
 add_subdirectory(src/util)
 add_subdirectory(src/LED/gcem)
-add_subdirectory(src/i2c-drivers)
-add_subdirectory(src/settings/parameter_manager)
+add_subdirectory(src/eeprom-driver)
+add_subdirectory(src/settings/settings-manager)
 
 add_compile_definitions(STM32G0xx)
 
@@ -43,6 +43,7 @@ set(Sources
         src/sync.cxx
 
         src/analog_to_digital/AnalogDigital.cxx
+        src/hall_encoder/AS5600.cxx
         src/hall_encoder/HallEncoder.cxx
         src/LED/AddressableLedDriver.cxx
         src/LED/LightController.cxx
@@ -78,8 +79,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         freertos
         util
         gcem
-        i2c-drivers
-        parameter_manager
+        eeprom-driver
+        settings-manager
 )
 
 # Sets up generation of .list and .bin files after your firmware has generated.

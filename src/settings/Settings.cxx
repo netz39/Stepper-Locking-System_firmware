@@ -16,10 +16,13 @@
 
     while (true)
     {
-        // save counters every 12 hours
-        vTaskDelay(toOsTicks(12 * 60.0_min));
+        // save counters every 3 hours
+        // EEPROM has erase/write cycles by 1'000'000
+        // 1'000'000 cycles  / 8 writings per day = > 342 years
+        constexpr auto NumberOfHoursToWait = 3;
+        vTaskDelay(toOsTicks(NumberOfHoursToWait * 60.0_min));
 
-        settingsContainer.addToValue<firmwareSettings::UptimeHours>(12);
+        settingsContainer.addToValue<firmwareSettings::UptimeHours>(NumberOfHoursToWait);
         settingsIO.saveSettings();
     }
 }

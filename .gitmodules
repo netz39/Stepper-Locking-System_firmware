@@ -1,3 +1,15 @@
 [submodule "src/LED/gcem"]
 	path = src/LED/gcem
 	url = https://github.com/kthohr/gcem.git
+[submodule "src/eeprom-driver"]
+	path = src/eeprom-driver
+	url = ../../MG-5/eeprom-driver.git
+	branch = main
+[submodule "src/settings/settings-manager"]
+	path = src/settings/settings-manager
+	url = ../../MG-5/settings-manager.git
+	branch = main
+[submodule "core"]
+	path = core
+	url = ../../MG-5/core.git
+	branch = main
