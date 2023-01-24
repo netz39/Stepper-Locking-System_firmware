@@ -52,3 +52,9 @@ After we install J-Link software, compile the project and connect the target:
 You firmware is flashed!
 
 Note: If you want only attach to the running firmware without resetting them, select the debug profile `Attach (J-Link, RTOS-aware)`.
+
+### Throubleshooting
+
+*VS Code cannot start debugging process.*
+
+   * The package `libncurses5` used by **Cortex-Debug** is missing. Do `sudo apt install libncurses5`
