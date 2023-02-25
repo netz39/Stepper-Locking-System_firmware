@@ -7,7 +7,6 @@
 using util::Button;
 using util::wrappers::NotifyAction;
 
-// todo too complex, simplify by putting each state into its own function
 [[noreturn]] void StateMachine::taskMain()
 {
     // wait some time to get steady switches states
@@ -68,6 +67,14 @@ using util::wrappers::NotifyAction;
         //------------------------------
         case State::Closed:
         {
+            vTaskDelay(toOsTicks(30.0_ms));
+            if (tactileSwitches.lockSwitch.isPressing())
+            {
+                // lock switch is not triggered, so restart a calibration
+                currentState = State::Calibrating;
+                break;
+            }
+
             if (!waitForOpenCommand())
                 break;
 
