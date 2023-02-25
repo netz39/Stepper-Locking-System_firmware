@@ -7,6 +7,9 @@ An [overview](https://wiki.netz39.de/projects:2022:stepper_locking_system) (Germ
 
 On the basis of stepper motor and its driver, the hall encoder and connected switches, the firmware implements a error-tolerant and robust state maschine with overwatchings of current state. At non-planned events like step losses it tries to recover from this.
 
+## How to Compile and Flash
+The process of compiling project and flash the binary to microcontroller is described in [compile_flash.md](compile_flash.md).
+
 ## Animations
 For visualization of current state the system controls two **[LED-rings with integrated crossbar](https://github.com/netz39/LED-ring-with-crossbar)**. Each unit has 42 LEDs. Both rings are visible from inside and outside respectively.
 
