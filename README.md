@@ -7,6 +7,15 @@ An [overview](https://wiki.netz39.de/projects:2022:stepper_locking_system) (Germ
 
 On the basis of stepper motor and its driver, the hall encoder and connected switches, the firmware implements a error-tolerant and robust state maschine with overwatchings of current state. At non-planned events like step losses it tries to recover from this.
 
+## Branches
+
+This project currently contains two important branches: 
+* `base`
+* `legacy_compatibility` (default)
+
+The `base` branch all features necessary for the operation of the locking system.
+The `legacy_compatibility` includes additional changes to base branch in order to be able work with the old central system, which is currently used in Netz39.
+
 ## How to Compile and Flash
 The process of compiling project and flash the binary to microcontroller is described in [compile_flash.md](compile_flash.md).
 
