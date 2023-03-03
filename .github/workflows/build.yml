@@ -3,10 +3,12 @@ name: build
 on:
   pull_request:
     branches:
-    - 'main'
+    - 'base'
+    - 'legacy_compatibility'
   push:
     branches:
-    - 'main'
+    - 'base'
+    - 'legacy_compatibility'
   workflow_call: # to reuse this workflow by release.yml
 
 jobs:

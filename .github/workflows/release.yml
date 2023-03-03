@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-project:
-    uses: Netz39/Stepper-Locking-System_firmware/.github/workflows/build.yml@main
+    uses: Netz39/Stepper-Locking-System_firmware/.github/workflows/build.yml@legacy_compatibility
 
   create-release:
     runs-on: ubuntu-latest
@@ -28,18 +28,12 @@ jobs:
         name: build-artifact
         path: build/artifacts
 
-    - name: Build Changelog
-      id: github_release
-      uses: mikepenz/release-changelog-builder-action@v3
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
     - name: "Create GitHub release"
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ github.ref }}
         name: "${{ steps.get-version.outputs.VERSION }}"
-        body:  ${{steps.github_release.outputs.changelog}}
+        body:  "${{ steps.get-version.outputs.VERSION }}"
         prerelease: ${{ startsWith(steps.get-version.outputs.VERSION, 'v0.') }}
         token: ${{ secrets.GITHUB_TOKEN }}
         files: |
