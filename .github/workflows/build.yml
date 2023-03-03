@@ -4,11 +4,11 @@ on:
   pull_request:
     branches:
     - 'base'
-    - 'legacy_compatibility`
+    - 'legacy_compatibility'
   push:
     branches:
     - 'base'
-    - 'legacy_compatibility`
+    - 'legacy_compatibility'
   workflow_call: # to reuse this workflow by release.yml
 
 jobs:
