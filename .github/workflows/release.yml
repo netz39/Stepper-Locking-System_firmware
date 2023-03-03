@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-project:
-    uses: Netz39/Stepper-Locking-System_firmware/.github/workflows/build.yml@main
+    uses: Netz39/Stepper-Locking-System_firmware/.github/workflows/build.yml@legacy_compatibility
 
   create-release:
     runs-on: ubuntu-latest
