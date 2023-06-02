@@ -17,6 +17,7 @@ constexpr std::string_view MotorMaxAcc = "motor maximum accerlation in steps per
 constexpr std::string_view CalibrationSpeed = "calibration speed in steps per second";
 constexpr std::string_view CalibrationAcc = "calibration accerlation in steps per second^2";
 constexpr std::string_view InvertRotationDirection = "invert rotation direction respectively";
+constexpr std::string_view ShowRainbow = "show rainbow colors instead of green ring at open state";
 
 // TODO: separate it
 constexpr std::string_view MotorOverheatCounter = "counter of motor has reached overtemperature";
@@ -47,6 +48,7 @@ inline constexpr std::array EntryArray = {
     SettingsEntry{0, 2000, 300000, CalibrationSpeed, VariableType::integerType}, //
     SettingsEntry{0, 12500, 750000, CalibrationAcc, VariableType::integerType},  //
     SettingsEntry{false, InvertRotationDirection},                               //
+    SettingsEntry{false, ShowRainbow},                                           //
 
     // 16777216 is the max possible intregal value in a float
     SettingsEntry{0, 0, 16777216, MotorOverheatCounter, VariableType::integerType},             //

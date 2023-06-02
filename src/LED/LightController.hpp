@@ -37,22 +37,24 @@ private:
     LedSegmentArray ledSegments2{};
 
     util::pwm_led::DualLed<uint8_t> &statusLed;
+    const firmwareSettings::Container &settingsContainer;
+    const StateMachine &stateMachine;
+    StateMachine::State prevState = StateMachine::State::Initializing;
+
+    const MotorController &motorController;
 
     bool invertRotationDirection = false;
+    bool showRainbow = false;
 
     DualAnimations<DoorIsOpenAnimation> doorIsOpenAnimation{ledSegments1, ledSegments2};
     DualAnimations<DoorIsClosedAnimation> doorIsClosedAnimation{ledSegments1, ledSegments2};
     DualAnimations<DoorShouldCloseAnimation> doorShouldCloseAnimation{ledSegments1, ledSegments2};
     DualAnimations<WhirlingAnimation> whirlingAnimation{ledSegments1, ledSegments2};
     DualAnimations<ShowStatusAnimation> showStatusAnimation{ledSegments1, ledSegments2};
+    DualAnimations<RainbowAnimation> rainbowAnimation{ledSegments1, ledSegments2};
 
     LedAnimationBase *targetAnimation{&showStatusAnimation};
 
     void updateLightState();
-
-    const firmwareSettings::Container &settingsContainer;
-    const StateMachine &stateMachine;
-    StateMachine::State prevState = StateMachine::State::Initializing;
-
-    const MotorController &motorController;
+    void insertRainbow();
 };
