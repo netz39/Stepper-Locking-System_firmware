@@ -5,8 +5,7 @@
 class RainbowAnimation : public LedAnimationBase
 {
 public:
-    explicit RainbowAnimation(LedSegmentArray &ledData)
-        : ledData(ledData){};
+    explicit RainbowAnimation(LedSegmentArray &ledData) : ledData(ledData){};
     ~RainbowAnimation() override = default;
 
     void doAnimationStep() override
@@ -16,12 +15,12 @@ public:
         else
             rainbowIndex -= 1;
 
-        for (size_t i = 0; i < NumberOfLedsPerRing; i++)
+        for (size_t i = 0; i < NumberOfLedsInRing; i++)
         {
-            sineLED(ledData[i], (rainbowIndex + i * 12) % LightDataSize);
+            sineLED(ledData[i], (rainbowIndex + i * 22) % LightDataSize);
         }
 
-        setDelay(10.0_ms);
+        setDelay(15.0_ms);
     }
 
 protected:

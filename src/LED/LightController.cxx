@@ -18,6 +18,7 @@ using util::wrappers::NotifyAction;
     while (true)
     {
         updateLightState();
+        insertRainbow();
         statusLed.updateState(xTaskGetTickCount());
 
         targetAnimation->doAnimationStep();
@@ -32,6 +33,8 @@ void LightController::onSettingsUpdate()
 {
     invertRotationDirection =
         settingsContainer.getValue<firmwareSettings::InvertRotationDirection, bool>();
+
+    showRainbow = settingsContainer.getValue<firmwareSettings::ShowRainbow, bool>();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -123,5 +126,17 @@ void LightController::updateLightState()
         }
 
         prevState = stateMachine.getCurrentState();
+    }
+}
+
+//--------------------------------------------------------------------------------------------------
+void LightController::insertRainbow()
+{
+    // only insert rainbow if activated and door state is open and its animation is finished (three
+    // time fading of green ring)
+    if (showRainbow && stateMachine.getCurrentState() == StateMachine::State::Opened &&
+        targetAnimation->isAnimationFinished())
+    {
+        targetAnimation = &rainbowAnimation;
     }
 }
