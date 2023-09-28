@@ -24,6 +24,7 @@ using util::wrappers::NotifyAction;
         case State::Initializing:
         {
             motorController.unfreezeMotor();
+            isCalibrated = false;
             if (tactileSwitches.doorSwitch.isPressing())
             { // door wing is triggering doorSwitch
 
