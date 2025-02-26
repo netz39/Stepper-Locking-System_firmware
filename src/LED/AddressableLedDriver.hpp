@@ -1,11 +1,10 @@
 #pragma once
 
-#include "GammaCorrection.hpp"
+#include "FreeRTOS.h"
 #include "LedDataTypes.hpp"
-#include "core/SafeAssert.h"
+#include "spi.h"
 #include "units/si/time.hpp"
-
-#include "stm32g0xx_hal.h"
+#include "util/led/GammaCorrection.hpp"
 
 // Controls the addressable LEDs over SPI hardware
 class AddressableLedDriver
@@ -15,7 +14,7 @@ public:
 
     explicit AddressableLedDriver(SPI_HandleTypeDef *spiPeripherie) : spiPeripherie(spiPeripherie)
     {
-        SafeAssert(spiPeripherie != nullptr);
+        configASSERT(spiPeripherie != nullptr);
         endFrames.fill(0xFF);
     };
 
@@ -31,9 +30,9 @@ private:
 
         void assignGammaCorrectedColor(BgrColor newColor)
         {
-            color.blue = GammaCorrectionLUT[newColor.blue];
-            color.green = GammaCorrectionLUT[newColor.green];
-            color.red = GammaCorrectionLUT[newColor.red];
+            color.blue = GammaCorrection.LookUpTable[newColor.blue];
+            color.green = GammaCorrection.LookUpTable[newColor.green];
+            color.red = GammaCorrection.LookUpTable[newColor.red];
         }
     };
     using LedSpiDataArray = std::array<LedSpiData, NumberOfLedsPerRing>;
@@ -43,6 +42,11 @@ private:
 
     static constexpr auto NumberOfEndFrames = (NumberOfRings * NumberOfLedsPerRing + 15) / 16;
     std::array<uint8_t, NumberOfEndFrames> endFrames{};
+
+    static constexpr size_t PwmSteps = 256;
+    static constexpr auto ResolutionBits = std::bit_width<size_t>(PwmSteps - 1);
+    using GammaCorrection_t = util::led::pwm::GammaCorrection<ResolutionBits, 1.0f>;
+    static constexpr GammaCorrection_t GammaCorrection{};
 
     void sendStartFrame();
 

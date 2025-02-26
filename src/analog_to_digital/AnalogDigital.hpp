@@ -1,7 +1,5 @@
 #pragma once
 
-#include "core/SafeAssert.h"
-
 #include "units/si/current.hpp"
 #include "units/si/frequency.hpp"
 #include "units/si/resistance.hpp"
@@ -21,7 +19,7 @@ public:
     explicit AnalogDigital(ADC_HandleTypeDef *peripherie)
         : TaskWithMemberFunctionBase("adcTask", 1024, osPriorityLow6), peripherie(peripherie)
     {
-        SafeAssert(peripherie != nullptr);
+        configASSERT(peripherie != nullptr);
     };
 
     ~AnalogDigital() override = default;
@@ -49,7 +47,7 @@ public:
     }
 
 protected:
-    [[noreturn]] void taskMain() override;
+    [[noreturn]] void taskMain(void *) override;
 
 private:
     static constexpr auto NtcBetaValue = 3380.0f;

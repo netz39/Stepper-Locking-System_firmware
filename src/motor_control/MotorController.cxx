@@ -9,7 +9,7 @@ char buffer[BufferSize];
 
 using util::wrappers::NotifyAction;
 
-[[noreturn]] void MotorController::taskMain()
+[[noreturn]] void MotorController::taskMain(void *)
 {
     sync::waitForAll(sync::ConfigurationLoaded | sync::StateMachineStarted);
 

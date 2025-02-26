@@ -2,7 +2,8 @@
 
 #include "AddressableLedDriver.hpp"
 #include "state_machine/StateMachine.hpp"
-#include "util/PwmLed.hpp"
+#include "tim.h"
+#include "util/led/PwmLed.hpp"
 #include "wrappers/Task.hpp"
 
 #include "AnimationController.hpp"
@@ -13,22 +14,21 @@
 class LightController : public util::wrappers::TaskWithMemberFunctionBase, SettingsUser
 {
 public:
-    LightController(SPI_HandleTypeDef *SpiDevice, util::pwm_led::DualLed<uint8_t> &statusLed,
+    LightController(SPI_HandleTypeDef *SpiDevice,
                     const firmwareSettings::Container &settingsContainer,
                     const StateMachine &stateMachine, const MotorController &motorController)
         : TaskWithMemberFunctionBase("lightControllerTask", 512, osPriorityLow4),
           ledDriver(SpiDevice),                 //
-          statusLed(statusLed),                 //
           settingsContainer(settingsContainer), //
           stateMachine(stateMachine),           //
-          motorController(motorController){};
+          motorController(motorController) {};
 
     ~LightController() override = default;
 
     void notifySpiIsFinished();
 
 protected:
-    [[noreturn]] void taskMain() override;
+    [[noreturn]] void taskMain(void *) override;
     void onSettingsUpdate() override;
 
 private:
@@ -36,7 +36,15 @@ private:
     LedSegmentArray ledSegments1{};
     LedSegmentArray ledSegments2{};
 
-    util::pwm_led::DualLed<uint8_t> &statusLed;
+    static constexpr auto PwmSteps = 256;
+    static constexpr auto ResolutionBits = std::bit_width<size_t>(PwmSteps - 1);
+    using GammaCorrection_t = util::led::pwm::GammaCorrection<ResolutionBits>;
+    static constexpr GammaCorrection_t GammaCorrection{};
+
+    using DualLed = util::led::pwm::DualLed<ResolutionBits, GammaCorrection_t>;
+    DualLed statusLed{util::PwmOutput<ResolutionBits>{&htim2, TIM_CHANNEL_1},
+                      util::PwmOutput<ResolutionBits>{&htim3, TIM_CHANNEL_1}, GammaCorrection};
+
     const firmwareSettings::Container &settingsContainer;
     const StateMachine &stateMachine;
     StateMachine::State prevState = StateMachine::State::Initializing;

@@ -7,7 +7,7 @@
 using util::Button;
 using util::wrappers::NotifyAction;
 
-[[noreturn]] void StateMachine::taskMain()
+[[noreturn]] void StateMachine::taskMain(void *)
 {
     // wait some time to get steady switches states
     vTaskDelay(toOsTicks(550.0_ms));

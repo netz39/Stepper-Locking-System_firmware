@@ -12,14 +12,14 @@ extern "C" void StartDefaultTask(void *) // NOLINT
     static auto app = std::make_unique<Application>();
     app->run();
 
-    SafeAssert(false); // this line should be never reached
+    configASSERT(false); // this line should be never reached
 }
 
 //--------------------------------------------------------------------------------------------------
 Application::Application()
 {
     // Delegated Singleton, see getApplicationInstance() for further explanations
-    SafeAssert(instance == nullptr);
+    configASSERT(instance == nullptr);
     instance = this;
 
     HAL_StatusTypeDef result = HAL_OK;
@@ -55,10 +55,7 @@ Application::Application()
         [](UART_HandleTypeDef *){ getApplicationInstance().uartAccessorTmc.signalErrorFromIsr(); });
     // clang-format on
 
-    SafeAssert(result == HAL_OK);
-
-    RedChannel.startPwmTimer();
-    GreenChannel.startPwmTimer();
+    configASSERT(result == HAL_OK);
 }
 
 //--------------------------------------------------------------------------------------------------

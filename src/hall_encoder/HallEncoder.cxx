@@ -6,7 +6,7 @@
 #include "units/si/frequency.hpp"
 
 //--------------------------------------------------------------------------------------------------
-[[noreturn]] void HallEncoder::taskMain()
+[[noreturn]] void HallEncoder::taskMain(void *)
 {
     // wait for EEPROM
     sync::waitForAll(sync::ConfigurationLoaded);

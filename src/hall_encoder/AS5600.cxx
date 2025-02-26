@@ -1,5 +1,4 @@
 #include "AS5600.hpp"
-#include "hal_header.h"
 #include "util/MapValue.hpp"
 #include <cstdlib>
 
@@ -7,9 +6,8 @@ using namespace as5600_constants;
 
 //--------------------------------------------------------------------------------------------------
 AS5600::AS5600(I2cAccessor &accessor, Voltage voltage, Variant variant)
-    : accessor{accessor}, voltage{voltage}, deviceAddress{variant == Variant::AS5600
-                                                              ? DeviceAddress
-                                                              : DeviceAddressVariantL}
+    : accessor{accessor}, voltage{voltage},
+      deviceAddress{variant == Variant::AS5600 ? DeviceAddress : DeviceAddressVariantL}
 {
 }
 

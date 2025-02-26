@@ -8,10 +8,10 @@
 #include <algorithm>
 #include <climits>
 
-using util::pwm_led::DualLedColor;
+using util::led::pwm::DualLedColor;
 using util::wrappers::NotifyAction;
 
-[[noreturn]] void LightController::taskMain()
+[[noreturn]] void LightController::taskMain(void *)
 {
     sync::waitForAll(sync::StateMachineStarted);
 
@@ -48,10 +48,14 @@ void LightController::notifySpiIsFinished()
 //--------------------------------------------------------------------------------------------------
 void LightController::updateLightState()
 {
+	// default brightness
+    statusLed.setBrightness(100);
+    
     switch (stateMachine.getCurrentState())
     {
     case StateMachine::State::Opened:
-        statusLed.setColor(DualLedColor::DarkGreen);
+        statusLed.setColor(DualLedColor::Green);
+        statusLed.setBrightness(25);
         targetAnimation = &doorIsOpenAnimation;
         break;
 
@@ -71,7 +75,8 @@ void LightController::updateLightState()
         break;
 
     case StateMachine::State::Closed:
-        statusLed.setColor(DualLedColor::DarkRed);
+        statusLed.setColor(DualLedColor::Red);
+        statusLed.setBrightness(25);
         targetAnimation = &doorIsClosedAnimation;
         break;
 
@@ -98,7 +103,8 @@ void LightController::updateLightState()
 
     case StateMachine::State::WantToClose:
     case StateMachine::State::RetryToClose:
-        statusLed.setColorBlinking(DualLedColor::DarkRed, 0.5_Hz);
+        statusLed.setColorBlinking(DualLedColor::Red, 0.5_Hz);
+        statusLed.setBrightness(25);
         targetAnimation = &doorShouldCloseAnimation;
         break;
 

@@ -3,7 +3,7 @@
 #include "helpers/freertos.hpp"
 #include "sync.hpp"
 
-[[noreturn]] void Settings::taskMain()
+[[noreturn]] void Settings::taskMain(void *)
 {
     settingsIO.loadSettings();
 

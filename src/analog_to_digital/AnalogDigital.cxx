@@ -8,7 +8,7 @@
 using util::wrappers::NotifyAction;
 using namespace units::si;
 
-[[noreturn]] void AnalogDigital::taskMain()
+[[noreturn]] void AnalogDigital::taskMain(void *)
 {
     static constexpr auto AdcTaskFrequency = 50.0_Hz;
 
@@ -54,14 +54,14 @@ void AnalogDigital::waitUntilConversionFinished()
 //----------------------------------------------------------------------------------------------
 void AnalogDigital::calibrateAdc()
 {
-    SafeAssert(HAL_ADCEx_Calibration_Start(peripherie) == HAL_OK);
+    configASSERT(HAL_ADCEx_Calibration_Start(peripherie) == HAL_OK);
 }
 
 //----------------------------------------------------------------------------------------------
 void AnalogDigital::startConversion()
 {
-    SafeAssert(HAL_ADC_Start_DMA(peripherie, reinterpret_cast<uint32_t *>(adcResults.data()),
-                                 TotalChannelCount) == HAL_OK);
+    configASSERT(HAL_ADC_Start_DMA(peripherie, reinterpret_cast<uint32_t *>(adcResults.data()),
+                                   TotalChannelCount) == HAL_OK);
 }
 
 //----------------------------------------------------------------------------------------------

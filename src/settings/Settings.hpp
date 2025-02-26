@@ -14,10 +14,10 @@ public:
                                      osPriorityAboveNormal5), //
           settingsIO(settingsIO),                             //
           settingsContainer(settingsContainer)                //
-          {};
+    {};
 
 protected:
-    [[noreturn]] void taskMain() override;
+    [[noreturn]] void taskMain(void *) override;
 
 private:
     firmwareSettings::IO &settingsIO;

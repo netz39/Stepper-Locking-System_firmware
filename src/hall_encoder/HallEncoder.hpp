@@ -37,7 +37,7 @@ public:
     bool saveHomePosition();
 
 protected:
-    [[noreturn]] void taskMain() override;
+    [[noreturn]] void taskMain(void *) override;
 
     void onSettingsUpdate() override;
 
