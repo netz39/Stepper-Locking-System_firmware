@@ -1,6 +1,8 @@
 #include "Port.h"
 #include "main.h"
 
+#include "customFaultHandler.h"
+
 #include "FreeRTOS.h"
 #include "task.h"
 
@@ -68,13 +70,7 @@ uint32_t dwt_getCycles()
 
 void teensyStepErrorHandler()
 {
-#ifdef DEBUG
-    __asm("bkpt");
-#endif
-
-    while (true)
-    {
-    }
+    faultHandlerStepperFailsafe();
 }
 void _Error_Handler(const char *, int)
 {

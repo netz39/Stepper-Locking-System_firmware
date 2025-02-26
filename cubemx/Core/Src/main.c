@@ -30,6 +30,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "CFunctions.h"
+#include "../../../src/customFaultHandler.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -122,7 +123,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
+    faultHandlerStepperFailsafe();
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -212,9 +213,9 @@ void Error_Handler(void)
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
-  while (1)
-  {
-  }
+  
+  // disable stepper motor to prevent overheating
+  faultHandlerStepperFailsafe();
   /* USER CODE END Error_Handler_Debug */
 }
 
