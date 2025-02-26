@@ -13,3 +13,7 @@
 	path = core
 	url = ../../MG-5/core.git
 	branch = main
+[submodule "src/util"]
+	path = src/util
+	url = git@github.com:MG-5/util.git
+	branch = stm32
