@@ -45,7 +45,7 @@
 
 /* USER CODE BEGIN Includes */
 /* Section where include file can be added */
-#include <core/faultHandler.h>
+#include <core/fault_handler.h>
 /* USER CODE END Includes */
 
 /* Ensure definitions are only used by the compiler, and not by the assembler. */
