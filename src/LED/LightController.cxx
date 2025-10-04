@@ -13,7 +13,7 @@ using util::wrappers::NotifyAction;
 
 [[noreturn]] void LightController::taskMain(void *)
 {
-    sync::waitForAll(sync::StateMachineStarted);
+    syncEventGroup.waitBits(sync::StateMachineStarted, false, true, portMAX_DELAY);
 
     while (true)
     {
@@ -48,9 +48,9 @@ void LightController::notifySpiIsFinished()
 //--------------------------------------------------------------------------------------------------
 void LightController::updateLightState()
 {
-	// default brightness
+    // default brightness
     statusLed.setBrightness(100);
-    
+
     switch (stateMachine.getCurrentState())
     {
     case StateMachine::State::Opened:

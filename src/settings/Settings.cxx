@@ -12,7 +12,7 @@
     settingsIO.saveSettings();
 
     SettingsUser::notifySettingsUpdate();
-    sync::signal(sync::ConfigurationLoaded);
+    syncEventGroup.setBits(sync::ConfigurationLoaded);
 
     while (true)
     {

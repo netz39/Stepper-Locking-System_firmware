@@ -9,7 +9,7 @@
 [[noreturn]] void HallEncoder::taskMain(void *)
 {
     // wait for EEPROM
-    sync::waitForAll(sync::ConfigurationLoaded);
+    syncEventGroup.waitBits(sync::ConfigurationLoaded, false, true, portMAX_DELAY);
 
     configureHall();
 

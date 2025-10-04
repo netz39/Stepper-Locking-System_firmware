@@ -11,7 +11,8 @@ using util::wrappers::NotifyAction;
 
 [[noreturn]] void MotorController::taskMain(void *)
 {
-    sync::waitForAll(sync::ConfigurationLoaded | sync::StateMachineStarted);
+    syncEventGroup.waitBits(sync::ConfigurationLoaded | sync::StateMachineStarted, false, true,
+                            portMAX_DELAY);
 
     setSendDelayToMax();
 

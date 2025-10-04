@@ -53,7 +53,6 @@ add_subdirectory(src/settings/settings-manager)
 target_sources(
     ${CMAKE_PROJECT_NAME} PRIVATE    
     src/Application.cxx
-    src/sync.cxx
 
     src/analog_to_digital/AnalogDigital.cxx
     src/hall_encoder/AS5600.cxx

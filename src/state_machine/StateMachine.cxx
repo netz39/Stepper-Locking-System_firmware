@@ -12,8 +12,8 @@ using util::wrappers::NotifyAction;
     // wait some time to get steady switches states
     vTaskDelay(toOsTicks(550.0_ms));
 
-    sync::waitForAll(sync::ConfigurationLoaded);
-    sync::signal(sync::StateMachineStarted);
+    syncEventGroup.waitBits(sync::ConfigurationLoaded, false, true, portMAX_DELAY);
+    syncEventGroup.setBits(sync::StateMachineStarted);
 
     while (true)
     {
